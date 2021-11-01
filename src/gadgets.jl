@@ -1,8 +1,8 @@
 abstract type Pattern end
-struct TShape{VH,CON} end
-struct Corner{CON} end
-struct Turn end
-struct Cross{CON} end
+struct TShape{VH,CON} <: Pattern end
+struct Corner{CON} <: Pattern end
+struct Turn <: Pattern end
+struct Cross{CON} <: Pattern end
 iscon(::TShape{VH,CON}) where {VH, CON} = CON
 iscon(::Corner{CON}) where {CON} = CON
 iscon(::Cross{CON}) where {CON} = CON
@@ -260,3 +260,13 @@ function mapped_graph(::Corner{false})
     locs = [(0,0), (2,2)]
     locs, unitdisk_graph(locs, 1.5), [1,2]
 end
+
+export vertex_overhead, mis_overhead
+function vertex_overhead(p::Pattern)
+    nv(mapped_graph(p)[2]) - nv(source_graph(p)[1])
+end
+
+for T in [:TShape, :Cross, :Turn, :(Corner{true})]
+    @eval mis_overhead(p::$T) = -1
+end
+@eval mis_overhead(p::Corner{false}) = -2

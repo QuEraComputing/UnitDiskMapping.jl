@@ -61,21 +61,28 @@ function showitem(io, x)
     end
 end
 
+# TODO:
+# 1. check if the resulting graph is a unit-disk
+# 2. recover the original graph
+# 3. map the solution back to the original graph
+# 4. other simplification rules
 function apply_gadgets!(ug::UGrid, ruleset=(
                     Cross{false}(), Cross{true}(), TShape{:H,false}(), TShape{:H,true}(),
                     TShape{:V,false}(), TShape{:V,true}(), Turn(), Corner{true}(), Corner{false}()
                 ))
+    tape = Tuple{Pattern,Int,Int}[]
     for j=1:size(ug.content, 2)
         for i=1:size(ug.content, 1)
             for pattern in ruleset
                 if match(pattern, ug.content, i, j)
                     apply_gadget!(pattern, ug.content, i, j)
+                    push!(tape, (pattern, i, j))
                     break
                 end
             end
         end
     end
-    return ug
+    return ug, tape
 end
 
 function unitdisk_graph(locs::AbstractVector, unit::Real)

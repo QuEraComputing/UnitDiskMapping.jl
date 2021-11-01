@@ -27,7 +27,9 @@ using GraphTensorNetworks: content
         locs, g2, pins2 = mapped_graph(s)
         m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), "size max"))
         m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), "size max"))
-        @test is_diff_by_const(content.(m1), content.(m2))[1]
+        sig, diff = is_diff_by_const(content.(m1), content.(m2))
+        @test diff == -mis_overhead(s)
+        @test sig
     end
 end
 

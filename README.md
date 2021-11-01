@@ -31,3 +31,65 @@ For current master
 ```julia
 pkg> add UnitDiskMapping#master
 ```
+
+## Example
+```julia
+julia> using Graphs, UnitDiskMapping
+
+julia> g = smallgraph(:bull)
+{5, 5} undirected simple Int64 graph
+
+julia> eg = embed_graph(g, 3)
+● ○ ● ○ ● ○ ◆ ○ ● ○ ● ○ ◆ ○ ● ○ ● ○ ◉ ○ ● ○ ● ○ ◉ 
+            ○           ○           ○           ○ 
+            ●           ●           ●           ● 
+            ○           ○           ○           ○ 
+            ●           ●           ●           ● 
+            ○           ○           ○           ○ 
+            ● ○ ● ○ ● ○ ◆ ○ ● ○ ● ○ ◆ ○ ● ○ ● ○ ◉ 
+                        ○           ○           ○ 
+                        ●           ●           ● 
+                        ○           ○           ○ 
+                        ●           ●           ● 
+                        ○           ○           ○ 
+                        ● ○ ● ○ ● ○ ◉ ○ ● ○ ● ○ ◆ 
+                                    ○           ○ 
+                                    ●           ● 
+                                    ○           ○ 
+                                    ●           ● 
+                                    ○           ○ 
+                                    ● ○ ● ○ ● ○ ◉ 
+                                                ○ 
+                                                ● 
+                                                ○ 
+                                                ● 
+                                                ○ 
+                                                ● 
+
+julia> apply_gadgets!(copy(eg))
+● ○ ● ○ ● ○   ○ ● ○ ● ○   ○ ● ○ ● ○ ○ ○ ● ○ ●     
+            ○           ○                         
+            ●           ●           ●           ● 
+            ○           ○           ○           ○ 
+            ●         ○           ○             ● 
+              ○     ○ ○ ○       ○ ○ ○           ○ 
+                ● ○   ○   ○ ● ○   ○   ○ ● ○ ●   ○ 
+                      ○           ○             ○ 
+                        ●           ●           ● 
+                        ○           ○           ○ 
+                        ●           ●           ● 
+                          ○         ○           ○ 
+                            ● ○ ● ○ ○ ○ ● ○ ● ○   
+                                  ○ ○ ○         ○ 
+                                    ●           ● 
+                                    ○           ○ 
+                                    ●           ● 
+                                      ○         ○ 
+                                        ● ○ ●   ○ 
+                                                ○ 
+                                                ● 
+                                                ○ 
+                                                ● 
+                                                ○ 
+                                                ● 
+```

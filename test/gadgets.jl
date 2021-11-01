@@ -27,9 +27,37 @@ using GraphTensorNetworks: content
         locs, g2, pins2 = mapped_graph(s)
         m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), "size max"))
         m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), "size max"))
+        @show m1, m2
         sig, diff = is_diff_by_const(content.(m1), content.(m2))
         @test diff == -mis_overhead(s)
         @test sig
     end
 end
 
+s = Cross{false}()
+g1, pins1 = source_graph(s)
+locs, g2, pins2 = mapped_graph(s)
+solve(Independence(g1, openvertices=pins1), "configs max")
+solve(Independence(g2, openvertices=pins1), "configs max")
+
+function compact_map(a::AbstractArray{T}) where T
+    b = mis_compactify!(copy(a))
+    n = length(a)
+    d = Dict{Int,Int}()  # the mapping from bad to good
+    for i=1:n
+        val_a = a[i]
+        if iszero(b[i]) && !iszero(val_a)
+            bs_a = i-1
+            for j=1:n # search for the entry b[j] compactify a[i]
+                bs_b = j-1
+                if b[j] == val_a && (bs_b & bs_a) == bs_b  # find you!
+                    d[bs_a] = bs_b
+                    break
+                end
+            end
+        else
+            d[i-1] = i-1
+        end
+    end
+    return d
+end

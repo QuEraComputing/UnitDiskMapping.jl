@@ -1,6 +1,10 @@
 using UnitDiskMapping
 using Test
 
-@testset "UnitDiskMapping.jl" begin
-    # Write your tests here.
+@testset "mapping" begin
+    include("mapping.jl")
+end
+
+@testset "gadgets" begin
+    include("gadgets.jl")
 end

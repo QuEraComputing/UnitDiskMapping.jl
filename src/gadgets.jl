@@ -10,22 +10,23 @@ iscon(::Turn) = false
 
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
+    m, n = size(p)
     locs, graph, openvertices = source_graph(p)
-    return locs2matrix(locs, openvertices, iscon(p))
+    return locs2matrix(m, n, locs, iscon(p))
 end
 
 function mapped_matrix(p::Pattern)
+    m, n = size(p)
     locs, graph, openvertices = mapped_graph(p)
-    return locs2matrix(locs, openvertices, iscon(p))
+    return locs2matrix(m, n, locs, iscon(p))
 end
 
-function locs2matrix(locs::AbstractVector{Tuple{Int,Int}}, openvertices, iscon)
-    m, n, dx, dy = _size_shift(locs, openvertices)
+function locs2matrix(m, n, locs::AbstractVector{Tuple{Int,Int}}, iscon)
     a = zeros(Int, m, n)
     for (i, j) in locs
-        a[i+dx, j+dy] += 1
-        if a[i+dx, j+dy] == 2 && iscon
-            a[i+dx, j+dy] = -2
+        a[i, j] += 1
+        if a[i, j] == 2 && iscon
+            a[i, j] = -2
         end
     end
     return a
@@ -37,10 +38,16 @@ function Base.match(p::Pattern, matrix, i, j)
     all(ci->safe_get(matrix, i+ci.I[1]-1, j+ci.I[2]-1) == a[ci], CartesianIndices((m, n)))
 end
 
+function unmatch(p::Pattern, matrix, i, j)
+    a = mapped_matrix(p)
+    m, n = size(a)
+    all(ci->safe_get(matrix, i+ci.I[1]-1, j+ci.I[2]-1) == a[ci], CartesianIndices((m, n)))
+end
+
 function safe_get(matrix, i, j)
     m, n = size(matrix)
     (i<1 || i>m || j<1 || j>n) && return 0
-    return @inbounds matrix[i, j]
+    return matrix[i, j]
 end
 
 function safe_set!(matrix, i, j, val)
@@ -48,45 +55,28 @@ function safe_set!(matrix, i, j, val)
     if i<1 || i>m || j<1 || j>n
         @assert val == 0
     else
-        @inbounds matrix[i, j] = val
+        matrix[i, j] = val
     end
     return val
 end
 
 
-function apply_gadgets!(p, matrix, i, j)
+function apply_gadget!(p::Pattern, matrix, i, j)
     a = mapped_matrix(p)
     m, n = size(a)
     for ci in CartesianIndices((m, n))
-        safe_set!(matrix, i+ci.I[1]-1, i+ci.I[2]-1, a[ci])  # e.g. the Corner gadget requires safe set
+        safe_set!(matrix, i+ci.I[1]-1, j+ci.I[2]-1, a[ci])  # e.g. the Corner gadget requires safe set
     end
     return matrix
 end
 
-function Base.size(p::Pattern)
-    locs, graph, openvertices = source_graph(p)
-    xmax, ymax, xoffset, yoffset = _size_shift(locs, openvertices)
-    return xmax+xoffset, ymax+yoffset
-end
-
-function _size_shift(locs, openvertices)
-    xmin = ymin = 100
-    xmax = ymax = 0
-    for (i,(x, y)) in enumerate(locs)
-        if i ∈ openvertices
-            xmax = max(x, xmax)
-            ymax = max(y, ymax)
-            xmin = min(x, xmin)
-            ymin = min(y, ymin)
-        else
-            xmax = max(x+1, xmax)
-            ymax = max(y+1, ymax)
-            xmin = min(x-1, xmin)
-            ymin = min(y-1, ymin)
-        end
+function unapply_gadget!(p, matrix, i, j)
+    a = source_matrix(p)
+    m, n = size(a)
+    for ci in CartesianIndices((m, n))
+        safe_set!(matrix, i+ci.I[1]-1, j+ci.I[2]-1, a[ci])  # e.g. the Corner gadget requires safe set
     end
-    #@show xmax, xmin, ymax, ymin
-    return xmax-xmin+1, ymax-ymin+1, -xmin+1, -ymin+1
+    return matrix
 end
 
 function embed_graph(g::SimpleGraph, zoom_level::Int)
@@ -98,7 +88,7 @@ function embed_graph(g::SimpleGraph, zoom_level::Int)
 end
 
 function source_graph(::Cross{false})
-    locs = [(1,0), (1,1), (1,2), (1,3), (1,4), (0,2), (1,2), (2,2), (3,2)]
+    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)]
     g = SimpleGraph(9)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)]
         add_edge!(g, i, j)
@@ -106,26 +96,28 @@ function source_graph(::Cross{false})
     return locs, g, [1,6,9,5]
 end
 function mapped_graph(::Cross{false})
-    locs = [(1,0), (1,1), (1,2), (1,3), (1,4), (2,1), (2,2), (2,3), (3,2), (0,2)]
+    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (3,2), (3,3), (3,4), (4,3), (1,3)]
     locs, unitdisk_graph(locs, 1.5), [1,9,10,5]
 end
+Base.size(::Cross{false}) = (4, 5)
 function source_graph(::Cross{true})
     g = SimpleGraph(11)
-    locs = [(3,0), (3,1), (3,2), (3,3), (3,4), (0,3), (1,3), (2,3), (3,3), (4,3), (5,3)]
+    locs = [(4,1), (4,2), (4,3), (4,4), (4,5), (1,4), (2,4), (3,4), (4,4), (5,4), (6,4)]
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9), (9,10), (10, 11), (4,9)]
         add_edge!(g, i, j)
     end
     return locs, g, [1,6,11,5]
 end
 function mapped_graph(::Cross{true})
-    locs = [(3,0), (2,1), (2,2), (2,3), (3,4), (0,3), (1,2), (3,2), (4,2), (5, 3)]
+    locs = [(4,1), (3,2), (3,3), (3,4), (4,5), (1,4), (2,3), (4,3), (5,3), (6, 4)]
     locs, unitdisk_graph(locs, 1.5), [1,6,10,5]
 end
+Base.size(::Cross{true}) = (6, 5)
 
 # ● ◆ ● 
 #   ●
 function source_graph(::TShape{:H,true})
-    locs = [(0,0), (0,1), (0,2), (0,3), (0,4), (2,2), (1,2), (0,2)]
+    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (4,3), (3,3), (2,3)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (3,6)]
         add_edge!(g, i, j)
@@ -135,12 +127,13 @@ end
 # ● ◉ ● 
 #   ●
 function mapped_graph(::TShape{:H,true})
-    locs = [(0, 0), (0,1), (0,3), (0,4), (1,2), (2,2)]
+    locs = [(2, 1), (2,2), (2,4), (2,5), (3,3), (4,3)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
+Base.size(::TShape{:V}) = (5, 4)
 
 function source_graph(::TShape{:H,false}) where VH
-    locs = [(0,0), (0,1), (0,2), (0,3), (0,4), (2,2), (1,2), (0,2)]
+    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (4,3), (3,3), (2,3)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
         add_edge!(g, i, j)
@@ -148,22 +141,23 @@ function source_graph(::TShape{:H,false}) where VH
     return locs, g, [1,5,6]
 end
 function mapped_graph(::TShape{:H,false})
-    locs = [(2, 0), (2,1), (2,3), (2,4), (2,2), (0,2)]
+    locs = [(2, 1), (2,2), (2,4), (2,5), (2,3), (4,3)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
+Base.size(::TShape{:H}) = (4, 5)
 
 function source_graph(::TShape{:V,C}) where C
     locs, graph, pins = source_graph(TShape{:H,C}())
-    map(x->(x[2], 2-x[1]), locs), graph, pins
+    map(x->(x[2], 5-x[1]), locs), graph, pins
 end
 
 function mapped_graph(::TShape{:V,C}) where C
     locs, graph, pins = mapped_graph(TShape{:H,C}())
-    map(x->(x[2], 2-x[1]), locs), graph, pins
+    map(x->(x[2], 5-x[1]), locs), graph, pins
 end
 
 function source_graph(::Turn)
-    locs = [(0,0), (1,0), (2,0), (2,1), (2,2)]
+    locs = [(1,2), (2,2), (3,2), (3,3), (3,4)]
     g = SimpleGraph(5)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5)]
         add_edge!(g, i, j)
@@ -171,12 +165,13 @@ function source_graph(::Turn)
     return locs, g, [1,5]
 end
 function mapped_graph(::Turn)
-    locs = [(0,0), (1,1), (2,2)]
+    locs = [(1,2), (2,3), (3,4)]
     locs, unitdisk_graph(locs, 1.5), [1,3]
 end
+Base.size(::Turn) = (4, 4)
 
 function source_graph(::Corner{true})
-    locs = [(0,0), (0,1), (0,2), (0,2), (1,2), (2,2)]
+    locs = [(2,1), (2,2), (2,3), (2,3), (3,3), (4,3)]
     g = SimpleGraph(6)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (5,6)]
         add_edge!(g, i, j)
@@ -184,11 +179,11 @@ function source_graph(::Corner{true})
     return locs, g, [1,6]
 end
 function mapped_graph(::Corner{true})
-    locs = [(0,0), (0,1), (1,2), (2,2)]
+    locs = [(2,1), (2,2), (3,3), (4,3)]
     locs, unitdisk_graph(locs, 1.5), [1,4]
 end
 function source_graph(::Corner{false})
-    locs = [(0,0), (0,1), (0,2), (0,2), (1,2), (2,2)]
+    locs = [(2,1), (2,2), (2,3), (2,3), (3,3), (4,3)]
     g = SimpleGraph(6)
     for (i,j) in [(1,2), (2,3), (4,5), (5,6)]
         add_edge!(g, i, j)
@@ -196,9 +191,10 @@ function source_graph(::Corner{false})
     return locs, g, [1,6]
 end
 function mapped_graph(::Corner{false})
-    locs = [(0,0), (2,2)]
+    locs = [(2,1), (4,3)]
     locs, unitdisk_graph(locs, 1.5), [1,2]
 end
+Base.size(::Corner) = (4, 4)
 
 export vertex_overhead, mis_overhead
 function vertex_overhead(p::Pattern)

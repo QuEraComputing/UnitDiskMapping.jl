@@ -4,6 +4,8 @@ struct UGrid
     zoom_level::Int
 end
 
+Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.zoom_level == ug2.zoom_level && ug.content == ug2.content
+
 function UGrid(n::Int, zoom_level::Int)
     s = 2*zoom_level
     N = (n-1)*s+1
@@ -85,6 +87,14 @@ function apply_gadgets!(ug::UGrid, ruleset=(
         end
     end
     return ug, tape
+end
+
+function unapply_gadgets!(ug::UGrid, tape)
+    for (pattern, i, j) in Base.Iterators.reverse(tape)
+        @assert unmatch(pattern, ug.content, i, j)
+        unapply_gadget!(pattern, ug.content, i, j)
+    end
+    return ug
 end
 
 function unitdisk_graph(locs::AbstractVector, unit::Real)

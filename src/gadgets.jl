@@ -6,167 +6,67 @@ struct Cross{CON} <: Pattern end
 iscon(::TShape{VH,CON}) where {VH, CON} = CON
 iscon(::Corner{CON}) where {CON} = CON
 iscon(::Cross{CON}) where {CON} = CON
+iscon(::Turn) = false
 
-function Base.match(::Cross{false}, matrix, i, j)  # needs additional check to detect environment
-    matrix[i, j] == 2 || return false
-    if j<3 || j>size(matrix, 2)-2 || i<2 || i > size(matrix, 1)-2
-        return false
-    end
-    @inbounds for j_=j-2:j+2
-        for i_=i-1:i+2
-            if i_ == i
-                if j_ != j
-                    abs(matrix[i_, j_]) == 1 || return false
-                end
-            elseif j==j_
-                abs(matrix[i_, j_]) == 1 || return false
-            else
-                matrix[i_, j_] == 0 || return false
-            end
+export source_matrix, mapped_matrix
+function source_matrix(p::Pattern)
+    locs, graph, openvertices = source_graph(p)
+    return locs2matrix(locs, iscon(p))
+end
+
+function mapped_matrix(p::Pattern)
+    locs, graph, openvertices = mapped_graph(p)
+    return locs2matrix(locs, iscon(p))
+end
+
+function locs2matrix(locs::AbstractVector{Tuple{Int,Int}}, iscon)
+    m, n = maximum(x->x[1], locs)+1, maximum(x->x[2], locs)+1
+    a = zeros(Int, m, n)
+    for (i, j) in locs
+        a[i+1, j+1] += 1
+        if a[i+1, j+1] == 2 && iscon
+            a[i+1, j+1] = -2
         end
     end
-    return true
+    return a
 end
 
-function Base.match(::Cross{true}, matrix, i, j)  # needs additional check to detect environment
-    matrix[i, j] == -2 || return false
-    if j<4 || j>size(matrix, 2)-1 || i<4 || i > size(matrix, 1)-2
-        return false
+function Base.match(p::Pattern, matrix, i, j)
+    a = source_matrix(p)
+    m, n = size(a)
+    all(ci->safe_get(matrix, i+ci.I[1]-1, j+ci.I[2]-1) == a[ci], CartesianIndices((m, n)))
+end
+
+function safe_get(matrix, i, j)
+    m, n = size(matrix)
+    (i<1 || i>m || j<1 || j>n) && return 0
+    return @inbounds matrix[i, j]
+end
+
+function safe_set!(matrix, i, j, val)
+    m, n = size(matrix)
+    if i<1 || i>m || j<1 || j>n
+        @assert val == 0
+    else
+        @inbounds matrix[i, j] = val
     end
-    for j_=j-3:j+1
-        for i_=i-3:i+2
-            if i_ == i
-                if j_ != j
-                    abs(matrix[i_, j_]) == 1 || return false
-                end
-            elseif j==j_
-                abs(matrix[i_, j_]) == 1 || return false
-            else
-                matrix[i_, j_] == 0 || return false
-            end
-        end
+    return val
+end
+
+
+function apply_gadgets!(p, matrix, i, j)
+    a = mapped_matrix(p)
+    m, n = size(a)
+    for ci in CartesianIndices((m, n))
+        safe_set!(matrix, i+ci.I[1]-1, i+ci.I[2]-1, a[ci])  # e.g. the Corner gadget requires safe set
     end
-    return true
-end
-
-function Base.match(s::TShape{:H}, matrix, i, j)
-    matrix[i, j] == (iscon(s) ? -2 : 2) || return false
-    i==1 && j!=1 && j!=size(matrix, 2) || return false
-    return abs(matrix[1,j-1]) == abs(matrix[1,j+1]) == abs(matrix[2,j]) == 1 && matrix[2,j+1] == matrix[2,j-1] == 0
-end
-
-function Base.match(s::TShape{:V}, matrix, i, j)
-    matrix[i, j] == (iscon(s) ? -2 : 2) || return false
-    j==size(matrix, 2) && i!=1 && i!=size(matrix, 1) || return false
-    return abs(matrix[i-1,end]) == abs(matrix[i+1,end]) == abs(matrix[i,end-1]) == 1 && matrix[i+1,end-1] == matrix[i-1,end-1] == 0
-end
-
-function Base.match(::Turn, matrix, i, j)
-    i >= 3 && j<=size(matrix, 2)-2 || return false
-    for i_=i-2:i
-        for j_=j:j+2
-            if i_ == i || j_ == j
-                abs(matrix[i_,j_]) == 1 || return false
-            else
-                matrix[i_,j_] == 0 || return false
-            end
-        end
-    end
-    return true
-end
-
-function Base.match(s::Corner, matrix, i, j)
-    j == size(matrix, 2) && i==1 || return false
-    for j_=j-2:j
-        for i_=i:i+2
-            if i_ == i && j_ == j
-                matrix[i_, j_] == (iscon(s) ? -2 : 2) || return false
-            elseif i_ == i || j_ == j
-                abs(matrix[i_,j_]) == 1 || return false
-            else
-                matrix[i_,j_] == 0 || return false
-            end
-        end
-    end
-    return true
-end
-
-#   1
-# 2-o-2
-#   2
-function apply_gadget!(::Cross{false}, matrix, i, j)
-    matrix[i, j] = 1
-    matrix[i-1, j] = 1
-    matrix[i+1, j-1] = 1
-    matrix[i+1, j+1] = 1
     return matrix
 end
 
-#   3
-# 3-o-1
-#   2
-function apply_gadget!(::Cross{true}, matrix, i, j)
-    matrix[i, j-2] = 0
-    matrix[i, j] = 0
-    matrix[i-2, j] = 0
-    matrix[i+1, j] = 0
-    matrix[i-1,j-2] = 1
-    matrix[i-2,j-1] = 1
-    matrix[i-1,j-1] = 1
-    matrix[i+1,j-1] = 1
-    return matrix
+function Base.size(p::Pattern)
+    locs, graph, openvertices = source_graph(p)
+    maximum(x->x[1], locs)+1, maximum(x->x[2], locs)+1
 end
-
-# 1-o-1
-#   1
-function apply_gadget!(::TShape{:H, false}, matrix, i, j)
-    matrix[i, j] = 1
-    matrix[i+1, j] = 0
-    return matrix
-end
-function apply_gadget!(::TShape{:H, true}, matrix, i, j)
-    matrix[i, j] = 0
-    return matrix
-end
-
-#   1
-# 1-o
-#   1
-function apply_gadget!(::TShape{:V, false}, matrix, i, j)
-    matrix[i, j] = 1
-    matrix[i, j-1] = 0
-    return matrix
-end
-function apply_gadget!(::TShape{:V, true}, matrix, i, j)
-    matrix[i, j] = 0
-    return matrix
-end
-
-#  2
-#  o2
-function apply_gadget!(::Turn, matrix, i, j)
-    matrix[i, j] = 0
-    matrix[i-1, j] = 0
-    matrix[i, j+1] = 0
-    matrix[i-1, j+1] = 1
-    return matrix
-end
-
-#  2
-#  o2
-function apply_gadget!(::Corner{false}, matrix, i, j)
-    matrix[i, j] = 0
-    matrix[i+1, j] = 0
-    matrix[i, j-1] = 0
-    return matrix
-end
-
-function apply_gadget!(::Corner{true}, matrix, i, j)
-    matrix[i, j] = 0
-    return matrix
-end
-
-using Graphs
 
 function embed_graph(g::SimpleGraph, zoom_level::Int)
     ug = UGrid(nv(g), zoom_level)
@@ -177,7 +77,7 @@ function embed_graph(g::SimpleGraph, zoom_level::Int)
 end
 
 function source_graph(::Cross{false})
-    locs = [(0,1), (1,1), (1,2), (1,3), (1,4), (0,2), (1,2), (2,2), (3,2)]
+    locs = [(1,0), (1,1), (1,2), (1,3), (1,4), (0,2), (1,2), (2,2), (3,2)]
     g = SimpleGraph(9)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)]
         add_edge!(g, i, j)

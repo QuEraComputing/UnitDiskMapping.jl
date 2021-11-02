@@ -73,8 +73,8 @@ function apply_gadgets!(ug::UGrid, ruleset=(
                     TShape{:V,false}(), TShape{:V,true}(), Turn(), Corner{true}(), Corner{false}()
                 ))
     tape = Tuple{Pattern,Int,Int}[]
-    for j=1:size(ug.content, 2)
-        for i=1:size(ug.content, 1)
+    for j=0:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
+        for i=0:size(ug.content, 1)
             for pattern in ruleset
                 if match(pattern, ug.content, i, j)
                     apply_gadget!(pattern, ug.content, i, j)

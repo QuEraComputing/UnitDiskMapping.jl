@@ -11,21 +11,21 @@ iscon(::Turn) = false
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     locs, graph, openvertices = source_graph(p)
-    return locs2matrix(locs, iscon(p))
+    return locs2matrix(locs, openvertices, iscon(p))
 end
 
 function mapped_matrix(p::Pattern)
     locs, graph, openvertices = mapped_graph(p)
-    return locs2matrix(locs, iscon(p))
+    return locs2matrix(locs, openvertices, iscon(p))
 end
 
-function locs2matrix(locs::AbstractVector{Tuple{Int,Int}}, iscon)
-    m, n = maximum(x->x[1], locs)+1, maximum(x->x[2], locs)+1
+function locs2matrix(locs::AbstractVector{Tuple{Int,Int}}, openvertices, iscon)
+    m, n, dx, dy = _size_shift(locs, openvertices)
     a = zeros(Int, m, n)
     for (i, j) in locs
-        a[i+1, j+1] += 1
-        if a[i+1, j+1] == 2 && iscon
-            a[i+1, j+1] = -2
+        a[i+dx, j+dy] += 1
+        if a[i+dx, j+dy] == 2 && iscon
+            a[i+dx, j+dy] = -2
         end
     end
     return a
@@ -65,7 +65,28 @@ end
 
 function Base.size(p::Pattern)
     locs, graph, openvertices = source_graph(p)
-    maximum(x->x[1], locs)+1, maximum(x->x[2], locs)+1
+    xmax, ymax, xoffset, yoffset = _size_shift(locs, openvertices)
+    return xmax+xoffset, ymax+yoffset
+end
+
+function _size_shift(locs, openvertices)
+    xmin = ymin = 100
+    xmax = ymax = 0
+    for (i,(x, y)) in enumerate(locs)
+        if i ∈ openvertices
+            xmax = max(x, xmax)
+            ymax = max(y, ymax)
+            xmin = min(x, xmin)
+            ymin = min(y, ymin)
+        else
+            xmax = max(x+1, xmax)
+            ymax = max(y+1, ymax)
+            xmin = min(x-1, xmin)
+            ymin = min(y-1, ymin)
+        end
+    end
+    @show xmax, xmin
+    return @show xmax-xmin+1, ymax-xmin+1, -xmin+1, -ymin+1
 end
 
 function embed_graph(g::SimpleGraph, zoom_level::Int)
@@ -101,16 +122,20 @@ function mapped_graph(::Cross{true})
     locs, unitdisk_graph(locs, 1.5), [1,6,10,5]
 end
 
+# ● ◆ ● 
+#   ●
 function source_graph(::TShape{:H,true})
-    locs = [(2,0), (2,1), (2,2), (2,3), (2,4), (0,2), (1,2), (2,2)]
+    locs = [(0,0), (0,1), (0,2), (0,3), (0,4), (2,2), (1,2), (0,2)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (3,6)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,8]
+    return locs, g, [1,5,6]
 end
+# ● ◉ ● 
+#   ●
 function mapped_graph(::TShape{:H,true})
-    locs = [(2, 0), (2,1), (2,3), (2,4), (1,2), (0,2)]
+    locs = [(0, 0), (0,1), (0,3), (0,4), (1,2), (2,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
 
@@ -129,12 +154,12 @@ end
 
 function source_graph(::TShape{:V,C}) where C
     locs, graph, pins = source_graph(TShape{:H,C}())
-    map(x->(x[2], x[1]), locs), graph, pins
+    map(x->(x[2], 2-x[1]), locs), graph, pins
 end
 
 function mapped_graph(::TShape{:V,C}) where C
     locs, graph, pins = mapped_graph(TShape{:H,C}())
-    map(x->(x[2], x[1]), locs), graph, pins
+    map(x->(x[2], 2-x[1]), locs), graph, pins
 end
 
 function source_graph(::Turn)

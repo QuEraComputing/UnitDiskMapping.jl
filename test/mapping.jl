@@ -7,6 +7,6 @@ using Graphs
     for (s, c) in zip((Cross{false}(), Cross{true}(), TShape{:V, true}(), TShape{:V,false}(),
             TShape{:H,true}(), TShape{:H, false}(), Turn(), Corner{true}(), Corner{false}()), (1,2,1,2,2,1,3,0,1))
         @show s
-        @test sum(match.(Ref(s), Ref(ug.content), (1:size(ug.content, 1))', 1:size(ug.content,2))) == c
+        @test sum(match.(Ref(s), Ref(ug.content), (0:size(ug.content, 1))', 0:size(ug.content,2))) == c
     end
 end

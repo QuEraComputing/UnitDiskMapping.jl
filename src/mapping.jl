@@ -41,7 +41,7 @@ function crossat(ug::UGrid, i, j)
     return (i-1)*s+1, (j-1)*s+1
 end
 function Graphs.add_edge!(ug::UGrid, i, j)
-    ug.content[crossat(ug, i, j)...] = 3
+    ug.content[crossat(ug, i, j)...] = -2
     return ug
 end
 
@@ -54,7 +54,7 @@ function showitem(io, x)
         print(io, "○")
     elseif x == 2
         print(io, "◉")
-    elseif x == 3
+    elseif x == -2
         print(io, "◆")
     else
         print(io, "?")

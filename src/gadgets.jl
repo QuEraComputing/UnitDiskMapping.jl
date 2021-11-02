@@ -29,7 +29,7 @@ function Base.match(::Cross{false}, matrix, i, j)  # needs additional check to d
 end
 
 function Base.match(::Cross{true}, matrix, i, j)  # needs additional check to detect environment
-    matrix[i, j] == 3 || return false
+    matrix[i, j] == -2 || return false
     if j<4 || j>size(matrix, 2)-1 || i<4 || i > size(matrix, 1)-2
         return false
     end
@@ -50,13 +50,13 @@ function Base.match(::Cross{true}, matrix, i, j)  # needs additional check to de
 end
 
 function Base.match(s::TShape{:H}, matrix, i, j)
-    matrix[i, j] == (iscon(s) ? 3 : 2) || return false
+    matrix[i, j] == (iscon(s) ? -2 : 2) || return false
     i==1 && j!=1 && j!=size(matrix, 2) || return false
     return abs(matrix[1,j-1]) == abs(matrix[1,j+1]) == abs(matrix[2,j]) == 1 && matrix[2,j+1] == matrix[2,j-1] == 0
 end
 
 function Base.match(s::TShape{:V}, matrix, i, j)
-    matrix[i, j] == (iscon(s) ? 3 : 2) || return false
+    matrix[i, j] == (iscon(s) ? -2 : 2) || return false
     j==size(matrix, 2) && i!=1 && i!=size(matrix, 1) || return false
     return abs(matrix[i-1,end]) == abs(matrix[i+1,end]) == abs(matrix[i,end-1]) == 1 && matrix[i+1,end-1] == matrix[i-1,end-1] == 0
 end
@@ -80,7 +80,7 @@ function Base.match(s::Corner, matrix, i, j)
     for j_=j-2:j
         for i_=i:i+2
             if i_ == i && j_ == j
-                matrix[i_, j_] == (iscon(s) ? 3 : 2) || return false
+                matrix[i_, j_] == (iscon(s) ? -2 : 2) || return false
             elseif i_ == i || j_ == j
                 abs(matrix[i_,j_]) == 1 || return false
             else

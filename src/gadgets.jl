@@ -85,8 +85,8 @@ function _size_shift(locs, openvertices)
             ymin = min(y-1, ymin)
         end
     end
-    @show xmax, xmin
-    return @show xmax-xmin+1, ymax-xmin+1, -xmin+1, -ymin+1
+    #@show xmax, xmin, ymax, ymin
+    return xmax-xmin+1, ymax-ymin+1, -xmin+1, -ymin+1
 end
 
 function embed_graph(g::SimpleGraph, zoom_level::Int)
@@ -140,12 +140,12 @@ function mapped_graph(::TShape{:H,true})
 end
 
 function source_graph(::TShape{:H,false}) where VH
-    locs = [(2,0), (2,1), (2,2), (2,3), (2,4), (0,2), (1,2), (2,2)]
+    locs = [(0,0), (0,1), (0,2), (0,3), (0,4), (2,2), (1,2), (0,2)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,8]
+    return locs, g, [1,5,6]
 end
 function mapped_graph(::TShape{:H,false})
     locs = [(2, 0), (2,1), (2,3), (2,4), (2,2), (0,2)]

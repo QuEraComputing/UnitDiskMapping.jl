@@ -205,3 +205,18 @@ for T in [:TShape, :Cross, :Turn, :(Corner{true})]
     @eval mis_overhead(p::$T) = -1
 end
 @eval mis_overhead(p::Corner{false}) = -2
+
+export mapped_boundary_config, source_boundary_config
+function mapped_boundary_config(p::Pattern, config)
+    _boundary_config(mapped_graph(p)[3], config)
+end
+function source_boundary_config(p::Pattern, config)
+    _boundary_config(source_graph(p)[3], config)
+end
+function _boundary_config(pins, config)
+    res = 0
+    for (i,p) in enumerate(pins)
+        res += Int(config[p]) << (i-1)
+    end
+    return res
+end

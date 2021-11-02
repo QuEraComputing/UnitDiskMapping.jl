@@ -1,5 +1,5 @@
 using UnitDiskMapping, Test
-using Graphs
+using Graphs, GraphTensorNetworks
 
 @testset "crossing connect count" begin
     g = smallgraph(:bull)
@@ -14,6 +14,18 @@ using Graphs
             TShape{:H,true}(), TShape{:H, false}(), Turn(), Corner{true}(), Corner{false}()]
         @test sum(match.(Ref(s), Ref(mug.content), (0:size(mug.content, 1))', 0:size(mug.content,2))) == 0
     end
-    ug2 = unapply_gadgets!(copy(mug), tape)
+    ug2 = unapply_gadgets!(copy(mug), tape, [])
     @test ug == ug2
+end
+
+@testset "map configurations back" begin
+    g = smallgraph(:petersen)
+    k = 3
+    ug = embed_graph(g, k)
+    mis_overhead0 = k * nv(g) * (nv(g)-1)
+    ug2, tape = apply_gadgets!(copy(ug))
+    mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
+    missize_map = solve(Independence(SimpleGraph(ug2)), "size max")[].n
+    missize = solve(Independence(g), "size max")[].n
+    @test mis_overhead0 + mis_overhead1 + missize == missize_map
 end

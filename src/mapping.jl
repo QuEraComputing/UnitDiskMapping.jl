@@ -28,6 +28,13 @@ function UGrid(n::Int, zoom_level::Int)
     return UGrid(n, u, zoom_level)
 end
 
+function SimpleGraph(ug::UGrid)
+    if any(x->abs(x)>1, ug.content)
+        error("This mapping is not done yet!")
+    end
+    return unitdisk_graph([ci.I for ci in findall(!iszero, ug.content)], 1.6)
+end
+
 function Base.show(io::IO, ug::UGrid)
     for i=1:size(ug.content, 1)
         for j=1:size(ug.content, 2)
@@ -89,9 +96,12 @@ function apply_gadgets!(ug::UGrid, ruleset=(
     return ug, tape
 end
 
-function unapply_gadgets!(ug::UGrid, tape)
+function unapply_gadgets!(ug::UGrid, tape, configurations)
     for (pattern, i, j) in Base.Iterators.reverse(tape)
         @assert unmatch(pattern, ug.content, i, j)
+        for c in configurations
+            map_config_back!(pattern, ug.content, i, j, c)
+        end
         unapply_gadget!(pattern, ug.content, i, j)
     end
     return ug
@@ -108,3 +118,25 @@ function unitdisk_graph(locs::AbstractVector, unit::Real)
     return g
 end
 
+# returns a vector of configurations
+function _map_config_back(s::Pattern, config)
+    d1 = mapped_entry_to_compact(s)
+    d2 = source_entry_to_configs(s)
+    # get the pin configuration
+    bc = mapped_boundary_config(s, config)
+    return d2[d1[bc]]
+end
+
+function map_config_back!(p::Pattern, matrix, i, j, configuration)
+    m, n = size(p)
+    locs, graph, pins = mapped_graph(p)
+    config = [configuration[i+loc[1]-1, j+loc[2]-1] for loc in locs]
+    newconfig = map_config_back(p, config)
+    # clear canvas
+    configuration[i:i+m-1, j:j+n-1] .= 1
+    locs0, graph0, pins0 = mapped_graph(p)
+    for (i, loc) in enumerate(locs0)
+        configuration[i+loc[1]-1,j+loc[2]-1] = newconfig[i]
+    end
+    return configuration
+end

@@ -12,12 +12,14 @@ function UGrid(n::Int, zoom_level::Int)
         for i=0:n-1
             if i<=j
                 u[max(1, s*i-s+3):2:s*i+1, s*j+1] .= 1
-                i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .= -1)
+                #i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .= -1)
+                i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .= 1)
             else
                 @assert all(==(1), u[s*j+1, s*i+1])
                 u[s*j+1, max(1, s*i-s+3):2:s*i-1] .= 1
                 u[s*j+1, s*i+1] = 2
-                (u[s*j+1, s*i-s+2:2:s*i] .= -1)
+                #(u[s*j+1, s*i-s+2:2:s*i] .= -1)
+                (u[s*j+1, s*i-s+2:2:s*i] .= 1)
             end
         end
     end

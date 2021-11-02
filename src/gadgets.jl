@@ -16,10 +16,10 @@ function Base.match(::Cross{false}, matrix, i, j)  # needs additional check to d
         for i_=i-1:i+2
             if i_ == i
                 if j_ != j
-                    matrix[i_, j_] == 2*iseven(j-j_)-1 || return false
+                    abs(matrix[i_, j_]) == 1 || return false
                 end
             elseif j==j_
-                matrix[i_, j_] == 2*iseven(i-i_)-1 || return false
+                abs(matrix[i_, j_]) == 1 || return false
             else
                 matrix[i_, j_] == 0 || return false
             end
@@ -95,10 +95,10 @@ end
 # 2-o-2
 #   2
 function apply_gadget!(::Cross{false}, matrix, i, j)
-    matrix[i, j] = -1
-    matrix[i-1, j] = -1
-    matrix[i+1, j-1] = -1
-    matrix[i+1, j+1] = -1
+    matrix[i, j] = 1
+    matrix[i-1, j] = 1
+    matrix[i+1, j-1] = 1
+    matrix[i+1, j+1] = 1
     return matrix
 end
 
@@ -110,17 +110,17 @@ function apply_gadget!(::Cross{true}, matrix, i, j)
     matrix[i, j] = 0
     matrix[i-2, j] = 0
     matrix[i+1, j] = 0
-    matrix[i-1,j-2] = -1
-    matrix[i-2,j-1] = -1
-    matrix[i-1,j-1] = -1
-    matrix[i+1,j-1] = -1
+    matrix[i-1,j-2] = 1
+    matrix[i-2,j-1] = 1
+    matrix[i-1,j-1] = 1
+    matrix[i+1,j-1] = 1
     return matrix
 end
 
 # 1-o-1
 #   1
 function apply_gadget!(::TShape{:H, false}, matrix, i, j)
-    matrix[i, j] = -1
+    matrix[i, j] = 1
     matrix[i+1, j] = 0
     return matrix
 end
@@ -133,7 +133,7 @@ end
 # 1-o
 #   1
 function apply_gadget!(::TShape{:V, false}, matrix, i, j)
-    matrix[i, j] = -1
+    matrix[i, j] = 1
     matrix[i, j-1] = 0
     return matrix
 end
@@ -148,7 +148,7 @@ function apply_gadget!(::Turn, matrix, i, j)
     matrix[i, j] = 0
     matrix[i-1, j] = 0
     matrix[i, j+1] = 0
-    matrix[i-1, j+1] = -1
+    matrix[i-1, j+1] = 1
     return matrix
 end
 

@@ -177,11 +177,12 @@ function embed_graph(g::SimpleGraph, zoom_level::Int)
 end
 
 function source_graph(::Cross{false})
+    locs = [(0,1), (1,1), (1,2), (1,3), (1,4), (0,2), (1,2), (2,2), (3,2)]
     g = SimpleGraph(9)
-    for (i,j) in [(6,1), (1,2), (2,3), (3,9), (7,4), (4,5), (5,8)]
+    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)]
         add_edge!(g, i, j)
     end
-    return g, [6,7,8,9]
+    return locs, g, [1,6,9,5]
 end
 function mapped_graph(::Cross{false})
     locs = [(1,0), (1,1), (1,2), (1,3), (1,4), (2,1), (2,2), (2,3), (3,2), (0,2)]
@@ -189,49 +190,60 @@ function mapped_graph(::Cross{false})
 end
 function source_graph(::Cross{true})
     g = SimpleGraph(11)
-    for (i,j) in [(8,1), (1,2), (2,3), (3,11), (10,4), (4,5), (5,6), (6,7), (7,9), (3,5)]
+    locs = [(3,0), (3,1), (3,2), (3,3), (3,4), (0,3), (1,3), (2,3), (3,3), (4,3), (5,3)]
+    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9), (9,10), (10, 11), (4,9)]
         add_edge!(g, i, j)
     end
-    return g, [8,9,10,11]
+    return locs, g, [1,6,11,5]
 end
 function mapped_graph(::Cross{true})
     locs = [(3,0), (2,1), (2,2), (2,3), (3,4), (0,3), (1,2), (3,2), (4,2), (5, 3)]
     locs, unitdisk_graph(locs, 1.5), [1,6,10,5]
 end
 
-function source_graph(::TShape{VH,true}) where VH
+function source_graph(::TShape{:H,true})
+    locs = [(2,0), (2,1), (2,2), (2,3), (2,4), (0,2), (1,2), (2,2)]
     g = SimpleGraph(8)
-    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (3,6), (6,7), (7,8)]
+    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (3,6)]
         add_edge!(g, i, j)
     end
-    return g, [1,5,8]
+    return locs, g, [1,5,8]
 end
 function mapped_graph(::TShape{:H,true})
     locs = [(2, 0), (2,1), (2,3), (2,4), (1,2), (0,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
-function mapped_graph(::TShape{:V,C}) where C
-    locs, graph, pins = mapped_graph(TShape{:H,C}())
-    map(x->(x[2], x[1]), locs), graph, pins
-end
-function source_graph(::TShape{VH,false}) where VH
+
+function source_graph(::TShape{:H,false}) where VH
+    locs = [(2,0), (2,1), (2,2), (2,3), (2,4), (0,2), (1,2), (2,2)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
         add_edge!(g, i, j)
     end
-    return g, [1,5,8]
+    return locs, g, [1,5,8]
 end
 function mapped_graph(::TShape{:H,false})
     locs = [(2, 0), (2,1), (2,3), (2,4), (2,2), (0,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
 
+function source_graph(::TShape{:V,C}) where C
+    locs, graph, pins = source_graph(TShape{:H,C}())
+    map(x->(x[2], x[1]), locs), graph, pins
+end
+
+function mapped_graph(::TShape{:V,C}) where C
+    locs, graph, pins = mapped_graph(TShape{:H,C}())
+    map(x->(x[2], x[1]), locs), graph, pins
+end
+
 function source_graph(::Turn)
+    locs = [(0,0), (1,0), (2,0), (2,1), (2,2)]
     g = SimpleGraph(5)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5)]
         add_edge!(g, i, j)
     end
-    return g, [1,5]
+    return locs, g, [1,5]
 end
 function mapped_graph(::Turn)
     locs = [(0,0), (1,1), (2,2)]
@@ -239,22 +251,24 @@ function mapped_graph(::Turn)
 end
 
 function source_graph(::Corner{true})
+    locs = [(0,0), (0,1), (0,2), (0,2), (1,2), (2,2)]
     g = SimpleGraph(6)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (5,6)]
         add_edge!(g, i, j)
     end
-    return g, [1,6]
+    return locs, g, [1,6]
 end
 function mapped_graph(::Corner{true})
     locs = [(0,0), (0,1), (1,2), (2,2)]
     locs, unitdisk_graph(locs, 1.5), [1,4]
 end
 function source_graph(::Corner{false})
+    locs = [(0,0), (0,1), (0,2), (0,2), (1,2), (2,2)]
     g = SimpleGraph(6)
     for (i,j) in [(1,2), (2,3), (4,5), (5,6)]
         add_edge!(g, i, j)
     end
-    return g, [1,6]
+    return locs, g, [1,6]
 end
 function mapped_graph(::Corner{false})
     locs = [(0,0), (2,2)]

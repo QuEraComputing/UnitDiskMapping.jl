@@ -11,13 +11,13 @@ iscon(::Turn) = false
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     m, n = size(p)
-    locs, graph, openvertices = source_graph(p)
+    locs, _, _, _ = source_graph(p)
     return locs2matrix(m, n, locs, iscon(p))
 end
 
 function mapped_matrix(p::Pattern)
     m, n = size(p)
-    locs, graph, openvertices = mapped_graph(p)
+    locs, _, _ = mapped_graph(p)
     return locs2matrix(m, n, locs, iscon(p))
 end
 
@@ -93,7 +93,7 @@ function source_graph(::Cross{false})
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,6,9,5]
+    return locs, g, [1,6,9,5], [2,2,2,2,2,1,1,1,1]
 end
 function mapped_graph(::Cross{false})
     locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (3,2), (3,3), (3,4), (4,3), (1,3)]
@@ -106,7 +106,7 @@ function source_graph(::Cross{true})
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9), (9,10), (10, 11), (4,9)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,6,11,5]
+    return locs, g, [1,6,11,5], [2,2,2,2,2,1,1,1,1,1,1]
 end
 function mapped_graph(::Cross{true})
     locs = [(4,1), (3,2), (3,3), (3,4), (4,5), (1,4), (2,3), (4,3), (5,3), (6, 4)]
@@ -122,7 +122,7 @@ function source_graph(::TShape{:H,true})
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (3,6)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,6]
+    return locs, g, [1,5,6], [2,2,2,2,2,1,1,1]
 end
 # ● ◉ ● 
 #   ●
@@ -138,7 +138,7 @@ function source_graph(::TShape{:H,false}) where VH
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,6], []
+    return locs, g, [1,5,6], [2,2,2,2,2,1,1,1]
 end
 function mapped_graph(::TShape{:H,false})
     locs = [(2, 1), (2,2), (2,4), (2,5), (2,3), (4,3)]

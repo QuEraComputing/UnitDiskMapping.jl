@@ -104,8 +104,10 @@ function unapply_gadgets!(ug::UGrid, tape, configurations)
         end
         unapply_gadget!(pattern, ug.content, i, j)
     end
-    map_config_copyback!(ug, c)
-    return ug, configurations
+    cfgs = map(configurations) do c
+        map_config_copyback!(ug.n, c, ug.zoom_level)
+    end
+    return ug, cfgs
 end
 
 function unitdisk_graph(locs::AbstractVector, unit::Real)
@@ -137,17 +139,58 @@ function map_config_back!(p::Pattern, i, j, configuration)
     for i_=i:i+m-1, j_=j:j+n-1
         safe_set!(configuration,i_,j_, 0)
     end
-    locs0, graph0, pins0 = source_graph(p)
-    for (k, loc) in enumerate(locs0)
+    locs0, graph0, pins0, belongs = source_graph(p)
+    for (k, (loc, bel)) in enumerate(zip(locs0, belongs))
         configuration[i+loc[1]-1,j+loc[2]-1] += newconfig[k]
     end
     return configuration
 end
 
-function map_config_copyback!(ug::UGrid, c)
-    firstrow = c[1,1:ug.zoom_level*2:end]
-    if c[1,1] == 1
-        firstrow[2:end] .-= 1
+function map_config_copyback!(n, c, zoom_level::Int)
+    store = copy(c)
+    s = 2*zoom_level
+    res = zeros(Int, n)
+    for j=1:n
+        for i=1:(n-1)*s + 1
+            J = (j-1)*s + 1
+            if i > (j-1)*s+1
+                J += i-(j-1)*s-1
+                I = (j-1)*s + 1
+                # bits belong to horizontal lines
+                if i%s != 1 || (safe_get(c, I, J-1) == 0 && safe_get(c, I, J+1) == 0)
+                    if store[I, J] != 0
+                        res[j] += 1
+                        store[I, J] -= 1
+                    end
+                end
+            else
+                # bits belong to vertical lines
+                if i%s != 1 || (safe_get(c, i-1, J) == 0 && safe_get(c, i+1, J) == 0)
+                    if store[i, J] != 0
+                        res[j] += 1
+                        store[i, J] -= 1
+                    end
+                end
+            end
+        end
     end
-    return firstrow
+    return map(res) do x
+        if x == zoom_level*(n-1)
+            false
+        elseif x == zoom_level*(n-1) + 1
+            true
+        else
+            error("mapping back fail! got $x (overhead = $((n-1)*zoom_level))")
+        end
+    end
+end
+
+export is_independent_set
+function is_independent_set(g::SimpleGraph, config)
+    for e in edges(g)
+        if config[e.src] == config[e.dst] == 1
+            return false
+        end
+    end
+    return true
 end

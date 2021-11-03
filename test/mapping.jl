@@ -28,4 +28,10 @@ end
     missize_map = solve(Independence(SimpleGraph(ug2)), "size max")[].n
     missize = solve(Independence(g), "size max")[].n
     @test mis_overhead0 + mis_overhead1 + missize == missize_map
+    misconfig = solve(Independence(SimpleGraph(ug2)), "config max")[].c
+    c = zeros(Int, size(ug2.content))
+    for (i, loc) in enumerate(findall(!iszero, ug2.content))
+        c[loc] = misconfig.data[i]
+    end
+    res = unapply_gadgets!(copy(ug2), tape, [copy(c)])
 end

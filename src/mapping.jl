@@ -100,11 +100,12 @@ function unapply_gadgets!(ug::UGrid, tape, configurations)
     for (pattern, i, j) in Base.Iterators.reverse(tape)
         @assert unmatch(pattern, ug.content, i, j)
         for c in configurations
-            map_config_back!(pattern, ug.content, i, j, c)
+            map_config_back!(pattern, i, j, c)
         end
         unapply_gadget!(pattern, ug.content, i, j)
     end
-    return ug
+    map_config_copyback!(ug, c)
+    return ug, configurations
 end
 
 function unitdisk_graph(locs::AbstractVector, unit::Real)
@@ -127,16 +128,26 @@ function _map_config_back(s::Pattern, config)
     return d2[d1[bc]]
 end
 
-function map_config_back!(p::Pattern, matrix, i, j, configuration)
+function map_config_back!(p::Pattern, i, j, configuration)
     m, n = size(p)
     locs, graph, pins = mapped_graph(p)
     config = [configuration[i+loc[1]-1, j+loc[2]-1] for loc in locs]
-    newconfig = map_config_back(p, config)
+    newconfig = rand(_map_config_back(p, config))
     # clear canvas
-    configuration[i:i+m-1, j:j+n-1] .= 1
-    locs0, graph0, pins0 = mapped_graph(p)
-    for (i, loc) in enumerate(locs0)
-        configuration[i+loc[1]-1,j+loc[2]-1] = newconfig[i]
+    for i_=i:i+m-1, j_=j:j+n-1
+        safe_set!(configuration,i_,j_, 0)
+    end
+    locs0, graph0, pins0 = source_graph(p)
+    for (k, loc) in enumerate(locs0)
+        configuration[i+loc[1]-1,j+loc[2]-1] += newconfig[k]
     end
     return configuration
+end
+
+function map_config_copyback!(ug::UGrid, c)
+    firstrow = c[1,1:ug.zoom_level*2:end]
+    if c[1,1] == 1
+        firstrow[2:end] .-= 1
+    end
+    return firstrow
 end

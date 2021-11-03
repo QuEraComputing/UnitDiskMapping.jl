@@ -138,7 +138,7 @@ function source_graph(::TShape{:H,false}) where VH
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,6]
+    return locs, g, [1,5,6], []
 end
 function mapped_graph(::TShape{:H,false})
     locs = [(2, 1), (2,2), (2,4), (2,5), (2,3), (4,3)]
@@ -147,8 +147,8 @@ end
 Base.size(::TShape{:H}) = (4, 5)
 
 function source_graph(::TShape{:V,C}) where C
-    locs, graph, pins = source_graph(TShape{:H,C}())
-    map(x->(x[2], 5-x[1]), locs), graph, pins
+    locs, graph, pins, belongs = source_graph(TShape{:H,C}())
+    map(x->(x[2], 5-x[1]), locs), graph, pins, belongs
 end
 
 function mapped_graph(::TShape{:V,C}) where C
@@ -162,7 +162,7 @@ function source_graph(::Turn)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5]
+    return locs, g, [1,5], [1,1,1,2,2]
 end
 function mapped_graph(::Turn)
     locs = [(1,2), (2,3), (3,4)]
@@ -176,7 +176,7 @@ function source_graph(::Corner{true})
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (5,6)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,6]
+    return locs, g, [1,6], [2,2,2,1,1,1]
 end
 function mapped_graph(::Corner{true})
     locs = [(2,1), (2,2), (3,3), (4,3)]
@@ -188,7 +188,7 @@ function source_graph(::Corner{false})
     for (i,j) in [(1,2), (2,3), (4,5), (5,6)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,6]
+    return locs, g, [1,6], [2,2,2,1,1,1]
 end
 function mapped_graph(::Corner{false})
     locs = [(2,1), (4,3)]

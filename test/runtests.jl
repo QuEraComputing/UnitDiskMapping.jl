@@ -5,6 +5,10 @@ using Test
     include("mapping.jl")
 end
 
+@testset "extracting_results" begin
+    include("extracting_results.jl")
+end
+
 @testset "gadgets" begin
     include("gadgets.jl")
 end

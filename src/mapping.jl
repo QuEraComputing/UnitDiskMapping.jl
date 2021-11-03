@@ -74,9 +74,7 @@ end
 
 # TODO:
 # 1. check if the resulting graph is a unit-disk
-# 2. recover the original graph
-# 3. map the solution back to the original graph
-# 4. other simplification rules
+# 2. other simplification rules
 function apply_gadgets!(ug::UGrid, ruleset=(
                     Cross{false}(), Cross{true}(), TShape{:H,false}(), TShape{:H,true}(),
                     TShape{:V,false}(), TShape{:V,true}(), Turn(), Corner{true}(), Corner{false}()
@@ -139,8 +137,8 @@ function map_config_back!(p::Pattern, i, j, configuration)
     for i_=i:i+m-1, j_=j:j+n-1
         safe_set!(configuration,i_,j_, 0)
     end
-    locs0, graph0, pins0, belongs = source_graph(p)
-    for (k, (loc, bel)) in enumerate(zip(locs0, belongs))
+    locs0, graph0, pins0 = source_graph(p)
+    for (k, loc) in enumerate(locs0)
         configuration[i+loc[1]-1,j+loc[2]-1] += newconfig[k]
     end
     return configuration

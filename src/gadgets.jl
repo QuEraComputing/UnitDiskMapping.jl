@@ -11,7 +11,7 @@ iscon(::Turn) = false
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     m, n = size(p)
-    locs, _, _, _ = source_graph(p)
+    locs, _, _ = source_graph(p)
     return locs2matrix(m, n, locs, iscon(p))
 end
 

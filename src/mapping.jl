@@ -1,31 +1,25 @@
 struct UGrid
     n::Int
     content::Matrix{Int}
-    zoom_level::Int
 end
 
-Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.zoom_level == ug2.zoom_level && ug.content == ug2.content
+Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.content == ug2.content
 
-function UGrid(n::Int, zoom_level::Int)
-    s = 2*zoom_level
+function UGrid(n::Int)
+    s = 4
     N = (n-1)*s+1
     u = zeros(Int, N, N)
     for j=n-1:-1:0
         for i=0:n-1
             if i<=j
-                u[max(1, s*i-s+3):2:s*i+1, s*j+1] .= 1
-                #i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .= -1)
-                i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .= 1)
+                u[max(1, s*i-s+3):2:s*i+1, s*j+1] .+= 1
+                i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .+= 1)
             else
-                @assert all(==(1), u[s*j+1, s*i+1])
-                u[s*j+1, max(1, s*i-s+3):2:s*i-1] .= 1
-                u[s*j+1, s*i+1] = 2
-                #(u[s*j+1, s*i-s+2:2:s*i] .= -1)
-                (u[s*j+1, s*i-s+2:2:s*i] .= 1)
+                u[s*j+2, max(1, s*i-s+1):s*i] .+= 1
             end
         end
     end
-    return UGrid(n, u, zoom_level)
+    return UGrid(n, u)
 end
 
 function SimpleGraph(ug::UGrid)
@@ -46,13 +40,15 @@ function Base.show(io::IO, ug::UGrid)
         end
     end
 end
-Base.copy(ug::UGrid) = UGrid(ug.n, copy(ug.content), ug.zoom_level)
-function crossat(ug::UGrid, i, j)
-    s = ug.zoom_level * 2
-    return (i-1)*s+1, (j-1)*s+1
+Base.copy(ug::UGrid) = UGrid(ug.n, copy(ug.content))
+function crossat(i, j)
+    s = 4
+    return (i-1)*s+2, (j-1)*s+1
 end
 function Graphs.add_edge!(ug::UGrid, i, j)
-    ug.content[crossat(ug, i, j)...] = -2
+    I, J = crossat(i, j)
+    ug.content[I+1, J] *= -1
+    ug.content[I, J-1] *= -1
     return ug
 end
 
@@ -62,11 +58,11 @@ function showitem(io, x)
     elseif x == 0
         print(io, " ")
     elseif x == -1
-        print(io, "○")
+        print(io, "◆")
     elseif x == 2
         print(io, "◉")
     elseif x == -2
-        print(io, "◆")
+        print(io, "○")
     else
         print(io, "?")
     end
@@ -103,7 +99,7 @@ function unapply_gadgets!(ug::UGrid, tape, configurations)
         unapply_gadget!(pattern, ug.content, i, j)
     end
     cfgs = map(configurations) do c
-        map_config_copyback!(ug.n, c, ug.zoom_level)
+        map_config_copyback!(ug.n, c)
     end
     return ug, cfgs
 end
@@ -144,9 +140,9 @@ function map_config_back!(p::Pattern, i, j, configuration)
     return configuration
 end
 
-function map_config_copyback!(n, c, zoom_level::Int)
+function map_config_copyback!(n, c)
     store = copy(c)
-    s = 2*zoom_level
+    s = 4
     res = zeros(Int, n)
     for j=1:n
         for i=1:(n-1)*s + 1
@@ -173,12 +169,12 @@ function map_config_copyback!(n, c, zoom_level::Int)
         end
     end
     return map(res) do x
-        if x == zoom_level*(n-1)
+        if x == 2*(n-1)
             false
-        elseif x == zoom_level*(n-1) + 1
+        elseif x == 2*(n-1) + 1
             true
         else
-            error("mapping back fail! got $x (overhead = $((n-1)*zoom_level))")
+            error("mapping back fail! got $x (overhead = $((n-1)*2))")
         end
     end
 end

@@ -12,22 +12,21 @@ export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     m, n = size(p)
     locs, _, _ = source_graph(p)
-    return locs2matrix(m, n, locs, iscon(p))
+    a = locs2matrix(m, n, locs)
+    iscon(p) && connect!(a, p)
+    return a
 end
 
 function mapped_matrix(p::Pattern)
     m, n = size(p)
     locs, _, _ = mapped_graph(p)
-    return locs2matrix(m, n, locs, iscon(p))
+    locs2matrix(m, n, locs)
 end
 
-function locs2matrix(m, n, locs::AbstractVector{Tuple{Int,Int}}, iscon)
+function locs2matrix(m, n, locs::AbstractVector{Tuple{Int,Int}})
     a = zeros(Int, m, n)
     for (i, j) in locs
         a[i, j] += 1
-        if a[i, j] == 2 && iscon
-            a[i, j] = -2
-        end
     end
     return a
 end
@@ -88,18 +87,18 @@ function embed_graph(g::SimpleGraph, zoom_level::Int)
 end
 
 function source_graph(::Cross{false})
-    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)]
-    g = SimpleGraph(9)
-    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)]
+    locs = [(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)]
+    g = SimpleGraph(6)
+    for (i,j) in [(1,2), (2,3), (4,5), (5,6)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,6,9,5], [2,2,2,2,2,1,1,1,1]
+    return locs, g, [1,4,6,3]
 end
 function mapped_graph(::Cross{false})
-    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (3,2), (3,3), (3,4), (4,3), (1,3)]
+    locs = [(2,1), (2,2), (2,3), (1,2), (3,2)]
     locs, unitdisk_graph(locs, 1.5), [1,9,10,5]
 end
-Base.size(::Cross{false}) = (4, 5)
+Base.size(::Cross{false}) = (3, 3)
 function source_graph(::Cross{true})
     g = SimpleGraph(11)
     locs = [(4,1), (4,2), (4,3), (4,4), (4,5), (1,4), (2,4), (3,4), (4,4), (5,4), (6,4)]
@@ -113,48 +112,58 @@ function mapped_graph(::Cross{true})
     locs, unitdisk_graph(locs, 1.5), [1,6,10,5]
 end
 Base.size(::Cross{true}) = (6, 5)
+function connect!(m, ::Cross{true})
+    m[2,2] *= -1
+    m[3,3] *= -1
+    return m
+end
 
-# ● ◆ ● 
-#   ●
-function source_graph(::TShape{:H,true})
-    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (4,3), (3,3), (2,3)]
+#       ●
+# ● ● ● ● 
+#       ●
+function source_graph(::TShape{:V,true})
+    locs = [(2, 1), (2,2), (2,3), (1,4), (2,4), (3,4)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (3,6)]
         add_edge!(g, i, j)
     end
     return locs, g, [1,5,6], [2,2,2,2,2,1,1,1]
 end
-# ● ◉ ● 
-#   ●
-function mapped_graph(::TShape{:H,true})
-    locs = [(2, 1), (2,2), (2,4), (2,5), (3,3), (4,3)]
+#       ●
+# ●     ● 
+#       ●
+function mapped_graph(::TShape{:V,true})
+    locs = [(2, 1), (1,4), (2,4), (3,4)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
-Base.size(::TShape{:V}) = (5, 4)
+Base.size(::TShape{:V,false}) = (3, 5)
 
-function source_graph(::TShape{:H,false}) where VH
-    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (4,3), (3,3), (2,3)]
+#       ●
+#       ●
+# ● ● ◆ ● 
+#       ◆
+function source_graph(::TShape{:V,false}) where VH
+    locs = [(2, 1), (2,2), (2,3), (1,4), (2,4), (3,4)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,6], [2,2,2,2,2,1,1,1]
+    return locs, g, [1,5,6]
 end
-function mapped_graph(::TShape{:H,false})
+#       ●
+#         ●
+# ● ● ●   ● 
+#       ●
+function mapped_graph(::TShape{:V,false})
     locs = [(2, 1), (2,2), (2,4), (2,5), (2,3), (4,3)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
-Base.size(::TShape{:H}) = (4, 5)
-
-function source_graph(::TShape{:V,C}) where C
-    locs, graph, pins, belongs = source_graph(TShape{:H,C}())
-    map(x->(x[2], 5-x[1]), locs), graph, pins, belongs
+function connect!(m, ::TShape{true})
+    m[2,4] *= -1
+    m[3,4] *= -1
+    return m
 end
-
-function mapped_graph(::TShape{:V,C}) where C
-    locs, graph, pins = mapped_graph(TShape{:H,C}())
-    map(x->(x[2], 5-x[1]), locs), graph, pins
-end
+Base.size(::TShape{:V,false}) = (4, 6)
 
 function source_graph(::Turn)
     locs = [(1,2), (2,2), (3,2), (3,3), (3,4)]
@@ -162,7 +171,7 @@ function source_graph(::Turn)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5], [1,1,1,2,2]
+    return locs, g, [1,5]
 end
 function mapped_graph(::Turn)
     locs = [(1,2), (2,3), (3,4)]
@@ -170,31 +179,19 @@ function mapped_graph(::Turn)
 end
 Base.size(::Turn) = (4, 4)
 
-function source_graph(::Corner{true})
-    locs = [(2,1), (2,2), (2,3), (2,3), (3,3), (4,3)]
-    g = SimpleGraph(6)
-    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (5,6)]
+function source_graph(::TruncatedTurn)
+    locs = [(2,2), (3,2), (3,3), (3,4)]
+    g = SimpleGraph(5)
+    for (i,j) in [(1,2), (2,3), (3,4)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,6], [2,2,2,1,1,1]
+    return locs, g, [4]
 end
-function mapped_graph(::Corner{true})
-    locs = [(2,1), (2,2), (3,3), (4,3)]
-    locs, unitdisk_graph(locs, 1.5), [1,4]
+function mapped_graph(::TruncatedTurn)
+    locs = [(2,3), (3,4)]
+    locs, unitdisk_graph(locs, 1.5), [2]
 end
-function source_graph(::Corner{false})
-    locs = [(2,1), (2,2), (2,3), (2,3), (3,3), (4,3)]
-    g = SimpleGraph(6)
-    for (i,j) in [(1,2), (2,3), (4,5), (5,6)]
-        add_edge!(g, i, j)
-    end
-    return locs, g, [1,6], [2,2,2,1,1,1]
-end
-function mapped_graph(::Corner{false})
-    locs = [(2,1), (4,3)]
-    locs, unitdisk_graph(locs, 1.5), [1,2]
-end
-Base.size(::Corner) = (4, 4)
+Base.size(::Turn) = (4, 4)
 
 export vertex_overhead, mis_overhead
 function vertex_overhead(p::Pattern)

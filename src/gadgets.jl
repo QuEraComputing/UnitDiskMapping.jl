@@ -1,8 +1,8 @@
 abstract type Pattern end
-struct TShape{TR,CON} <: Pattern end
-struct Turn{TR} <: Pattern end
+struct TShape{CON} <: Pattern end
+struct Turn <: Pattern end
 struct Cross{CON} <: Pattern end
-iscon(::TShape{TR,CON}) where {TR, CON} = CON
+iscon(::TShape{CON}) where {CON} = CON
 iscon(::Cross{CON}) where {CON} = CON
 iscon(::Turn) = false
 
@@ -83,14 +83,6 @@ function unapply_gadget!(p, matrix, i, j)
     return matrix
 end
 
-function embed_graph(g::SimpleGraph)
-    ug = UGrid(nv(g))
-    for e in edges(g)
-        add_edge!(ug, e.src, e.dst)
-    end
-    return ug
-end
-
 #   ●  
 # ◆ ◉ ●
 #   ◆  
@@ -136,7 +128,7 @@ Base.size(::Cross{false}) = (4, 5)
 # ● ●
 #   ●
 #   ●
-function source_graph(::TShape{TR,false}) where TR
+function source_graph(::TShape{false})
     locs = [(3, 1), (1,2), (2,2), (3,2), (4,2), (5,2)]
     g = SimpleGraph(6)
     for (i,j) in [(2,3), (3,4), (4,5), (5,6)]
@@ -150,17 +142,17 @@ end
 # ●   ●
 #     ●
 #   ●
-function mapped_graph(::TShape{TR,false}) where TR
+function mapped_graph(::TShape{false})
     locs = [(3, 1), (1,2), (2,3), (3,3), (4,3), (5,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
 end
-Base.size(::TShape{TR,false}) where TR = (5, 4)
+Base.size(::TShape{false}) = (5, 4)
 
 #   ●
 #   ●
 # ◆ ● 
 #   ◆
-function source_graph(::TShape{false,true}) where TR
+function source_graph(::TShape{true})
     locs = [(3, 1), (1,2), (2,2), (3,2), (4,2)]
     g = SimpleGraph(8)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
@@ -172,22 +164,22 @@ end
 #     ●
 # ●   ● 
 #   ●
-function mapped_graph(::TShape{false,true}) where TR
+function mapped_graph(::TShape{true})
     locs = [(3, 1), (1,2), (2,3), (3,3), (4,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 2, 5]
 end
-function connect!(m, ::TShape{TR,true}) where TR
+function connect!(m, ::TShape{true})
     m[3,1] *= -1
     m[4,2] *= -1
     return m
 end
-Base.size(::TShape{TR,true}) where TR = (4, 4)
+Base.size(::TShape{true}) = (4, 4)
 
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ● ● 
 # ⋅ ⋅ ⋅ ⋅
-function source_graph(::Turn{false})
+function source_graph(::Turn)
     locs = [(1,2), (2,2), (3,2), (3,3), (3,4)]
     g = SimpleGraph(5)
     for (i,j) in [(1,2), (2,3), (3,4), (4,5)]
@@ -200,24 +192,11 @@ end
 # ⋅ ⋅ ● ⋅ 
 # ⋅ ⋅ ⋅ ● 
 # ⋅ ⋅ ⋅ ⋅
-function mapped_graph(::Turn{false})
+function mapped_graph(::Turn)
     locs = [(1,2), (2,3), (3,4)]
     locs, unitdisk_graph(locs, 1.5), [1,3]
 end
 Base.size(::Turn) = (4, 4)
-
-function source_graph(::Turn{true})
-    locs = [(2,2), (3,2), (3,3), (3,4)]
-    g = SimpleGraph(5)
-    for (i,j) in [(1,2), (2,3), (3,4)]
-        add_edge!(g, i, j)
-    end
-    return locs, g, [4]
-end
-function mapped_graph(::Turn{true})
-    locs = [(3,3), (3,4)]
-    locs, unitdisk_graph(locs, 1.5), [2]
-end
 
 export vertex_overhead, mis_overhead
 function vertex_overhead(p::Pattern)

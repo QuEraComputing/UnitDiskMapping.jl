@@ -18,38 +18,38 @@ function source_entry_to_configs(::Cross{true})
 end
 
 
-function mapped_entry_to_compact(::TShape{:V, true})
+function mapped_entry_to_compact(::TShape{true})
     return Dict([0 => 0, 4 => 4, 5 => 4, 6 => 4, 2 => 0, 7 => 3, 3 => 3, 1 => 0])
 end
 
-function source_entry_to_configs(::TShape{:V, true})
+function source_entry_to_configs(::TShape{true})
     return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0, 0, 0, 1], [0, 1, 0, 1, 0, 0, 1, 0]], 4 => [[0, 1, 0, 1, 0, 1, 0, 1]], 5 => [[1, 0, 0, 1, 0, 1, 0, 1]], 6 => [[0, 1, 0, 0, 1, 1, 0, 1]], 2 => [[0, 1, 0, 0, 1, 0, 0, 1], [0, 1, 0, 0, 1, 0, 1, 0], [0, 0, 1, 0, 1, 0, 0, 1], [0, 0, 1, 0, 1, 0, 1, 0]], 7 => [[1, 0, 0, 0, 1, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0]], 1 => [[1, 0, 0, 1, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0]]])
 end
 
 
-function mapped_entry_to_compact(::TShape{:V, false})
+function mapped_entry_to_compact(::TShape{false})
     return Dict([0 => 0, 4 => 4, 5 => 4, 6 => 4, 2 => 0, 7 => 7, 3 => 3, 1 => 0])
 end
 
-function source_entry_to_configs(::TShape{:V, false})
+function source_entry_to_configs(::TShape{false})
     return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0, 0, 0, 1], [0, 1, 0, 1, 0, 0, 1, 0]], 4 => [[0, 1, 0, 1, 0, 1, 0, 1]], 5 => [[1, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1]], 6 => [[0, 1, 0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0, 1]], 2 => [[0, 1, 0, 0, 1, 0, 0, 1], [0, 0, 1, 0, 1, 0, 0, 1], [0, 1, 0, 0, 1, 0, 1, 0], [0, 0, 1, 0, 1, 0, 1, 0]], 7 => [[1, 0, 1, 0, 1, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0]], 1 => [[1, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 1, 0]]])
 end
 
 
-function mapped_entry_to_compact(::TShape{:H, true})
+function mapped_entry_to_compact(::TShape{true})
     return Dict([0 => 0, 4 => 4, 5 => 4, 6 => 4, 2 => 0, 7 => 3, 3 => 3, 1 => 0])
 end
 
-function source_entry_to_configs(::TShape{:H, true})
+function source_entry_to_configs(::TShape{true})
     return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0, 0, 0, 1], [0, 1, 0, 1, 0, 0, 1, 0]], 4 => [[0, 1, 0, 1, 0, 1, 0, 1]], 5 => [[1, 0, 0, 1, 0, 1, 0, 1]], 6 => [[0, 1, 0, 0, 1, 1, 0, 1]], 2 => [[0, 1, 0, 0, 1, 0, 0, 1], [0, 1, 0, 0, 1, 0, 1, 0], [0, 0, 1, 0, 1, 0, 0, 1], [0, 0, 1, 0, 1, 0, 1, 0]], 7 => [[1, 0, 0, 0, 1, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0]], 1 => [[1, 0, 0, 1, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 0, 0, 0, 1, 0]]])
 end
 
 
-function mapped_entry_to_compact(::TShape{:H, false})
+function mapped_entry_to_compact(::TShape{false})
     return Dict([0 => 0, 4 => 4, 5 => 4, 6 => 4, 2 => 0, 7 => 7, 3 => 3, 1 => 0])
 end
 
-function source_entry_to_configs(::TShape{:H, false})
+function source_entry_to_configs(::TShape{false})
     return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0, 0, 0, 1], [0, 1, 0, 1, 0, 0, 1, 0]], 4 => [[0, 1, 0, 1, 0, 1, 0, 1]], 5 => [[1, 0, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1, 0, 1]], 6 => [[0, 1, 0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0, 1]], 2 => [[0, 1, 0, 0, 1, 0, 0, 1], [0, 0, 1, 0, 1, 0, 0, 1], [0, 1, 0, 0, 1, 0, 1, 0], [0, 0, 1, 0, 1, 0, 1, 0]], 7 => [[1, 0, 1, 0, 1, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1, 0, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0]], 1 => [[1, 0, 0, 1, 0, 0, 0, 1], [1, 0, 1, 0, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 1, 0]]])
 end
 

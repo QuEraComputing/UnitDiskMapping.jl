@@ -15,6 +15,7 @@ using Graphs, GraphTensorNetworks
         @test sum(match.(Ref(s), Ref(mug.content), (0:size(mug.content, 1))', 0:size(mug.content,2))) == 0
     end
     ug2 = unapply_gadgets!(copy(mug), tape, [])[1]
+    @test UnitDiskMapping.padding(ug2) == 2
     @test ug == ug2
 end
 

@@ -1,28 +1,36 @@
 struct UGrid
     n::Int
+    padding::Int
     content::Matrix{Int}
 end
 
 Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.content == ug2.content
+padding(ug::UGrid) = ug.padding
 
-function UGrid(n::Int)
+function UGrid(n::Int; padding=2)
+    @assert padding >= 2
     s = 4
-    N = (n-1)*s+1
+    N = (n-1)*s+1+2*padding
     u = zeros(Int, N, N)
     for j=n-1:-1:0
         for i=0:n-1
+            # two extra rows
+            if 1<=i<=2
+                u[i+1, s*j+1+padding] += 1
+            end
+            # others
             if i<=j
-                u[max(1, s*i-s+3):2:s*i+1, s*j+1] .+= 1
-                i!=0 && (u[s*i-s+2:2:s*i, s*j+1] .+= 1)
+                u[max(2+padding, s*i-s+4+padding):2:s*i+2+padding, s*j+1+padding] .+= 1
+                i!=0 && (u[s*i-s+3+padding:2:s*i+padding+1, s*j+1+padding] .+= 1)
             else
-                u[s*j+2, max(1, s*i-s+1):s*i] .+= 1
+                u[s*j+3+padding, max(1+padding, s*i-s+1+padding):s*i+padding] .+= 1
             end
         end
     end
-    return UGrid(n, u)
+    return UGrid(n, padding, u)
 end
 
-function SimpleGraph(ug::UGrid)
+function Graphs.SimpleGraph(ug::UGrid)
     if any(x->abs(x)>1, ug.content)
         error("This mapping is not done yet!")
     end
@@ -41,13 +49,13 @@ function print_ugrid(io::IO, content::AbstractMatrix)
         end
     end
 end
-Base.copy(ug::UGrid) = UGrid(ug.n, copy(ug.content))
-function crossat(i, j)
+Base.copy(ug::UGrid) = UGrid(ug.n, ug.padding, copy(ug.content))
+function crossat(ug::UGrid, i, j)
     s = 4
-    return (i-1)*s+2, (j-1)*s+1
+    return (i-1)*s+3+ug.padding, (j-1)*s+1+ug.padding
 end
 function Graphs.add_edge!(ug::UGrid, i, j)
-    I, J = crossat(i, j)
+    I, J = crossat(ug, i, j)
     ug.content[I+1, J] *= -1
     ug.content[I, J-1] *= -1
     return ug
@@ -77,8 +85,8 @@ function apply_gadgets!(ug::UGrid, ruleset=(
                     TShape{:V,false}(), TShape{:V,true}(), Turn(), Corner{true}(), Corner{false}()
                 ))
     tape = Tuple{Pattern,Int,Int}[]
-    for j=0:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
-        for i=0:size(ug.content, 1)
+    for j=1:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
+        for i=1:size(ug.content, 1)
             for pattern in ruleset
                 if match(pattern, ug.content, i, j)
                     apply_gadget!(pattern, ug.content, i, j)
@@ -188,4 +196,12 @@ function is_independent_set(g::SimpleGraph, config)
         end
     end
     return true
+end
+
+function embed_graph(g::SimpleGraph)
+    ug = UGrid(nv(g))
+    for e in edges(g)
+        add_edge!(ug, e.src, e.dst)
+    end
+    return ug
 end

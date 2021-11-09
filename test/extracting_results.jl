@@ -2,8 +2,7 @@ using UnitDiskMapping, Test
 using GraphTensorNetworks
 
 @testset "map results back" begin
-    for s in (Cross{false}(), Cross{true}(), TShape{:V, true}(), TShape{:V,false}(),
-            TShape{:H,true}(), TShape{:H, false}(), Turn(), Corner{true}(), Corner{false}())
+    for s in (Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(), Turn())
         _, g0, pins0 = source_graph(s)
         locs, g, pins = mapped_graph(s)
         d1 = mapped_entry_to_compact(s)

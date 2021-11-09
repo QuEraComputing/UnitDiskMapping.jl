@@ -81,8 +81,8 @@ end
 # 1. check if the resulting graph is a unit-disk
 # 2. other simplification rules
 function apply_gadgets!(ug::UGrid, ruleset=(
-                    Cross{false}(), Cross{true}(), TShape{:H,false}(), TShape{:H,true}(),
-                    TShape{:V,false}(), TShape{:V,true}(), Turn(), Corner{true}(), Corner{false}()
+                    Cross{false}(), Cross{true}(), TShape{false}(), TShape{true}(),
+                    Turn()
                 ))
     tape = Tuple{Pattern,Int,Int}[]
     for j=1:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
@@ -154,33 +154,34 @@ function map_config_copyback!(n, c)
     s = 4
     res = zeros(Int, n)
     for j=1:n
-        for i=1:(n-1)*s + 1
-            J = (j-1)*s + 1
-            if i > (j-1)*s+1
-                J += i-(j-1)*s-1
-                I = (j-1)*s + 1
+        for i=1:(n-1)*s + 3
+            J = (j-1)*s + 3
+            if i > (j-1)*s+4
+                J += i-(j-1)*s-4
+                I = (j-1)*s + 5
                 # bits belong to horizontal lines
-                if i%s != 1 || (safe_get(c, I, J-1) == 0 && safe_get(c, I, J+1) == 0)
+                if i%s != 0 || (safe_get(c, I, J-1) == 0 && safe_get(c, I, J+1) == 0)
                     if store[I, J] != 0
                         res[j] += 1
                         store[I, J] -= 1
                     end
                 end
             else
+                I = i+1
                 # bits belong to vertical lines
-                if i%s != 1 || (safe_get(c, i-1, J) == 0 && safe_get(c, i+1, J) == 0)
-                    if store[i, J] != 0
+                if i%s != 0 || (safe_get(c, I-1, J) == 0 && safe_get(c, I+1, J) == 0)
+                    if store[I, J] != 0
                         res[j] += 1
-                        store[i, J] -= 1
+                        store[I, J] -= 1
                     end
                 end
             end
         end
     end
     return map(res) do x
-        if x == 2*(n-1)
+        if x == 2*(n-1)+1
             false
-        elseif x == 2*(n-1) + 1
+        elseif x == 2*(n-1) + 2
             true
         else
             error("mapping back fail! got $x (overhead = $((n-1)*2))")

@@ -1,13 +1,5 @@
 using UnitDiskMapping, GraphTensorNetworks
 
-s = Cross{false}()
-locs1, g1, pins1 = source_graph(s)
-locs2, g2, pins2 = mapped_graph(s)
-t1 = solve(Independence(g1, openvertices=pins1), "size max")
-t2 = solve(Independence(g2, openvertices=pins1), "size max")
-m1 = solve(Independence(g1, openvertices=pins1), "configs max")
-m2 = solve(Independence(g2, openvertices=pins1), "configs max")
-
 function mapped_entry_to_compact(s::Pattern)
     locs, g, pins = mapped_graph(s)
     a = solve(Independence(g; openvertices=pins), "size max")
@@ -64,5 +56,5 @@ function dump_mapping_to_julia(filename, patterns)
     end
 end
 
-dump_mapping_to_julia(joinpath(@__DIR__, "..", "src", "extracting_results.jl"), (Cross{false}(), Cross{true}(), TShape{:V, true}(), TShape{:V,false}(),
-            TShape{:H,true}(), TShape{:H, false}(), Turn(), Corner{true}(), Corner{false}()))
+dump_mapping_to_julia(joinpath(@__DIR__, "..", "src", "extracting_results.jl"), (Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(),
+            Turn()))

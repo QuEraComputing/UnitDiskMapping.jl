@@ -60,8 +60,8 @@ end
 Base.show(io::IO, ::MIME"text/plain", p::Pattern) = Base.show(io, p)
 function Base.show(io::IO, p::Pattern)
     print_ugrid(io, source_matrix(p))
-    println()
-    println(" "^(size(p)[2]-1) * "↓")
+    println(io)
+    println(io, " "^(size(p)[2]-1) * "↓")
     print_ugrid(io, mapped_matrix(p))
 end
 
@@ -83,20 +83,24 @@ function unapply_gadget!(p, matrix, i, j)
     return matrix
 end
 
-#   ●  
-# ◆ ◉ ●
-#   ◆  
+# ⋅ ● ⋅ 
+# ◆ ◉ ● 
+# ⋅ ◆ ⋅ 
 function source_graph(::Cross{true})
     locs = [(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)]
     g = SimpleGraph(6)
-    for (i,j) in [(1,2), (2,3), (4,5), (5,6)]
+    for (i,j) in [(1,2), (2,3), (4,5), (5,6), (1,6)]
         add_edge!(g, i, j)
     end
     return locs, g, [1,4,6,3]
 end
+
+# ⋅ ● ⋅ 
+# ● ● ● 
+# ⋅ ● ⋅ 
 function mapped_graph(::Cross{true})
     locs = [(2,1), (2,2), (2,3), (1,2), (3,2)]
-    locs, unitdisk_graph(locs, 1.5), [1,9,10,5]
+    locs, unitdisk_graph(locs, 1.5), [1,4,5,3]
 end
 Base.size(::Cross{true}) = (3, 3)
 function connect!(m, ::Cross{true})
@@ -105,10 +109,10 @@ function connect!(m, ::Cross{true})
     return m
 end
 
-#     ●    
-# ● ● ◉ ● ●
-#     ●    
-#     ●    
+# ⋅ ⋅ ● ⋅ ⋅ 
+# ● ● ◉ ● ● 
+# ⋅ ⋅ ● ⋅ ⋅ 
+# ⋅ ⋅ ● ⋅ ⋅ 
 function source_graph(::Cross{false})
     g = SimpleGraph(9)
     locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)]
@@ -117,31 +121,36 @@ function source_graph(::Cross{false})
     end
     return locs, g, [1,6,9,5]
 end
+
+# ⋅ ⋅ ● ⋅ ⋅ 
+# ● ● ● ● ● 
+# ⋅ ● ● ● ⋅ 
+# ⋅ ⋅ ● ⋅ ⋅ 
 function mapped_graph(::Cross{false})
     locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (3,3), (4,3), (3, 2), (3,4)]
     locs, unitdisk_graph(locs, 1.5), [1,6,8,5]
 end
 Base.size(::Cross{false}) = (4, 5)
 
-#   ●
-#   ●
-# ● ●
-#   ●
-#   ●
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅ 
+# ● ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
 function source_graph(::TShape{false})
     locs = [(3, 1), (1,2), (2,2), (3,2), (4,2), (5,2)]
     g = SimpleGraph(6)
     for (i,j) in [(2,3), (3,4), (4,5), (5,6)]
         add_edge!(g, i, j)
     end
-    return locs, g, [1,5,6], [2,2,2,2,2,1,1,1]
+    return locs, g, [1,2,6]
 end
 
-#   ●
-#     ●
-# ●   ●
-#     ●
-#   ●
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ⋅ ● ⋅ 
+# ● ⋅ ● ⋅ 
+# ⋅ ⋅ ● ⋅ 
+# ⋅ ● ⋅ ⋅
 function mapped_graph(::TShape{false})
     locs = [(3, 1), (1,2), (2,3), (3,3), (4,3), (5,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
@@ -154,8 +163,8 @@ Base.size(::TShape{false}) = (5, 4)
 #   ◆
 function source_graph(::TShape{true})
     locs = [(3, 1), (1,2), (2,2), (3,2), (4,2)]
-    g = SimpleGraph(8)
-    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8)]
+    g = SimpleGraph(5)
+    for (i,j) in [(1,5), (2,3), (3,4), (4,5)]
         add_edge!(g, i, j)
     end
     return locs, g, [1,2,5]

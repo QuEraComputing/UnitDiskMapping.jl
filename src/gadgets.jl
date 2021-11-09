@@ -153,7 +153,7 @@ end
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::TShape{false})
     locs = [(3, 1), (1,2), (2,3), (3,3), (4,3), (5,2)]
-    locs, unitdisk_graph(locs, 1.5), [1, 4, 6]
+    locs, unitdisk_graph(locs, 1.5), [1, 2, 6]
 end
 Base.size(::TShape{false}) = (5, 4)
 

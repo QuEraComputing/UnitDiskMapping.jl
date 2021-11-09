@@ -29,13 +29,14 @@ function SimpleGraph(ug::UGrid)
     return unitdisk_graph([ci.I for ci in findall(!iszero, ug.content)], 1.6)
 end
 
-function Base.show(io::IO, ug::UGrid)
-    for i=1:size(ug.content, 1)
-        for j=1:size(ug.content, 2)
-            showitem(io, ug.content[i,j])
+Base.show(io::IO, ug::UGrid) = print_ugrid(io, ug.content)
+function print_ugrid(io::IO, content::AbstractMatrix)
+    for i=1:size(content, 1)
+        for j=1:size(content, 2)
+            showitem(io, content[i,j])
             print(io, " ")
         end
-        if i!=size(ug.content, 1)
+        if i!=size(content, 1)
             println(io)
         end
     end
@@ -56,7 +57,7 @@ function showitem(io, x)
     if x == 1
         print(io, "●")
     elseif x == 0
-        print(io, " ")
+        print(io, "⋅")
     elseif x == -1
         print(io, "◆")
     elseif x == 2

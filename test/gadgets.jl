@@ -26,6 +26,7 @@ using Graphs
         @show s
         locs1, g1, pins1 = source_graph(s)
         locs2, g2, pins2 = mapped_graph(s)
+        @assert length(locs1) == nv(g)
         m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), "size max"))
         m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), "size max"))
         @test nv(g1) == length(locs1) && nv(g2) == length(locs2)

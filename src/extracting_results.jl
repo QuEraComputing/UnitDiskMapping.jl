@@ -61,21 +61,3 @@ end
 function source_entry_to_configs(::Turn)
     return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0]], 2 => [[0, 0, 1, 0, 1], [0, 1, 0, 0, 1]], 3 => [[1, 0, 1, 0, 1]], 1 => [[1, 0, 1, 0, 0], [1, 0, 0, 1, 0]]])
 end
-
-
-function mapped_entry_to_compact(::Corner{true})
-    return Dict([0 => 0, 2 => 2, 3 => 1, 1 => 1])
-end
-
-function source_entry_to_configs(::Corner{true})
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 0, 1, 0], [0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 1, 0, 1]], 3 => [[1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1]], 1 => [[1, 0, 1, 0, 1, 0]]])
-end
-
-
-function mapped_entry_to_compact(::Corner{false})
-    return Dict([0 => 0, 2 => 2, 3 => 3, 1 => 1])
-end
-
-function source_entry_to_configs(::Corner{false})
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 0, 1, 1, 0, 0], [0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0], [0, 1, 0, 0, 1, 0]], 2 => [[0, 0, 1, 1, 0, 1], [0, 1, 0, 1, 0, 1]], 3 => [[1, 0, 1, 1, 0, 1]], 1 => [[1, 0, 1, 1, 0, 0], [1, 0, 1, 0, 1, 0]]])
-end

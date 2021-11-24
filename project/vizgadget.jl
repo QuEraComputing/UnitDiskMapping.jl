@@ -18,17 +18,17 @@ end
 
 function command_node(x, y, type::Int, ispin::Bool, id, r)
     if type == 2
-        color = "yellow"
+        return "\\node[fill=black,circle,radius=$(r)cm,inner sep=0cm, minimum size=$(r)cm] at ($x, $y) () {};\n\\node[draw=black,fill=none,circle,radius=$(1.5*r)cm,minimum size=$(1.5*r)cm,inner sep=0cm] at ($x, $y) ($id) {};"
     elseif abs(type) == 1
         if ispin
             color = "red"
         else
             color = "black"
         end
+        return "\\node[fill=$color,circle,radius=$(r)cm,inner sep=0cm, minimum size=$(r)cm] at ($x, $y) ($id) {};"
     else
         error("")
     end
-    "\\node[fill=$color,circle,radius=$r] at ($x, $y) ($id) {};"
 end
 
 function command_edge(i, j)
@@ -45,8 +45,8 @@ function viz_gadget(p::Pattern)
     xmid, ymid = Wx/2-0.5, Wy/2-0.5
     dx1, dy1 = xmid-Gx, 0
     dx2, dy2 = xmid+1, 0
-    source_nodes = command_graph(locs1, g1, pin1, dx1, dy1, 0.2, "s")
-    mapped_nodes = command_graph(locs2, g2, pin2, dx2, dy2, 0.2, "d")
+    source_nodes = command_graph(locs1, g1, pin1, dx1, dy1, 0.3, "s")
+    mapped_nodes = command_graph(locs2, g2, pin2, dx2, dy2, 0.3, "d")
     return """
 \\documentclass[crop,tikz]{standalone}% 'crop' is the default for v1.0, before it was 'preview'
 \\begin{document}

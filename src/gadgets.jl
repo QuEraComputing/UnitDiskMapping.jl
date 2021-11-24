@@ -1,7 +1,36 @@
+"""
+### Provides
+1. visualization of mapping
+2. the script for generating backward mapping (project/createmap.jl)
+3. the script for tikz visualization (project/vizgadget.jl)
+"""
 abstract type Pattern end
-struct TShape{CON} <: Pattern end
-struct Turn <: Pattern end
-struct Cross{CON} <: Pattern end
+"""
+### Properties
+* size
+* source: (locs, graph, pins/auto)
+* mapped: (locs, graph/auto, pins/auto)
+
+### Requires
+1. equivalence in MIS-compact tropical tensor (you can check it with tests),
+2. the size is <= [-2, 2] x [-2, 2] at the cross (not checked, requires cross offset information),
+3. ancillas does not appear at the boundary (not checked),
+"""
+abstract type CrossPattern <: Pattern end
+"""
+### Properties
+* size
+* source: (locs, graph/auto, pins/auto)
+* mapped: (locs, graph/auto, pins/auto)
+
+### Requires
+1. equivalence in MIS-compact tropical tensor (you can check it with tests),
+2. ancillas does not appear at the boundary (not checked),
+"""
+abstract type SimplifyPattern <: Pattern end
+struct TShape{CON} <: CrossPattern end
+struct Turn <: CrossPattern end
+struct Cross{CON} <: CrossPattern end
 iscon(::TShape{CON}) where {CON} = CON
 iscon(::Cross{CON}) where {CON} = CON
 iscon(::Turn) = false

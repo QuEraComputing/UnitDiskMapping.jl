@@ -15,17 +15,30 @@ function greedy(G::AbstractGraph, P)
     S = vertices(P)
     V = collect(vertices(G))
     P2 = P
-    neighbors_S = sneighbors(G, S)
-    while any(v->neighbors(G, v) ⊆ (S ∪ neighbors_S), setdiff(V,S)) ||
-        any(v->length(setdiff(neighbors(G, v), (S ∪ neighbors_S))) == 1, neighbors_S)
-        P2 = P ⊙ v
-        S = S ∪ [v]
+    keepgoing = true
+    while keepgoing
+        keepgoing = false
+        neighbors_S = sneighbors(G, S)
+        for v in setdiff(V,S)
+            if neighbors(G, v) ⊆ (S ∪ neighbors_S)
+                P2 = P ⊙ v
+                S = S ∪ [v]
+                keepgoing = true
+            end
+        end
+        for v in neighbors_S
+            if length(setdiff(neighbors(G, v), (S ∪ neighbors_S))) == 1
+                P2 = P ⊙ v
+                S = S ∪ [v]
+                keepgoing = true
+            end
+        end
     end
     return P2
 end
 
 function update_prefix_table!(G, vP, P, current, vs)
-    if vs < current && vsetp(G, P) == vs
+    if vs < current && vsep(G, P) == vs
         b = 0
     else
         b = 1
@@ -52,11 +65,12 @@ function branch_and_bound!(G::AbstractGraph, P::Layout, vs, L::Layout, vP)
         P2 = greedy(G, P)
         vsep_P2 = vsep(G, P2)
         if sort(vertices(P2)) == V && vsep_P2 < vs
-            return (vset_P2, P2)
+            return (vsep_P2, P2)
         else
             current = vs
-            remaining = sort(setdiff(V, vertices(P2)), by=x->vsep(G, P2 ⊙ x))
-            for v in remaining  # by increasing values of vsetp(P2 ⊙ v)
+            remaining = setdiff(V, vertices(P2))
+            vsep_order = argsort([vsep(G, P2 ⊙ x) for x in remaining])
+            for v in remaining[vsep_order]  # by increasing values of vsep(P2 ⊙ v)
                 if vsep(G, P2 ⊙ v) < vs
                     (vs3, L3) = branch_and_bound!(G, P2 ⊙ v, vs, L, vP)
                     if vs3 < vs
@@ -71,3 +85,17 @@ function branch_and_bound!(G::AbstractGraph, P::Layout, vs, L::Layout, vP)
 end
 
 branch_and_bound(smallgraph(:petersen))
+
+using Random, Test
+@testset "B & B" begin
+    Random.seed!(2)
+    g = smallgraph(:petersen)
+    adjm = adjacency_matrix(g)
+    for i=1:10
+        pm = randperm(nv(g))
+        gi = SimpleGraph(adjm[pm, pm])
+        vs, L = branch_and_bound(gi)
+        @test vs == 5
+        @test vsep(gi, L) == 5
+    end
+end

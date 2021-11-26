@@ -11,6 +11,9 @@ function Layout(g::SimpleGraph, vertices)
     vs, nbs = vsep_and_neighbors(g, vertices)
     Layout(vertices, vs, nbs, setdiff(1:nv(g), nbs ∪ vertices))
 end
+function Base.:(==)(l::Layout, m::Layout)
+    l.vsep == m.vsep && l.vertices == m.vertices
+end
 function vsep_and_neighbors(G::SimpleGraph, vertices::AbstractVector{T}) where T
     vs, nbs = 0, T[]
     for i=1:length(vertices)
@@ -93,30 +96,15 @@ function greedy(G::AbstractGraph, P)
     return P
 end
 
-function update_prefix_table!(G, vP, P, current, vs)
-    if vs < current && vsep(P) == vs
-        b = 0
-    else
-        b = 1
-    end
-    old = (vertices(P), vsep(P), 0)
-    new = (vertices(P), vsep(P), b)
-    if old ∈ vP
-        replace!(vP, old=>new)
-    else
-        push!(vP, new)
-    end
-end
-
 function branch_and_bound(G::AbstractGraph)
-    branch_and_bound!(G, Layout(G, Int[]), Layout(G, collect(vertices(G))), Tuple{Vector{Int}, Int,Int}[])
+    branch_and_bound!(G, Layout(G, Int[]), Layout(G, collect(vertices(G))), Dict{Layout{Int},Bool}())
 end
 
 # P is the prefix
 # vs is its vertex seperation of L
-function branch_and_bound!(G::AbstractGraph, P::Layout, L::Layout, vP)
+function branch_and_bound!(G::AbstractGraph, P::Layout, L::Layout, vP::Dict)
     V = collect(vertices(G))
-    if (vsep(P) < vsep(L)) && (vertices(P), vsep(P), 1) ∉ vP
+    if (vsep(P) < vsep(L)) && !haskey(vP, P)
         P2 = greedy(G, P)
         vsep_P2 = vsep(P2)
         if sort(vertices(P2)) == V && vsep_P2 < vsep(L)
@@ -133,7 +121,7 @@ function branch_and_bound!(G::AbstractGraph, P::Layout, L::Layout, vP)
                     end
                 end
             end
-            update_prefix_table!(G, vP, P, current, vsep(L))
+            vP[P] = !(vsep(L) < current && vsep(P) == vsep(L))
         end
     end
     return L
@@ -153,4 +141,7 @@ using Random, Test
         @test vsep(L) == 5
         @test vsep(Layout(gi, L.vertices)) == 5
     end
+    g = smallgraph(:tutte)
+    res = branch_and_bound(g)
+    @test vsep(res) == 6
 end

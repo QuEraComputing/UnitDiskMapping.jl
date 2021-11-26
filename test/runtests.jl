@@ -12,3 +12,7 @@ end
 @testset "gadgets" begin
     include("gadgets.jl")
 end
+
+@testset "path decomposition" begin
+    include("pathdecomposition/pathdecomposition.jl")
+end

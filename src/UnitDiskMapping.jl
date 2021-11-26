@@ -12,5 +12,6 @@ export mapped_entry_to_compact, source_entry_to_configs, map_config_back
 include("gadgets.jl")
 include("mapping.jl")
 include("extracting_results.jl")
+include("pathdecomposition/pathdecomposition.jl")
 
 end

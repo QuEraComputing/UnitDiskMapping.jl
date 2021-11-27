@@ -231,7 +231,7 @@ Base.size(::Turn) = (4, 4)
 cross_location(::Turn) = (3,2)
 
 
-export Branch, TrivialTurn, BranchFix, WTurn, TCon
+export Branch, TrivialTurn, BranchFix, WTurn, TCon, BranchFixB
 struct Branch <: CrossPattern end
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
@@ -299,6 +299,29 @@ end
 Base.size(::WTurn) = (4, 4)
 cross_location(::WTurn) = (3,2)
 iscon(::WTurn) = false
+
+struct BranchFixB <: CrossPattern end
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ● ⋅
+# ⋅ ● ● ⋅ 
+# ⋅ ● ⋅ ⋅
+function source_graph(::BranchFixB)
+    locs = [(2,3),(3,3),(3,2),(4,2)]
+    g = simplegraph([(1,3), (2,3), (2,4)])
+    return locs, g, [1, 4]
+end
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ⋅ ⋅ 
+function mapped_graph(::BranchFixB)
+    locs = [(3,2),(4,2)]
+    return locs, unitdisk_graph(locs, 1.5), [1, 2]
+end
+Base.size(::BranchFixB) = (4, 4)
+cross_location(::BranchFixB) = (2,2)
+iscon(::BranchFixB) = false
+
 
 struct TCon <: CrossPattern end
 # ⋅ ◆ ⋅ ⋅
@@ -418,7 +441,7 @@ function vertex_overhead(p::Pattern)
     nv(mapped_graph(p)[2]) - nv(source_graph(p)[1])
 end
 
-for T in [:Cross, :Turn, :WTurn, :Branch, :BranchFix]
+for T in [:Cross, :Turn, :WTurn, :Branch, :BranchFix, :BranchFixB]
     @eval mis_overhead(p::$T) = -1
 end
 for T in [:TrivialTurn, :TShape, :TCon]

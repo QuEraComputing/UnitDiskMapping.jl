@@ -102,17 +102,24 @@ end
 # TODO:
 # 1. check if the resulting graph is a unit-disk
 # 2. other simplification rules
-function apply_gadgets!(ug::UGrid, ruleset=(
+function apply_crossing_gadgets!(ug::UGrid, ruleset=(
                     Cross{false}(), Cross{true}(), TShape{false}(), TShape{true}(),
-                    Turn()
+                    Turn(), WTurn(), Branch(), BranchFix(), TCon(), TrivialTurn(),
+                    RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
+                    ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
+                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"),
                 ))
     tape = Tuple{Pattern,Int,Int}[]
-    for j=1:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
-        for i=1:size(ug.content, 1)
+    n = length(ug.lines)
+    for j=1:n  # start from 0 because there can be one empty padding column/row.
+        for i=1:n
+            matched = false
             for pattern in ruleset
-                if match(pattern, ug.content, i, j)
-                    apply_gadget!(pattern, ug.content, i, j)
-                    push!(tape, (pattern, i, j))
+                x, y = crossat2(ug, i, j) .- cross_location(pattern) .+ (1,1)
+                if match(pattern, ug.content, x, y)
+                    apply_gadget!(pattern, ug.content, x, y)
+                    push!(tape, (pattern, x, y))
+                    matched = true
                     break
                 end
             end
@@ -257,7 +264,6 @@ function create_copylines(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
     for (i, (v, rs)) in enumerate(zip(ordered_vertices, rmorder))
         # update slots
         islot = findfirst(iszero, slots)
-        @show islot
         slots[islot] = v
         hslots[i] = islot
         for r in rs
@@ -277,28 +283,29 @@ function create_copylines(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
     return [CopyLine(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
 end
 
-function add_copyline!(u::Matrix, tc::CopyLine; padding::Int)
+function copyline_locations(tc::CopyLine; padding::Int)
     s = 4
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
+    locations = Tuple{Int,Int}[]
     # grow up
     for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
-        u[i, J] += 1
+        push!(locations, (i, J))
     end
     # grow down
     for i=I:I+s*(tc.vstop-tc.hslot)-1              # even number of nodes down
         if i == I
-            u[i+1, J+1] += 1
+            push!(locations, (i+1, J+1))
         else
-            u[i, J] += 1
+            push!(locations, (i, J))
         end
     end
     # grow right
     for j=J+2:J+s*(tc.hstop-tc.vslot)-1            # even number of nodes right
-        u[I, j] += 1
+        push!(locations, (I, j))
     end
-    u[I,J+1] += 1                                  # center node
-    return u
+    push!(locations, (I, J+1))                     # center node
+    return locations
 end
 
 export ugrid
@@ -312,11 +319,10 @@ function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2)
 
     # add T-copies
     copylines = create_copylines(g, vertex_order)
-    #copylines = copylines[1:1]
     for tc in copylines
-        #tc = CopyLine(1, 1, 1, 1, nv(g)-8, nv(g))
-        @show tc
-        add_copyline!(u, tc; padding=padding)
+        for loc in copyline_locations(tc; padding=padding)
+            u[loc...] += 1
+        end
     end
     return UGrid(copylines, padding, u)
 end

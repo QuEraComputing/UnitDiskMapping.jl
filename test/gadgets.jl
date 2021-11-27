@@ -22,7 +22,7 @@ using Graphs
         return true, x
     end
     for s in (Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(), Turn(),
-        TrivialTurn(), Branch(), TCon(), BranchFix(), WTurn(), RotatedGadget(TCon(), 1),
+        TrivialTurn(), Branch(), TCon(), BranchFixB(), BranchFix(), WTurn(), RotatedGadget(TCon(), 1),
         ReflectedGadget(TCon(), "x")
         )
         println("Testing gadget:\n$s")

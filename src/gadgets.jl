@@ -284,11 +284,6 @@ function mapped_graph(::TCon)
 end
 cross_location(::TCon) = (2,2)
 
-############## Rotation and Flip ###############
-# ⋅ ◆ ⋅ 
-# ◆ ◉ ● 
-# ⋅ ● ⋅ 
-
 struct TrivialTurn <: CrossPattern end
 # ⋅ ◆
 # ◆ ⋅
@@ -297,6 +292,14 @@ end
 # ⋅ ●
 # ● ⋅
 function mapped_graph(::TrivialTurn)
+end
+
+############## Rotation and Flip ###############
+struct RotatedGadget{GT}
+    gadget::GT
+end
+struct ReflectedGadget{GT}
+    gadget::GT
 end
 
 export vertex_overhead, mis_overhead

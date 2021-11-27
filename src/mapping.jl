@@ -4,8 +4,10 @@ struct UGrid
     content::Matrix{Int}
 end
 
+export coordinates
 Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.content == ug2.content
 padding(ug::UGrid) = ug.padding
+coordinates(ug::UGrid) = [ci.I for ci in findall(!iszero, ug.content)]
 
 function UGrid(n::Int; padding=2)
     @assert padding >= 2
@@ -34,7 +36,7 @@ function Graphs.SimpleGraph(ug::UGrid)
     if any(x->abs(x)>1, ug.content)
         error("This mapping is not done yet!")
     end
-    return unitdisk_graph([ci.I for ci in findall(!iszero, ug.content)], 1.6)
+    return unitdisk_graph(coordinates(ug), 1.6)
 end
 
 Base.show(io::IO, ug::UGrid) = print_ugrid(io, ug.content)
@@ -108,7 +110,7 @@ function unapply_gadgets!(ug::UGrid, tape, configurations)
         unapply_gadget!(pattern, ug.content, i, j)
     end
     cfgs = map(configurations) do c
-        map_config_copyback!(ug.n, c)
+        map_config_copyback!(ug.n, c, ug.padding)
     end
     return ug, cfgs
 end
@@ -149,16 +151,16 @@ function map_config_back!(p::Pattern, i, j, configuration)
     return configuration
 end
 
-function map_config_copyback!(n, c)
+function map_config_copyback!(n::Int, c::AbstractMatrix, padding::Int)
     store = copy(c)
     s = 4
     res = zeros(Int, n)
     for j=1:n
         for i=1:(n-1)*s + 3
-            J = (j-1)*s + 3
+            J = (j-1)*s + 1 + padding
             if i > (j-1)*s+4
                 J += i-(j-1)*s-4
-                I = (j-1)*s + 5
+                I = (j-1)*s + 3 + padding
                 # bits belong to horizontal lines
                 if i%s != 0 || (safe_get(c, I, J-1) == 0 && safe_get(c, I, J+1) == 0)
                     if store[I, J] != 0
@@ -167,7 +169,7 @@ function map_config_copyback!(n, c)
                     end
                 end
             else
-                I = i+1
+                I = i-1 + padding
                 # bits belong to vertical lines
                 if i%s != 0 || (safe_get(c, I-1, J) == 0 && safe_get(c, I+1, J) == 0)
                     if store[I, J] != 0

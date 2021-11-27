@@ -279,24 +279,24 @@ end
 
 function add_copyline!(u::Matrix, tc::CopyLine; padding::Int)
     s = 4
-    I = s*(tc.hslot-1)+padding+1
+    I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
     # grow up
-    for i=tc.vstart:tc.hslot-1
-        I0 = I + s*(i-tc.hslot)
-        u[I0:I0+s-1, J] .+= 1
+    for i=I+s*(tc.vstart-tc.hslot)-1:I-1           # odd number of nodes up
+        u[i, J] += 1
     end
     # grow down
-    for i=tc.hslot:tc.vstop-1
-        I0 = I + s*(i-tc.hslot) + 1
-        u[I0:I0+s-1, J] .+= 1
+    for i=I+1:I+s*(tc.vstop-tc.hslot)-1            # odd number of nodes down if tc.vstop > tc.hslot
+        u[i, J] += 1
     end
     # grow right
-    for j=tc.vslot:tc.hstop-1
-        J0 = J + s*(j-tc.vslot)
-        u[I, J0+1:J0+s] .+= 1
+    for j=J+1:J+s*(tc.hstop-tc.vslot)-1            # odd number of nodes right if tc.hstop > tc.vslot
+        u[I, j] += 1
     end
-    u[I, J] += 1
+    u[I,J] += 1                                    # center node
+    if tc.vstop > tc.hslot && tc.hstop > tc.vslot  # add one extra node if grow both down and right
+        u[I+1,J+1] += 1
+    end
     return u
 end
 
@@ -313,9 +313,31 @@ function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2)
     copylines = create_copylines(g, vertex_order)
     #copylines = copylines[1:1]
     for tc in copylines
-        #tc = CopyLine(1, 3, 3, 1, nv(g), nv(g))
+        #tc = CopyLine(1, 1, 1, 1, nv(g)-8, nv(g))
         @show tc
         add_copyline!(u, tc; padding=padding)
     end
     return UGrid(copylines, padding, u)
 end
+
+function crossat2(ug::UGrid, v, w)
+    i, j = findfirst(x->x.vertex==v, ug.lines), findfirst(x->x.vertex==w, ug.lines)
+    i, j = minmax(i, j)
+    hslot = ug.lines[i].hslot
+    s = 4
+    return (hslot-1)*s+2+ug.padding, (j-1)*s+1+ug.padding
+end
+
+export embed_graph2
+function embed_graph2(g::SimpleGraph)
+    ug = ugrid(g, collect(nv(g):-1:1); padding=2)
+    for e in edges(g)
+        I, J = crossat2(ug, e.src, e.dst)
+        @assert ug.content[I-1, J] == 1
+        @assert ug.content[I, J-1] == 1
+        ug.content[I-1, J] *= -1
+        ug.content[I, J-1] *= -1
+    end
+    return ug
+end
+

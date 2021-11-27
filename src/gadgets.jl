@@ -28,12 +28,6 @@ abstract type CrossPattern <: Pattern end
 2. ancillas does not appear at the boundary (not checked),
 """
 abstract type SimplifyPattern <: Pattern end
-struct TShape{CON} <: CrossPattern end
-struct Turn <: CrossPattern end
-struct Cross{CON} <: CrossPattern end
-iscon(::TShape{CON}) where {CON} = CON
-iscon(::Cross{CON}) where {CON} = CON
-iscon(::Turn) = false
 
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
@@ -112,6 +106,8 @@ function unapply_gadget!(p, matrix, i, j)
     return matrix
 end
 
+struct Cross{CON} <: CrossPattern end
+iscon(::Cross{CON}) where {CON} = CON
 # ⋅ ● ⋅ 
 # ◆ ◉ ● 
 # ⋅ ◆ ⋅ 
@@ -161,6 +157,8 @@ function mapped_graph(::Cross{false})
 end
 Base.size(::Cross{false}) = (4, 5)
 
+struct TShape{CON} <: CrossPattern end
+iscon(::TShape{CON}) where {CON} = CON
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
 # ● ● ⋅ ⋅ 
@@ -213,6 +211,8 @@ function connect!(m, ::TShape{true})
 end
 Base.size(::TShape{true}) = (4, 4)
 
+struct Turn <: CrossPattern end
+iscon(::Turn) = false
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ● ● 
@@ -235,6 +235,76 @@ function mapped_graph(::Turn)
     locs, unitdisk_graph(locs, 1.5), [1,3]
 end
 Base.size(::Turn) = (4, 4)
+
+
+struct Branch end
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ● ● 
+# ⋅ ● ● ⋅ 
+# ⋅ ● ⋅ ⋅
+function source_graph(::Branch)
+end
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ⋅ ● ⋅ 
+# ⋅ ● ⋅ ● 
+# ⋅ ⋅ ● ⋅ 
+# ⋅ ● ⋅ ⋅
+function mapped_graph(::Branch)
+end
+
+struct BigTurn end
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ● ● 
+# ⋅ ● ● ⋅ 
+# ⋅ ● ⋅ ⋅
+function source_graph(::BigTurn)
+end
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ⋅ ● 
+# ⋅ ⋅ ● ⋅ 
+# ⋅ ● ⋅ ⋅
+function mapped_graph(::BigTurn)
+end
+
+struct SmallTurn end
+# ⋅ ⋅ ⋅
+# ⋅ ● ⋅
+# ⋅ ● ●
+# ⋅ ⋅ ⋅
+function source_graph(::SmallTurn)
+end
+# ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅
+# ⋅ ⋅ ●
+# ⋅ ⋅ ⋅
+function mapped_graph(::SmallTurn)
+end
+
+############## Rotation and Flip ###############
+#   ◆
+# ◆ ● 
+#   ●
+#   ●
+
+# ⋅ ◆ ⋅ ⋅
+# ◆ ● ● ●
+
+# ⋅ ◆ ⋅ 
+# ◆ ◉ ● 
+# ⋅ ● ⋅ 
+
+struct TrivialTurn end
+# ⋅ ◆
+# ◆ ⋅
+function source_graph(::TrivialTurn)
+end
+# ⋅ ●
+# ● ⋅
+function mapped_graph(::TrivialTurn)
+end
 
 export vertex_overhead, mis_overhead
 function vertex_overhead(p::Pattern)

@@ -1,11 +1,11 @@
-#   hstart
+#    vslot
 #      ↓
 #      |          ← vstart
 #      |
-#      |-------   ← vcenter
+#      |-------   ← hslot
 #      |      ↑   ← vstop
 #            hstop
-struct TCopy
+struct CopyLine
     vertex::Int
     vslot::Int
     hslot::Int
@@ -13,9 +13,13 @@ struct TCopy
     vstop::Int
     hstop::Int  # there is no hstart
 end
+function Base.show(io::IO, cl::CopyLine)
+    print(io, "vslot → [$(cl.vstart):$(cl.vstop),$(cl.vslot)], hslot → [$(cl.hslot),$(cl.vslot):$(cl.hstop)]")
+end
+Base.show(io::IO, ::MIME"text/plain", cl::CopyLine) = Base.show(io, cl)
 
 struct UGrid
-    vertices::Vector{TCopy}
+    lines::Vector{CopyLine}
     padding::Int
     content::Matrix{Int}
 end
@@ -67,7 +71,7 @@ function print_ugrid(io::IO, content::AbstractMatrix)
         end
     end
 end
-Base.copy(ug::UGrid) = UGrid(ug.vertices, ug.padding, copy(ug.content))
+Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
 function crossat(ug::UGrid, i, j)
     s = 4
     return (i-1)*s+3+ug.padding, (j-1)*s+1+ug.padding
@@ -229,31 +233,31 @@ end
 ##################### reordered mapping ###################
 
 function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
-    addremove = Vector{Int}[]
+    addremove = [Int[] for _=1:nv(g)]
     adjm = adjacency_matrix(g)
     counts = zeros(Int, nv(g))
     totalcounts = sum(adjm; dims=1)
-    for v in vertex_order
-        del = Int[]
+    for (i, v) in enumerate(vertex_order)
         counts .+= adjm[:,v]
         for j=1:nv(g)
             if !iszero(adjm[j,v]) && counts[j] == totalcounts[j]
-                push!(del, j)
+                # ensure remove after add!
+                push!(addremove[max(i, findfirst(==(j), vertex_order))], j)
             end
         end
-        push!(addremove, del)
     end
     return addremove
 end
 
-function create_tcopies(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
+function create_copylines(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
     slots = zeros(Int, nv(g))
+    hslots = zeros(Int, nv(g))
     rmorder = remove_order(g, ordered_vertices)
     # assign hslots
-    hslots = Int[]
     for (i, (v, rs)) in enumerate(zip(ordered_vertices, rmorder))
         # update slots
         islot = findfirst(iszero, slots)
+        @show islot
         slots[islot] = v
         hslots[i] = islot
         for r in rs
@@ -264,48 +268,54 @@ function create_tcopies(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
     vstops = zeros(Int, nv(g))
     hstops = zeros(Int, nv(g))
     for (i, v)  in enumerate(ordered_vertices)
-        relevant_hslots = [hslots[i] for i=1:nv(g) if has_edge(g, ordered_vertices[i], v) || v == ordered_vertices[i]]
+        relevant_hslots = [hslots[j] for j=1:i if has_edge(g, ordered_vertices[j], v) || v == ordered_vertices[j]]
         relevant_vslots = [i for i=1:nv(g) if has_edge(g, ordered_vertices[i], v) || v == ordered_vertices[i]]
         vstarts[i] = minimum(relevant_hslots)
         vstops[i] = maximum(relevant_hslots)
         hstops[i] = maximum(relevant_vslots)
     end
-    return [TCopy(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
+    return [CopyLine(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
 end
 
-function add_tcopy!(ug::UGrid, tc)
-    n = length(ug.vertices)
+function add_copyline!(u::Matrix, tc::CopyLine; padding::Int)
     s = 4
-    j = tc.hslot
-    for i=0:n-1
-        # two extra rows
-        if 1<=i<=2
-            u[i+1, s*j+1+padding] += 1
-        end
-        # others
-        if i<=j
-            u[max(2+padding, s*i-s+4+padding):2:s*i+2+padding, s*j+1+padding] .+= 1
-            i!=0 && (u[s*i-s+3+padding:2:s*i+padding+1, s*j+1+padding] .+= 1)
-        else
-            u[s*j+3+padding, max(1+padding, s*i-s+1+padding):s*i+padding] .+= 1
-        end
+    I = s*(tc.hslot-1)+padding+1
+    J = s*(tc.vslot-1)+padding+1
+    # grow up
+    for i=tc.vstart:tc.hslot-1
+        I0 = I + s*(i-tc.hslot)
+        u[I0:I0+s-1, J] .+= 1
     end
-    return ug
+    # grow down
+    for i=tc.hslot:tc.vstop-1
+        I0 = I + s*(i-tc.hslot) + 1
+        u[I0:I0+s-1, J] .+= 1
+    end
+    # grow right
+    for j=tc.vslot:tc.hstop-1
+        J0 = J + s*(j-tc.vslot)
+        u[I, J0+1:J0+s] .+= 1
+    end
+    u[I, J] += 1
+    return u
 end
 
+export ugrid
 function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2)
     @assert padding >= 2
-    # create an empty UGrid
+    # create an empty canvas
     n = nv(g)
     s = 4
     N = (n-1)*s+1+2*padding
     u = zeros(Int, N, N)
-    ug = UGrid(vertex_order, padding, u)
 
     # add T-copies
-    tcopies = create_tcopies(g, vertex_order)
-    for tc in tcopies
-        add_tcopy!(ug, tc)
+    copylines = create_copylines(g, vertex_order)
+    #copylines = copylines[1:1]
+    for tc in copylines
+        #tc = CopyLine(1, 3, 3, 1, nv(g), nv(g))
+        @show tc
+        add_copyline!(u, tc; padding=padding)
     end
-    return ug
+    return UGrid(copylines, padding, u)
 end

@@ -25,7 +25,7 @@ struct UGrid
 end
 
 export coordinates
-Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.content == ug2.content
+Base.:(==)(ug::UGrid, ug2::UGrid) = ug.lines == ug2.lines && ug.content == ug2.content
 padding(ug::UGrid) = ug.padding
 coordinates(ug::UGrid) = [ci.I for ci in findall(!iszero, ug.content)]
 
@@ -137,7 +137,7 @@ function unapply_gadgets!(ug::UGrid, tape, configurations)
         unapply_gadget!(pattern, ug.content, i, j)
     end
     cfgs = map(configurations) do c
-        map_config_copyback!(ug.n, c, ug.padding)
+        map_config_copyback!(ug, c)
     end
     return ug, cfgs
 end
@@ -178,6 +178,33 @@ function map_config_back!(p::Pattern, i, j, configuration)
     return configuration
 end
 
+function map_config_copyback!(ug::UGrid, c::AbstractMatrix)
+    res = zeros(Int, length(ug.lines))
+    for line in ug.lines
+        locs = copyline_locations(line; padding=ug.padding)
+        count = 0
+        for (iloc, loc) in enumerate(locs)
+            gi, ci = ug.content[loc...], c[loc...]
+            if gi == 2
+                if ci == 2
+                    count += 1
+                elseif ci == 0
+                    count += 0
+                else    # ci = 1
+                    if c[locs[iloc-1]...] == 0 && c[locs[iloc+1]...] == 0
+                        count += 1
+                    end
+                end
+            elseif abs(gi) == 1
+                count += ci
+            else
+                error("check your grid at location ($(locs...))!")
+            end
+        end
+        res[line.vertex] = count - (length(locs) ÷ 2)
+    end
+    return res
+end
 function map_config_copyback!(n::Int, c::AbstractMatrix, padding::Int)
     store = copy(c)
     s = 4
@@ -352,3 +379,11 @@ function embed_graph2(g::SimpleGraph)
     return ug
 end
 
+export mis_overhead_copylines
+function mis_overhead_copylines(ug::UGrid)
+    sum(ug.lines) do line
+        locs = copyline_locations(line; padding=ug.padding)
+        @assert length(locs) % 2 == 1
+        length(locs) ÷ 2
+    end
+end

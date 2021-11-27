@@ -3,13 +3,23 @@ using Graphs, GraphTensorNetworks
 
 @testset "crossing connect count" begin
     g = smallgraph(:bull)
-    ug = embed_graph(g)
-    for (s, c) in zip([Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(),
-            Turn()], [2,4,1,3,4])
+    ug = embed_graph2(g)
+    for (s, c) in zip([
+                    Cross{false}(), Cross{true}(), TShape{false}(), TShape{true}(),
+                    Turn(), WTurn(), Branch(), BranchFix(), TCon(), TrivialTurn(),
+                    RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
+                    ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
+                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"),],
+                    [1,0,0,0,
+                    1,1,0,1,1,1,
+                    0, 0,
+                    2, 0,
+                    1,
+                    ])
         @show s
         @test sum(match.(Ref(s), Ref(ug.content), (0:size(ug.content, 1))', 0:size(ug.content,2))) == c
     end
-    mug, tape = apply_gadgets!(copy(ug))
+    mug, tape = apply_crossing_gadgets!(copy(ug))
     for s in [Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(),
             Turn()]
         @test sum(match.(Ref(s), Ref(mug.content), (0:size(mug.content, 1))', 0:size(mug.content,2))) == 0
@@ -20,11 +30,12 @@ using Graphs, GraphTensorNetworks
 end
 
 @testset "map configurations back" begin
-    for g in [smallgraph(:petersen), smallgraph(:bull), smallgraph(:cubical), smallgraph(:house), smallgraph(:diamond)]
-        @show g
-        ug = embed_graph(g)
-        mis_overhead0 = 2 * nv(g) * (nv(g)-1) + nv(g)
-        ug2, tape = apply_gadgets!(copy(ug))
+    for graphname in [:petersen, :bull, :cubical, :house, :diamond]
+        @show graphname
+        g = smallgraph(graphname)
+        ug = embed_graph2(g)
+        mis_overhead0 = mis_overhead_copylines(ug)
+        ug2, tape = apply_crossing_gadgets!(copy(ug))
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         missize_map = solve(Independence(SimpleGraph(ug2)), "size max"; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())[].n
         missize = solve(Independence(g), "size max")[].n

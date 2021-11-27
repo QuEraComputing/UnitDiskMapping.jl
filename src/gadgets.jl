@@ -297,7 +297,7 @@ function mapped_graph(::WTurn)
     return locs, unitdisk_graph(locs, 1.5), [1, 3]
 end
 Base.size(::WTurn) = (4, 4)
-cross_location(::WTurn) = (3,2)
+cross_location(::WTurn) = (2,2)
 iscon(::WTurn) = false
 
 struct BranchFixB <: CrossPattern end
@@ -409,6 +409,12 @@ for T in [:RotatedGadget, :ReflectedGadget]
     end
     @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
     @eval vertex_overhead(p::$T) = vertex_overhead(p.gadget)
+    @eval function mapped_entry_to_compact(r::$T)
+        return mapped_entry_to_compact(r.gadget)
+    end
+    @eval function source_entry_to_configs(r::$T)
+        return source_entry_to_configs(r.gadget)
+    end
 end
 
 function _apply_transform(r::RotatedGadget, locs, center)

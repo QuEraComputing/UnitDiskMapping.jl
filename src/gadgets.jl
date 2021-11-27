@@ -7,7 +7,8 @@
 abstract type Pattern end
 """
 ### Properties
-* size
+* xlim
+* ylim
 * source: (locs, graph, pins/auto)
 * mapped: (locs, graph/auto, pins/auto)
 
@@ -19,7 +20,8 @@ abstract type Pattern end
 abstract type CrossPattern <: Pattern end
 """
 ### Properties
-* size
+* xlim
+* ylim
 * source: (locs, graph/auto, pins/auto)
 * mapped: (locs, graph/auto, pins/auto)
 
@@ -88,6 +90,16 @@ function Base.show(io::IO, p::Pattern)
     print_ugrid(io, mapped_matrix(p))
 end
 
+function connect!(m, p::Pattern)
+    for (i, j) in connect_locations(p)
+        if m[i, j] != 1
+            error("can not connect at $i-$j")
+        end
+        m[i, j] *= -1
+    end
+    return m
+end
+
 function apply_gadget!(p::Pattern, matrix, i, j)
     a = mapped_matrix(p)
     m, n = size(a)
@@ -125,11 +137,8 @@ function mapped_graph(::Cross{true})
     locs, unitdisk_graph(locs, 1.5), [1,4,5,3]
 end
 Base.size(::Cross{true}) = (3, 3)
-function connect!(m, ::Cross{true})
-    m[2,1] *= -1
-    m[3,2] *= -1
-    return m
-end
+cross_location(::Cross{true}) = (2,2)
+connect_locations(::Cross{true}) = [(2, 1), (3,2)]
 
 # ⋅ ⋅ ● ⋅ ⋅ 
 # ● ● ◉ ● ● 
@@ -150,6 +159,7 @@ function mapped_graph(::Cross{false})
     locs, unitdisk_graph(locs, 1.5), [1,6,8,5]
 end
 Base.size(::Cross{false}) = (4, 5)
+cross_location(::Cross{false}) = (2,3)
 
 struct TShape{CON} <: CrossPattern end
 iscon(::TShape{CON}) where {CON} = CON
@@ -174,6 +184,7 @@ function mapped_graph(::TShape{false})
     locs, unitdisk_graph(locs, 1.5), [1, 2, 6]
 end
 Base.size(::TShape{false}) = (5, 4)
+cross_location(::TShape{false}) = (3,2)
 
 #   ●
 #   ●
@@ -192,12 +203,9 @@ function mapped_graph(::TShape{true})
     locs = [(3, 1), (1,2), (2,3), (3,3), (4,2)]
     locs, unitdisk_graph(locs, 1.5), [1, 2, 5]
 end
-function connect!(m, ::TShape{true})
-    m[3,1] *= -1
-    m[4,2] *= -1
-    return m
-end
+connect_locations(::TShape{true}) = [(3, 1), (4,2)]
 Base.size(::TShape{true}) = (4, 4)
+cross_location(::TShape{true}) = (3,2)
 
 struct Turn <: CrossPattern end
 iscon(::Turn) = false
@@ -220,6 +228,7 @@ function mapped_graph(::Turn)
     locs, unitdisk_graph(locs, 1.5), [1,3]
 end
 Base.size(::Turn) = (4, 4)
+cross_location(::Turn) = (3,2)
 
 
 struct Branch <: CrossPattern end
@@ -237,6 +246,9 @@ end
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::Branch)
 end
+Base.size(::Branch) = (5, 4)
+cross_location(::Branch) = (3,2)
+iscon(::Branch) = false
 
 struct BranchFix <: CrossPattern end
 # ⋅ ● ⋅ ⋅ 
@@ -251,38 +263,42 @@ end
 # ⋅ ● ⋅ ⋅ 
 function mapped_graph(::BranchFix)
 end
+Base.size(::BranchFix) = (4, 4)
 cross_location(::BranchFix) = (2,2)
+iscon(::BranchFix) = false
 
-struct BigTurn <: CrossPattern end
-# ⋅ ⋅ ⋅ ⋅ 
+struct WTurn <: CrossPattern end
 # ⋅ ⋅ ⋅ ⋅ 
 # ⋅ ⋅ ● ● 
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
-function source_graph(::BigTurn)
+function source_graph(::WTurn)
 end
-# ⋅ ⋅ ⋅ ⋅ 
 # ⋅ ⋅ ⋅ ⋅ 
 # ⋅ ⋅ ⋅ ● 
 # ⋅ ⋅ ● ⋅ 
 # ⋅ ● ⋅ ⋅
-function mapped_graph(::BigTurn)
+function mapped_graph(::WTurn)
 end
-cross_location(::BigTurn) = (3,2)
+Base.size(::WTurn) = (4, 4)
+cross_location(::WTurn) = (3,2)
+iscon(::WTurn) = false
 
 struct TCon <: CrossPattern end
-# ⋅ ◆ ⋅
-# ◆ ● ⋅ 
-# ⋅ ● ⋅
+# ⋅ ◆ ⋅ ⋅
+# ◆ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
 function source_graph(::TCon)
 end
 
-# ⋅ ● ⋅
-# ● ⋅ ●
-# ⋅ ● ⋅
+# ⋅ ● ⋅ ⋅
+# ● ⋅ ● ⋅
+# ⋅ ● ⋅ ⋅
 function mapped_graph(::TCon)
 end
+Base.size(::TCon) = (3,4)
 cross_location(::TCon) = (2,2)
+iscon(::TCon) = true
 
 struct TrivialTurn <: CrossPattern end
 # ⋅ ◆
@@ -293,13 +309,78 @@ end
 # ● ⋅
 function mapped_graph(::TrivialTurn)
 end
+Base.size(::TrivialTurn) = (2,2)
+cross_location(::TrivialTurn) = (2,2)
+iscon(::TrivialTurn) = true
 
 ############## Rotation and Flip ###############
-struct RotatedGadget{GT}
+export RotatedGadget, ReflectedGadget
+struct RotatedGadget{GT} <: Pattern
     gadget::GT
+    n::Int
 end
-struct ReflectedGadget{GT}
+function Base.size(r::RotatedGadget)
+    m, n = size(r.gadget)
+    return r.n%2==0 ? (m, n) : (n, m)
+end
+struct ReflectedGadget{GT} <: Pattern
     gadget::GT
+    mirror::String
+end
+function Base.size(r::ReflectedGadget)
+    m, n = size(r.gadget)
+    return r.mirror == "x" || r.mirror == "y" ? (m, n) : (n, m)
+end
+
+for T in [:RotatedGadget, :ReflectedGadget]
+    @eval function source_graph(r::$T)
+        locs, graph, pins = source_graph(r.gadget)
+        center = cross_location(r.gadget)
+        locs = map(loc->loc .+ _get_offset(r), _apply_transform(r, locs, center))
+        return locs, graph, pins
+    end
+    @eval function mapped_graph(r::$T)
+        locs, graph, pins = mapped_graph(r.gadget)
+        center = cross_location(r.gadget)
+        locs = map(loc->loc .+ _get_offset(r), _apply_transform(r, locs, center))
+        return locs, graph, pins
+    end
+    @eval cross_location(r::$T) = cross_location(r.gadget) .+ _get_offset(r)
+    @eval function _get_offset(r::$T)
+        m, n = size(r.gadget)
+        a, b = _apply_transform(r, [(1,1), (m,n)], cross_location(r.gadget))
+        return 1-min(a[1], b[1]), 1-min(a[2], b[2])
+    end
+    @eval iscon(r::$T) = iscon(r.gadget)
+    @eval function connect_locations(r::$T)
+        center = cross_location(r.gadget)
+        return map(loc->loc .+ _get_offset(r), _apply_transform(r, connect_locations(r.gadget), center))
+    end
+end
+
+function _apply_transform(r::RotatedGadget, locs, center)
+    return map(locs) do loc
+        for _=1:r.n
+            loc = rotate90(loc, center)
+        end
+        loc
+    end
+end
+
+function _apply_transform(r::ReflectedGadget, locs, center)
+    return map(locs) do loc
+        if r.mirror == "x"
+            reflectx(loc, center)
+        elseif r.mirror == "y"
+            reflecty(loc, center)
+        elseif r.mirror == "diag"
+            reflectdiag(loc, center)
+        elseif r.mirror == "offdiag"
+            reflectoffdiag(loc, center)
+        else
+            throw(ArgumentError("reflection direction $(r.direction) is not defined!"))
+        end
+    end
 end
 
 export vertex_overhead, mis_overhead

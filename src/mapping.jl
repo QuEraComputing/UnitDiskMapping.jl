@@ -282,21 +282,22 @@ function add_copyline!(u::Matrix, tc::CopyLine; padding::Int)
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
     # grow up
-    for i=I+s*(tc.vstart-tc.hslot)-1:I-1           # odd number of nodes up
+    for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
         u[i, J] += 1
     end
     # grow down
-    for i=I+1:I+s*(tc.vstop-tc.hslot)-1            # odd number of nodes down if tc.vstop > tc.hslot
-        u[i, J] += 1
+    for i=I:I+s*(tc.vstop-tc.hslot)-1              # even number of nodes down
+        if i == I
+            u[i+1, J+1] += 1
+        else
+            u[i, J] += 1
+        end
     end
     # grow right
-    for j=J+1:J+s*(tc.hstop-tc.vslot)-1            # odd number of nodes right if tc.hstop > tc.vslot
+    for j=J+2:J+s*(tc.hstop-tc.vslot)-1            # even number of nodes right
         u[I, j] += 1
     end
-    u[I,J] += 1                                    # center node
-    if tc.vstop > tc.hslot && tc.hstop > tc.vslot  # add one extra node if grow both down and right
-        u[I+1,J+1] += 1
-    end
+    u[I,J+1] += 1                                  # center node
     return u
 end
 
@@ -333,10 +334,14 @@ function embed_graph2(g::SimpleGraph)
     ug = ugrid(g, collect(nv(g):-1:1); padding=2)
     for e in edges(g)
         I, J = crossat2(ug, e.src, e.dst)
-        @assert ug.content[I-1, J] == 1
         @assert ug.content[I, J-1] == 1
-        ug.content[I-1, J] *= -1
         ug.content[I, J-1] *= -1
+        if ug.content[I-1, J] == 1
+            ug.content[I-1, J] *= -1
+        else
+            @assert ug.content[I+1, J] == 1
+            ug.content[I+1, J] *= -1
+        end
     end
     return ug
 end

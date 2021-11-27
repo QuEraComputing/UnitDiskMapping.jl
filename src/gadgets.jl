@@ -113,10 +113,7 @@ iscon(::Cross{CON}) where {CON} = CON
 # ⋅ ◆ ⋅ 
 function source_graph(::Cross{true})
     locs = [(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)]
-    g = SimpleGraph(6)
-    for (i,j) in [(1,2), (2,3), (4,5), (5,6), (1,6)]
-        add_edge!(g, i, j)
-    end
+    g = simplegraph([(1,2), (2,3), (4,5), (5,6), (1,6)])
     return locs, g, [1,4,6,3]
 end
 
@@ -139,11 +136,8 @@ end
 # ⋅ ⋅ ● ⋅ ⋅ 
 # ⋅ ⋅ ● ⋅ ⋅ 
 function source_graph(::Cross{false})
-    g = SimpleGraph(9)
     locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)]
-    for (i,j) in [(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)]
-        add_edge!(g, i, j)
-    end
+    g = simpelgraph([(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)])
     return locs, g, [1,6,9,5]
 end
 
@@ -166,10 +160,7 @@ iscon(::TShape{CON}) where {CON} = CON
 # ⋅ ● ⋅ ⋅
 function source_graph(::TShape{false})
     locs = [(3, 1), (1,2), (2,2), (3,2), (4,2), (5,2)]
-    g = SimpleGraph(6)
-    for (i,j) in [(2,3), (3,4), (4,5), (5,6)]
-        add_edge!(g, i, j)
-    end
+    g = simplegraph([(2,3), (3,4), (4,5), (5,6)])
     return locs, g, [1,2,6]
 end
 
@@ -190,10 +181,7 @@ Base.size(::TShape{false}) = (5, 4)
 #   ◆
 function source_graph(::TShape{true})
     locs = [(3, 1), (1,2), (2,2), (3,2), (4,2)]
-    g = SimpleGraph(5)
-    for (i,j) in [(1,5), (2,3), (3,4), (4,5)]
-        add_edge!(g, i, j)
-    end
+    g = simplegraph([(1,5), (2,3), (3,4), (4,5)])
     return locs, g, [1,2,5]
 end
 #   ●
@@ -219,10 +207,7 @@ iscon(::Turn) = false
 # ⋅ ⋅ ⋅ ⋅
 function source_graph(::Turn)
     locs = [(1,2), (2,2), (3,2), (3,3), (3,4)]
-    g = SimpleGraph(5)
-    for (i,j) in [(1,2), (2,3), (3,4), (4,5)]
-        add_edge!(g, i, j)
-    end
+    g = simplegraph([(1,2), (2,3), (3,4), (4,5)])
     return locs, g, [1,5]
 end
 
@@ -237,7 +222,7 @@ end
 Base.size(::Turn) = (4, 4)
 
 
-struct Branch end
+struct Branch <: CrossPattern end
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ● ● 
@@ -253,10 +238,25 @@ end
 function mapped_graph(::Branch)
 end
 
-struct BigTurn end
-# ⋅ ⋅ ⋅ ⋅ 
+struct BranchFix <: CrossPattern end
 # ⋅ ● ⋅ ⋅ 
-# ⋅ ● ● ● 
+# ⋅ ● ● ⋅
+# ⋅ ● ● ⋅ 
+# ⋅ ● ⋅ ⋅
+function source_graph(::BranchFix)
+end
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ⋅ ⋅ 
+function mapped_graph(::BranchFix)
+end
+cross_location(::BranchFix) = (2,2)
+
+struct BigTurn <: CrossPattern end
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ● ● 
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::BigTurn)
@@ -268,35 +268,28 @@ end
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::BigTurn)
 end
+cross_location(::BigTurn) = (3,2)
 
-struct SmallTurn end
-# ⋅ ⋅ ⋅
+struct TCon <: CrossPattern end
+# ⋅ ◆ ⋅
+# ◆ ● ⋅ 
 # ⋅ ● ⋅
-# ⋅ ● ●
-# ⋅ ⋅ ⋅
-function source_graph(::SmallTurn)
+function source_graph(::TCon)
 end
-# ⋅ ⋅ ⋅
-# ⋅ ⋅ ⋅
-# ⋅ ⋅ ●
-# ⋅ ⋅ ⋅
-function mapped_graph(::SmallTurn)
+
+# ⋅ ● ⋅
+# ● ⋅ ●
+# ⋅ ● ⋅
+function mapped_graph(::TCon)
 end
+cross_location(::TCon) = (2,2)
 
 ############## Rotation and Flip ###############
-#   ◆
-# ◆ ● 
-#   ●
-#   ●
-
-# ⋅ ◆ ⋅ ⋅
-# ◆ ● ● ●
-
 # ⋅ ◆ ⋅ 
 # ◆ ◉ ● 
 # ⋅ ● ⋅ 
 
-struct TrivialTurn end
+struct TrivialTurn <: CrossPattern end
 # ⋅ ◆
 # ◆ ⋅
 function source_graph(::TrivialTurn)

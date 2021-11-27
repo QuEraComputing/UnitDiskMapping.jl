@@ -1,5 +1,21 @@
+#   hstart
+#      ↓
+#      |          ← vstart
+#      |
+#      |-------   ← vcenter
+#      |      ↑   ← vstop
+#            hstop
+struct TCopy
+    vertex::Int
+    vslot::Int
+    hslot::Int
+    vstart::Int
+    vstop::Int
+    hstop::Int  # there is no hstart
+end
+
 struct UGrid
-    n::Int
+    vertices::Vector{TCopy}
     padding::Int
     content::Matrix{Int}
 end
@@ -9,7 +25,7 @@ Base.:(==)(ug::UGrid, ug2::UGrid) = ug.n == ug2.n && ug.content == ug2.content
 padding(ug::UGrid) = ug.padding
 coordinates(ug::UGrid) = [ci.I for ci in findall(!iszero, ug.content)]
 
-function UGrid(n::Int; padding=2)
+function plain_ugrid(n::Int; padding=2)
     @assert padding >= 2
     s = 4
     N = (n-1)*s+1+2*padding
@@ -29,7 +45,7 @@ function UGrid(n::Int; padding=2)
             end
         end
     end
-    return UGrid(n, padding, u)
+    return UGrid(collect(1:n), padding, u)
 end
 
 function Graphs.SimpleGraph(ug::UGrid)
@@ -51,7 +67,7 @@ function print_ugrid(io::IO, content::AbstractMatrix)
         end
     end
 end
-Base.copy(ug::UGrid) = UGrid(ug.n, ug.padding, copy(ug.content))
+Base.copy(ug::UGrid) = UGrid(ug.vertices, ug.padding, copy(ug.content))
 function crossat(ug::UGrid, i, j)
     s = 4
     return (i-1)*s+3+ug.padding, (j-1)*s+1+ug.padding
@@ -202,9 +218,94 @@ function is_independent_set(g::SimpleGraph, config)
 end
 
 function embed_graph(g::SimpleGraph)
-    ug = UGrid(nv(g))
+    ug = plain_ugrid(nv(g))
     for e in edges(g)
         add_edge!(ug, e.src, e.dst)
+    end
+    return ug
+end
+
+
+##################### reordered mapping ###################
+
+function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
+    addremove = Vector{Int}[]
+    adjm = adjacency_matrix(g)
+    counts = zeros(Int, nv(g))
+    totalcounts = sum(adjm; dims=1)
+    for v in vertex_order
+        del = Int[]
+        counts .+= adjm[:,v]
+        for j=1:nv(g)
+            if !iszero(adjm[j,v]) && counts[j] == totalcounts[j]
+                push!(del, j)
+            end
+        end
+        push!(addremove, del)
+    end
+    return addremove
+end
+
+function create_tcopies(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
+    slots = zeros(Int, nv(g))
+    rmorder = remove_order(g, ordered_vertices)
+    # assign hslots
+    hslots = Int[]
+    for (i, (v, rs)) in enumerate(zip(ordered_vertices, rmorder))
+        # update slots
+        islot = findfirst(iszero, slots)
+        slots[islot] = v
+        hslots[i] = islot
+        for r in rs
+            slots[findfirst(==(r), slots)] = 0
+        end
+    end
+    vstarts = zeros(Int, nv(g))
+    vstops = zeros(Int, nv(g))
+    hstops = zeros(Int, nv(g))
+    for (i, v)  in enumerate(ordered_vertices)
+        relevant_hslots = [hslots[i] for i=1:nv(g) if has_edge(g, ordered_vertices[i], v) || v == ordered_vertices[i]]
+        relevant_vslots = [i for i=1:nv(g) if has_edge(g, ordered_vertices[i], v) || v == ordered_vertices[i]]
+        vstarts[i] = minimum(relevant_hslots)
+        vstops[i] = maximum(relevant_hslots)
+        hstops[i] = maximum(relevant_vslots)
+    end
+    return [TCopy(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
+end
+
+function add_tcopy!(ug::UGrid, tc)
+    n = length(ug.vertices)
+    s = 4
+    j = tc.hslot
+    for i=0:n-1
+        # two extra rows
+        if 1<=i<=2
+            u[i+1, s*j+1+padding] += 1
+        end
+        # others
+        if i<=j
+            u[max(2+padding, s*i-s+4+padding):2:s*i+2+padding, s*j+1+padding] .+= 1
+            i!=0 && (u[s*i-s+3+padding:2:s*i+padding+1, s*j+1+padding] .+= 1)
+        else
+            u[s*j+3+padding, max(1+padding, s*i-s+1+padding):s*i+padding] .+= 1
+        end
+    end
+    return ug
+end
+
+function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2)
+    @assert padding >= 2
+    # create an empty UGrid
+    n = nv(g)
+    s = 4
+    N = (n-1)*s+1+2*padding
+    u = zeros(Int, N, N)
+    ug = UGrid(vertex_order, padding, u)
+
+    # add T-copies
+    tcopies = create_tcopies(g, vertex_order)
+    for tc in tcopies
+        add_tcopy!(ug, tc)
     end
     return ug
 end

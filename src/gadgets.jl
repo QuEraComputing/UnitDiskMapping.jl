@@ -146,7 +146,7 @@ connect_locations(::Cross{true}) = [(2, 1), (3,2)]
 # ⋅ ⋅ ● ⋅ ⋅ 
 function source_graph(::Cross{false})
     locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)]
-    g = simpelgraph([(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)])
+    g = simplegraph([(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)])
     return locs, g, [1,6,9,5]
 end
 
@@ -231,6 +231,7 @@ Base.size(::Turn) = (4, 4)
 cross_location(::Turn) = (3,2)
 
 
+export Branch, TrivialTurn, BranchFix, WTurn, TCon
 struct Branch <: CrossPattern end
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
@@ -238,6 +239,9 @@ struct Branch <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::Branch)
+    locs = [(1,2), (2,2), (3,2),(3,3),(3,4),(4,3),(4,2),(5,2)]
+    g = simplegraph([(1,2), (2,3), (3, 4), (4,5), (4,6), (6,7), (7,8)])
+    return locs, g, [1, 5, 8]
 end
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ⋅ ● ⋅ 
@@ -245,6 +249,8 @@ end
 # ⋅ ⋅ ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::Branch)
+    locs = [(1,2), (2,3), (3,2),(3,4),(4,3),(5,2)]
+    return locs, unitdisk_graph(locs, 1.5), [1,4,6]
 end
 Base.size(::Branch) = (5, 4)
 cross_location(::Branch) = (3,2)
@@ -256,12 +262,17 @@ struct BranchFix <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFix)
+    locs = [(1,2), (2,2), (2,3),(3,3),(3,2),(4,2)]
+    g = simplegraph([(1,2), (2,3), (3,4),(4,5), (5,6)])
+    return locs, g, [1, 6]
 end
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅ 
 function mapped_graph(::BranchFix)
+    locs = [(1,2),(2,2),(3,2),(4,2)]
+    return locs, unitdisk_graph(locs, 1.5), [1, 4]
 end
 Base.size(::BranchFix) = (4, 4)
 cross_location(::BranchFix) = (2,2)
@@ -273,12 +284,17 @@ struct WTurn <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::WTurn)
+    locs = [(2,3), (2,4), (3,2),(3,3),(4,2)]
+    g = simplegraph([(1,2), (1,4), (3,4),(3,5)])
+    return locs, g, [2, 5]
 end
 # ⋅ ⋅ ⋅ ⋅ 
 # ⋅ ⋅ ⋅ ● 
 # ⋅ ⋅ ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::WTurn)
+    locs = [(2,4),(3,3),(4,2)]
+    return locs, unitdisk_graph(locs, 1.5), [1, 3]
 end
 Base.size(::WTurn) = (4, 4)
 cross_location(::WTurn) = (3,2)
@@ -289,12 +305,18 @@ struct TCon <: CrossPattern end
 # ◆ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::TCon)
+    locs = [(1,2), (2,1), (2,2),(3,2)]
+    g = simplegraph([(1,2), (1,3), (3,4)])
+    return locs, g, [1,2,4]
 end
+connect_locations(::TCon) = [(1,2), (2,1)]
 
 # ⋅ ● ⋅ ⋅
 # ● ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::TCon)
+    locs = [(1,2),(2,1),(2,3),(3,2)]
+    return locs, unitdisk_graph(locs, 1.5), [1,2,4]
 end
 Base.size(::TCon) = (3,4)
 cross_location(::TCon) = (2,2)
@@ -304,14 +326,20 @@ struct TrivialTurn <: CrossPattern end
 # ⋅ ◆
 # ◆ ⋅
 function source_graph(::TrivialTurn)
+    locs = [(1,2), (2,1)]
+    g = simplegraph([(1,2)])
+    return locs, g, [1,2]
 end
 # ⋅ ●
 # ● ⋅
 function mapped_graph(::TrivialTurn)
+    locs = [(1,2),(2,1)]
+    return locs, unitdisk_graph(locs, 1.5), [1,2]
 end
 Base.size(::TrivialTurn) = (2,2)
 cross_location(::TrivialTurn) = (2,2)
 iscon(::TrivialTurn) = true
+connect_locations(::TrivialTurn) = [(1,2), (2,1)]
 
 ############## Rotation and Flip ###############
 export RotatedGadget, ReflectedGadget
@@ -356,6 +384,8 @@ for T in [:RotatedGadget, :ReflectedGadget]
         center = cross_location(r.gadget)
         return map(loc->loc .+ _get_offset(r), _apply_transform(r, connect_locations(r.gadget), center))
     end
+    @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
+    @eval vertex_overhead(p::$T) = vertex_overhead(p.gadget)
 end
 
 function _apply_transform(r::RotatedGadget, locs, center)
@@ -388,10 +418,12 @@ function vertex_overhead(p::Pattern)
     nv(mapped_graph(p)[2]) - nv(source_graph(p)[1])
 end
 
-for T in [:Cross, :Turn]
+for T in [:Cross, :Turn, :WTurn, :Branch, :BranchFix]
     @eval mis_overhead(p::$T) = -1
 end
-@eval mis_overhead(p::TShape) = 0
+for T in [:TrivialTurn, :TShape, :TCon]
+    @eval mis_overhead(p::$T) = 0
+end
 
 export mapped_boundary_config, source_boundary_config
 function mapped_boundary_config(p::Pattern, config)

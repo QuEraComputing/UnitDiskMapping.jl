@@ -30,7 +30,7 @@ using Graphs, GraphTensorNetworks
 end
 
 @testset "map configurations back" begin
-    for graphname in [:petersen, :bull, :cubical, :house, :diamond]
+    for graphname in [:petersen, :bull, :cubical, :house, :diamond, :tutte]
         @show graphname
         g = smallgraph(graphname)
         ug = embed_graph2(g)

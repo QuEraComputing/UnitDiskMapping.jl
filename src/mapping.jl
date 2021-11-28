@@ -336,13 +336,14 @@ function copyline_locations(tc::CopyLine; padding::Int)
 end
 
 export ugrid
-function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2)
+function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
     @assert padding >= 2
     # create an empty canvas
     n = nv(g)
     s = 4
     N = (n-1)*s+1+2*padding
-    u = zeros(Int, N, N)
+    M = nrow*s+1+2*padding
+    u = zeros(Int, M, N)
 
     # add T-copies
     copylines = create_copylines(g, vertex_order)
@@ -363,8 +364,9 @@ function crossat2(ug::UGrid, v, w)
 end
 
 export embed_graph2
-function embed_graph2(g::SimpleGraph)
-    ug = ugrid(g, collect(nv(g):-1:1); padding=2)
+function embed_graph2(g::SimpleGraph; vertex_order_optimizer=Greedy())
+    L = pathwidth(g, vertex_order_optimizer)
+    ug = ugrid(g, L.vertices; padding=2, nrow=L.vsep+1)
     for e in edges(g)
         I, J = crossat2(ug, e.src, e.dst)
         @assert ug.content[I, J-1] == 1

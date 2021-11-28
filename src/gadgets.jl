@@ -161,52 +161,6 @@ end
 Base.size(::Cross{false}) = (4, 5)
 cross_location(::Cross{false}) = (2,3)
 
-struct TShape{CON} <: CrossPattern end
-iscon(::TShape{CON}) where {CON} = CON
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ⋅ ⋅ 
-# ● ● ⋅ ⋅ 
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ⋅ ⋅
-function source_graph(::TShape{false})
-    locs = [(3, 1), (1,2), (2,2), (3,2), (4,2), (5,2)]
-    g = simplegraph([(2,3), (3,4), (4,5), (5,6)])
-    return locs, g, [1,2,6]
-end
-
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ⋅ ● ⋅ 
-# ● ⋅ ● ⋅ 
-# ⋅ ⋅ ● ⋅ 
-# ⋅ ● ⋅ ⋅
-function mapped_graph(::TShape{false})
-    locs = [(3, 1), (1,2), (2,3), (3,3), (4,3), (5,2)]
-    locs, unitdisk_graph(locs, 1.5), [1, 2, 6]
-end
-Base.size(::TShape{false}) = (5, 4)
-cross_location(::TShape{false}) = (3,2)
-
-#   ●
-#   ●
-# ◆ ● 
-#   ◆
-function source_graph(::TShape{true})
-    locs = [(3, 1), (1,2), (2,2), (3,2), (4,2)]
-    g = simplegraph([(1,5), (2,3), (3,4), (4,5)])
-    return locs, g, [1,2,5]
-end
-#   ●
-#     ●
-# ●   ● 
-#   ●
-function mapped_graph(::TShape{true})
-    locs = [(3, 1), (1,2), (2,3), (3,3), (4,2)]
-    locs, unitdisk_graph(locs, 1.5), [1, 2, 5]
-end
-connect_locations(::TShape{true}) = [(3, 1), (4,2)]
-Base.size(::TShape{true}) = (4, 4)
-cross_location(::TShape{true}) = (3,2)
-
 struct Turn <: CrossPattern end
 iscon(::Turn) = false
 # ⋅ ● ⋅ ⋅ 
@@ -450,7 +404,7 @@ end
 for T in [:Cross, :Turn, :WTurn, :Branch, :BranchFix, :BranchFixB]
     @eval mis_overhead(p::$T) = -1
 end
-for T in [:TrivialTurn, :TShape, :TCon]
+for T in [:TrivialTurn, :TCon]
     @eval mis_overhead(p::$T) = 0
 end
 

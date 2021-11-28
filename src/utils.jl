@@ -1,3 +1,5 @@
+export is_independent_set, unitdisk_graph
+
 function simplegraph(edgelist::AbstractVector{Tuple{Int,Int}})
     nv = maximum(x->max(x...), edgelist)
     g = SimpleGraph(nv)
@@ -29,3 +31,24 @@ end
 function reflectoffdiag(loc)
     loc[2], loc[1]
 end
+
+function unitdisk_graph(locs::AbstractVector, unit::Real)
+    n = length(locs)
+    g = SimpleGraph(n)
+    for i=1:n, j=i+1:n
+        if sum(abs2, locs[i] .- locs[j]) < unit ^ 2
+            add_edge!(g, i, j)
+        end
+    end
+    return g
+end
+
+function is_independent_set(g::SimpleGraph, config)
+    for e in edges(g)
+        if config[e.src] == config[e.dst] == 1
+            return false
+        end
+    end
+    return true
+end
+

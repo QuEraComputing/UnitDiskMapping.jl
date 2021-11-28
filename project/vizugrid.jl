@@ -2,7 +2,7 @@ using UnitDiskMapping
 
 function print_mapback(folder::String)
     for (p, sub) in ((Cross{true}(), "crosscon"), (Cross{false}(), "cross"),
-        (TShape{true}(), "tshapecon"), (TShape{false}(), "tshape"), (Turn(), "turn"))
+        (Turn(), "turn"))
         println()
         println(typeof(p))
         for (bc, bcs) in allbcs(p)

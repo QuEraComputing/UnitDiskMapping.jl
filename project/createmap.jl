@@ -57,5 +57,5 @@ function dump_mapping_to_julia(filename, patterns)
 end
 
 dump_mapping_to_julia(joinpath(@__DIR__, "..", "src", "extracting_results.jl"),
-    (Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(),
+    (Cross{false}(), Cross{true}(),
     Turn(), WTurn(), Branch(), BranchFix(), TrivialTurn(), TCon(), BranchFixB()))

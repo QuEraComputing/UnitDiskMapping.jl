@@ -21,7 +21,7 @@ using Graphs
         end
         return true, x
     end
-    for s in (Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(), Turn(),
+    for s in (Cross{false}(), Cross{true}(), Turn(),
         TrivialTurn(), Branch(), TCon(), BranchFixB(), BranchFix(), WTurn(), RotatedGadget(TCon(), 1),
         ReflectedGadget(TCon(), "x")
         )

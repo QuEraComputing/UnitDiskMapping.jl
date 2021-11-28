@@ -3,14 +3,15 @@ using Graphs, GraphTensorNetworks
 
 @testset "crossing connect count" begin
     g = smallgraph(:bull)
-    ug = embed_graph2(g)
-    for (s, c) in zip([
-                    Cross{false}(), Cross{true}(), TShape{false}(), TShape{true}(),
+    ug = embed_graph(g; vertex_order=collect(nv(g):-1:1))
+    gadgets = [
+                    Cross{false}(), Cross{true}(),
                     Turn(), WTurn(), Branch(), BranchFix(), TCon(), TrivialTurn(),
                     RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
                     ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
-                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"),],
-                    [1,0,0,0,
+                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"),]
+    for (s, c) in zip(gadgets,
+                    [1,0,
                     1,1,0,1,1,1,
                     0, 0,
                     2, 0,
@@ -20,8 +21,7 @@ using Graphs, GraphTensorNetworks
         @test sum(match.(Ref(s), Ref(ug.content), (0:size(ug.content, 1))', 0:size(ug.content,2))) == c
     end
     mug, tape = apply_crossing_gadgets!(copy(ug))
-    for s in [Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(),
-            Turn()]
+    for s in gadgets
         @test sum(match.(Ref(s), Ref(mug.content), (0:size(mug.content, 1))', 0:size(mug.content,2))) == 0
     end
     ug2 = unapply_gadgets!(copy(mug), tape, [])[1]
@@ -33,7 +33,7 @@ end
     for graphname in [:petersen, :bull, :cubical, :house, :diamond, :tutte]
         @show graphname
         g = smallgraph(graphname)
-        ug = embed_graph2(g)
+        ug = embed_graph(g)
         mis_overhead0 = mis_overhead_copylines(ug)
         ug2, tape = apply_crossing_gadgets!(copy(ug))
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)

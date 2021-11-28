@@ -65,7 +65,7 @@ end
 
 function pattern2tikz(folder::String)
     for (p, sub) in ((Cross{true}(), "crosscon"), (Cross{false}(), "cross"),
-        (TShape{true}(), "tshapecon"), (TShape{false}(), "tshape"), (Turn(), "turn"))
+        (Turn(), "turn"))
         open(joinpath(folder, sub*"-udg.tex"), "w") do f
             write(f, viz_gadget(p))
         end

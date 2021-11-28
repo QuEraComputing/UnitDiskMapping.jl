@@ -2,7 +2,11 @@ using UnitDiskMapping, Test
 using GraphTensorNetworks
 
 @testset "map results back" begin
-    for s in (Cross{false}(), Cross{true}(), TShape{true}(), TShape{false}(), Turn())
+    for s in (Cross{false}(), Cross{true}(), Turn(), TCon(), 
+                    WTurn(), Branch(), BranchFix(), TrivialTurn(),
+                    RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
+                    ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
+                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"),)
         _, g0, pins0 = source_graph(s)
         locs, g, pins = mapped_graph(s)
         d1 = mapped_entry_to_compact(s)

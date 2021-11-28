@@ -29,29 +29,6 @@ Base.:(==)(ug::UGrid, ug2::UGrid) = ug.lines == ug2.lines && ug.content == ug2.c
 padding(ug::UGrid) = ug.padding
 coordinates(ug::UGrid) = [ci.I for ci in findall(!iszero, ug.content)]
 
-function plain_ugrid(n::Int; padding=2)
-    @assert padding >= 2
-    s = 4
-    N = (n-1)*s+1+2*padding
-    u = zeros(Int, N, N)
-    for j=n-1:-1:0
-        for i=0:n-1
-            # two extra rows
-            if 1<=i<=2
-                u[i+1, s*j+1+padding] += 1
-            end
-            # others
-            if i<=j
-                u[max(2+padding, s*i-s+4+padding):2:s*i+2+padding, s*j+1+padding] .+= 1
-                i!=0 && (u[s*i-s+3+padding:2:s*i+padding+1, s*j+1+padding] .+= 1)
-            else
-                u[s*j+3+padding, max(1+padding, s*i-s+1+padding):s*i+padding] .+= 1
-            end
-        end
-    end
-    return UGrid(collect(1:n), padding, u)
-end
-
 function Graphs.SimpleGraph(ug::UGrid)
     if any(x->abs(x)>1, ug.content)
         error("This mapping is not done yet!")
@@ -72,16 +49,6 @@ function print_ugrid(io::IO, content::AbstractMatrix)
     end
 end
 Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
-function crossat(ug::UGrid, i, j)
-    s = 4
-    return (i-1)*s+3+ug.padding, (j-1)*s+1+ug.padding
-end
-function Graphs.add_edge!(ug::UGrid, i, j)
-    I, J = crossat(ug, i, j)
-    ug.content[I+1, J] *= -1
-    ug.content[I, J-1] *= -1
-    return ug
-end
 
 function showitem(io, x)
     if x == 1
@@ -103,7 +70,7 @@ end
 # 1. check if the resulting graph is a unit-disk
 # 2. other simplification rules
 function apply_crossing_gadgets!(ug::UGrid, ruleset=(
-                    Cross{false}(), Cross{true}(), TShape{false}(), TShape{true}(),
+                    Cross{false}(),
                     Turn(), WTurn(), Branch(), BranchFix(), TCon(), TrivialTurn(),
                     RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
                     ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
@@ -115,7 +82,7 @@ function apply_crossing_gadgets!(ug::UGrid, ruleset=(
         for i=1:n
             matched = false
             for pattern in ruleset
-                x, y = crossat2(ug, i, j) .- cross_location(pattern) .+ (1,1)
+                x, y = crossat(ug, i, j) .- cross_location(pattern) .+ (1,1)
                 if match(pattern, ug.content, x, y)
                     apply_gadget!(pattern, ug.content, x, y)
                     push!(tape, (pattern, x, y))
@@ -140,17 +107,6 @@ function unapply_gadgets!(ug::UGrid, tape, configurations)
         map_config_copyback!(ug, c)
     end
     return ug, cfgs
-end
-
-function unitdisk_graph(locs::AbstractVector, unit::Real)
-    n = length(locs)
-    g = SimpleGraph(n)
-    for i=1:n, j=i+1:n
-        if sum(abs2, locs[i] .- locs[j]) < unit ^ 2
-            add_edge!(g, i, j)
-        end
-    end
-    return g
 end
 
 # returns a vector of configurations
@@ -205,66 +161,6 @@ function map_config_copyback!(ug::UGrid, c::AbstractMatrix)
     end
     return res
 end
-function map_config_copyback!(n::Int, c::AbstractMatrix, padding::Int)
-    store = copy(c)
-    s = 4
-    res = zeros(Int, n)
-    for j=1:n
-        for i=1:(n-1)*s + 3
-            J = (j-1)*s + 1 + padding
-            if i > (j-1)*s+4
-                J += i-(j-1)*s-4
-                I = (j-1)*s + 3 + padding
-                # bits belong to horizontal lines
-                if i%s != 0 || (safe_get(c, I, J-1) == 0 && safe_get(c, I, J+1) == 0)
-                    if store[I, J] != 0
-                        res[j] += 1
-                        store[I, J] -= 1
-                    end
-                end
-            else
-                I = i-1 + padding
-                # bits belong to vertical lines
-                if i%s != 0 || (safe_get(c, I-1, J) == 0 && safe_get(c, I+1, J) == 0)
-                    if store[I, J] != 0
-                        res[j] += 1
-                        store[I, J] -= 1
-                    end
-                end
-            end
-        end
-    end
-    return map(res) do x
-        if x == 2*(n-1)+1
-            false
-        elseif x == 2*(n-1) + 2
-            true
-        else
-            error("mapping back fail! got $x (overhead = $((n-1)*2))")
-        end
-    end
-end
-
-export is_independent_set
-function is_independent_set(g::SimpleGraph, config)
-    for e in edges(g)
-        if config[e.src] == config[e.dst] == 1
-            return false
-        end
-    end
-    return true
-end
-
-function embed_graph(g::SimpleGraph)
-    ug = plain_ugrid(nv(g))
-    for e in edges(g)
-        add_edge!(ug, e.src, e.dst)
-    end
-    return ug
-end
-
-
-##################### reordered mapping ###################
 
 function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     addremove = [Int[] for _=1:nv(g)]
@@ -355,7 +251,7 @@ function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nro
     return UGrid(copylines, padding, u)
 end
 
-function crossat2(ug::UGrid, v, w)
+function crossat(ug::UGrid, v, w)
     i, j = findfirst(x->x.vertex==v, ug.lines), findfirst(x->x.vertex==w, ug.lines)
     i, j = minmax(i, j)
     hslot = ug.lines[i].hslot
@@ -363,12 +259,23 @@ function crossat2(ug::UGrid, v, w)
     return (hslot-1)*s+2+ug.padding, (j-1)*s+1+ug.padding
 end
 
-export embed_graph2
-function embed_graph2(g::SimpleGraph; vertex_order_optimizer=Greedy())
-    L = pathwidth(g, vertex_order_optimizer)
+"""
+    embed_graph(g::SimpleGraph; vertex_order=Greedy())
+
+Embed graph `g` into a unit disk grid. The `vertex_order` can be a vector or one of the following inputs
+
+    * `Greedy()` fast but non-optimal.
+    * `Branching()` slow but optimal.
+"""
+function embed_graph(g::SimpleGraph; vertex_order=Greedy())
+    if vertex_order isa AbstractVector
+        L = PathDecomposition.Layout(g, collect(vertex_order))
+    else
+        L = pathwidth(g, vertex_order)
+    end
     ug = ugrid(g, L.vertices; padding=2, nrow=L.vsep+1)
     for e in edges(g)
-        I, J = crossat2(ug, e.src, e.dst)
+        I, J = crossat(ug, e.src, e.dst)
         @assert ug.content[I, J-1] == 1
         ug.content[I, J-1] *= -1
         if ug.content[I-1, J] == 1

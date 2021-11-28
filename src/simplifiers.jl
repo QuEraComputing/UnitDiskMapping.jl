@@ -35,8 +35,9 @@ vertices_on_boundary(gg::GridGraph) = vertices_on_boundary(gg.locations, gg.size
 function gridgraphfromstring(str::String)
     item_array = Vector{Bool}[]
     for line in split(str, "\n")
-        if !isempty(line)
-            push!(item_array, [item ∈ ("o", "●") ? true : (@assert item ∈ (".", "⋅"); false) for item in split(line, " ") if !isempty(item)])
+        list = [item ∈ ("o", "●") ? true : (@assert item ∈ (".", "⋅"); false) for item in split(line, " ") if !isempty(item)]
+        if !isempty(list)
+            push!(item_array, list)
         end
     end
     @assert all(==(length(item_array[1])), length.(item_array))
@@ -70,7 +71,7 @@ end
 # 1. specify a gadget like the following. Use either `o` and `●` to specify a vertex,
 # either `.` or `⋅` to specify a placeholder.
 @gg DanglingLeg =
-    """
+    """ 
     ⋅ ⋅ ⋅ 
     ⋅ ● ⋅ 
     ⋅ ● ⋅ 

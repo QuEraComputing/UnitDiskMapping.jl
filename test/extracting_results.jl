@@ -2,7 +2,7 @@ using UnitDiskMapping, Test
 using GraphTensorNetworks
 
 @testset "map results back" begin
-    for s in UnitDiskMapping.crossing_ruleset
+    for s in [UnitDiskMapping.crossing_ruleset..., UnitDiskMapping.simplifier_ruleset...]
         _, g0, pins0 = source_graph(s)
         locs, g, pins = mapped_graph(s)
         d1 = mapped_entry_to_compact(s)

@@ -35,10 +35,23 @@ function source_entry_to_configs(s::Pattern)
     return d
 end
 
+function compute_mis_overhead(s)
+    locs1, g1, pins1 = source_graph(s)
+    locs2, g2, pins2 = mapped_graph(s)
+    m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), "size max"))
+    m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), "size max"))
+    @test nv(g1) == length(locs1) && nv(g2) == length(locs2)
+    sig, diff = UnitDiskMapping.is_diff_by_const(content.(m1), content.(m2))
+    @assert sig
+    return diff
+end
+
+
 # from bounary configuration to MISs.
 function generate_mapping(s::Pattern)
     d1 = mapped_entry_to_compact(s)
     d2 = source_entry_to_configs(s)
+    diff = compute_mis_overhead(s)
     s = """function mapped_entry_to_compact(::$(typeof(s)))
     return Dict($(collect(d1)))
 end
@@ -46,6 +59,8 @@ end
 function source_entry_to_configs(::$(typeof(s)))
     return Dict($(collect(d2)))
 end
+
+mis_overhead(::$(typeof(s))) = $(-diff)
 """
 end
 
@@ -58,4 +73,5 @@ end
 
 dump_mapping_to_julia(joinpath(@__DIR__, "..", "src", "extracting_results.jl"),
     (Cross{false}(), Cross{true}(),
-    Turn(), WTurn(), Branch(), BranchFix(), TrivialTurn(), TCon(), BranchFixB()))
+    Turn(), WTurn(), Branch(), BranchFix(), TrivialTurn(), TCon(), BranchFixB(),
+    UnitDiskMapping.simplifier_ruleset...))

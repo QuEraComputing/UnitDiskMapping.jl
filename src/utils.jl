@@ -52,3 +52,20 @@ function is_independent_set(g::SimpleGraph, config)
     return true
 end
 
+function is_diff_by_const(t1::AbstractArray{T}, t2::AbstractArray{T}) where T <: Real
+    x = NaN
+    for (a, b) in zip(t1, t2)
+        if isinf(a) && isinf(b)
+            continue
+        end
+        if isinf(a) || isinf(b)
+            return false, 0
+        end
+        if isnan(x)
+            x = (a - b)
+        elseif x != a - b
+            return false, 0
+        end
+    end
+    return true, x
+end

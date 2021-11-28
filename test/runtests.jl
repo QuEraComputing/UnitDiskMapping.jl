@@ -20,3 +20,7 @@ end
 @testset "path decomposition" begin
     include("pathdecomposition/pathdecomposition.jl")
 end
+
+@testset "simplifiers" begin
+    include("simplifiers.jl")
+end

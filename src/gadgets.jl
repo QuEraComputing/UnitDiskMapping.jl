@@ -7,8 +7,8 @@
 abstract type Pattern end
 """
 ### Properties
-* xlim
-* ylim
+* size
+* cross_location
 * source: (locs, graph, pins/auto)
 * mapped: (locs, graph/auto, pins/auto)
 
@@ -18,18 +18,6 @@ abstract type Pattern end
 3. ancillas does not appear at the boundary (not checked),
 """
 abstract type CrossPattern <: Pattern end
-"""
-### Properties
-* xlim
-* ylim
-* source: (locs, graph/auto, pins/auto)
-* mapped: (locs, graph/auto, pins/auto)
-
-### Requires
-1. equivalence in MIS-compact tropical tensor (you can check it with tests),
-2. ancillas does not appear at the boundary (not checked),
-"""
-abstract type SimplifyPattern <: Pattern end
 
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
@@ -361,7 +349,6 @@ for T in [:RotatedGadget, :ReflectedGadget]
         center = cross_location(r.gadget)
         return map(loc->loc .+ _get_offset(r), _apply_transform(r, connect_locations(r.gadget), center))
     end
-    @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
     @eval vertex_overhead(p::$T) = vertex_overhead(p.gadget)
     @eval function mapped_entry_to_compact(r::$T)
         return mapped_entry_to_compact(r.gadget)
@@ -369,6 +356,7 @@ for T in [:RotatedGadget, :ReflectedGadget]
     @eval function source_entry_to_configs(r::$T)
         return source_entry_to_configs(r.gadget)
     end
+    @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
 end
 
 function _apply_transform(r::RotatedGadget, locs, center)
@@ -396,16 +384,9 @@ function _apply_transform(r::ReflectedGadget, locs, center)
     end
 end
 
-export vertex_overhead, mis_overhead
+export vertex_overhead
 function vertex_overhead(p::Pattern)
     nv(mapped_graph(p)[2]) - nv(source_graph(p)[1])
-end
-
-for T in [:Cross, :Turn, :WTurn, :Branch, :BranchFix, :BranchFixB]
-    @eval mis_overhead(p::$T) = -1
-end
-for T in [:TrivialTurn, :TCon]
-    @eval mis_overhead(p::$T) = 0
 end
 
 export mapped_boundary_config, source_boundary_config

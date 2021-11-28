@@ -79,14 +79,27 @@ function apply_crossing_gadgets!(ug::UGrid, ruleset=crossing_ruleset)
     n = length(ug.lines)
     for j=1:n  # start from 0 because there can be one empty padding column/row.
         for i=1:n
-            matched = false
             for pattern in ruleset
                 x, y = crossat(ug, i, j) .- cross_location(pattern) .+ (1,1)
                 if match(pattern, ug.content, x, y)
                     apply_gadget!(pattern, ug.content, x, y)
                     push!(tape, (pattern, x, y))
-                    matched = true
                     break
+                end
+            end
+        end
+    end
+    return ug, tape
+end
+
+function apply_simplifier_gadgets!(ug::UGrid; ruleset, nrepeat::Int=10)
+    tape = Tuple{Pattern,Int,Int}[]
+    for _ in 1:nrepeat, pattern in ruleset
+        for j=0:size(ug.content, 1)  # start from 0 because there can be one empty padding column/row.
+            for i=0:size(ug.content, 2)
+                if match(pattern, ug.content, i, j)
+                    apply_gadget!(pattern, ug.content, i, j)
+                    push!(tape, (pattern, i, j))
                 end
             end
         end
@@ -295,3 +308,33 @@ function mis_overhead_copylines(ug::UGrid)
         length(locs) ÷ 2
     end
 end
+
+##### Interfaces ######
+export MappingResult, map_graph, map_configs_back
+
+struct MappingResult
+    grid_graph::UGrid
+    mapping_history::Vector{Tuple{Pattern,Int,Int}}
+    mis_overhead::Int
+end
+
+"""
+    map_graph(g::SimpleGraph; ruleset=[...])
+
+Map a graph to a unit disk grid graph that being "equivalent" to the original graph.
+Here "equivalent" means a maximum independent set in the grid graph can be mapped back to
+a maximum independent set of the original graph in polynomial time.
+
+Returns a `MappingResult` instance.
+"""
+function map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
+    ug = embed_graph(g)
+    mis_overhead0 = mis_overhead_copylines(ug)
+    ug, tape = apply_crossing_gadgets!(ug)
+    ug, tape2 = apply_simplifier_gadgets!(ug; ruleset=ruleset)
+    mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
+    mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
+    return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
+end
+
+map_configs_back(r::MappingResult, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]

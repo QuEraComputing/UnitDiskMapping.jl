@@ -11,6 +11,7 @@ export @gg
 """
 abstract type SimplifyPattern <: Pattern end
 iscon(s::SimplifyPattern) = false
+cross_location(s::SimplifyPattern) = size(s) .÷ 2
 function source_locations end
 function mapped_locations end
 function mapped_graph(p::SimplifyPattern)
@@ -65,6 +66,9 @@ macro gg(expr)
     end
 end
 
+# # How to add a new simplification rule
+# 1. specify a gadget like the following. Use either `o` and `●` to specify a vertex,
+# either `.` or `⋅` to specify a placeholder.
 @gg DanglingLeg =
     """
     ⋅ ⋅ ⋅ 
@@ -77,3 +81,6 @@ end
     ⋅ ⋅ ⋅ 
     ⋅ ● ⋅
     """
+
+# 2. run the script `project/createmap` to generate `mis_overhead` and other informations required
+# for mapping back. (Note: will overwrite the source file `src/extracting_results.jl`)

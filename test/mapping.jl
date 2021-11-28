@@ -36,13 +36,17 @@ end
         ug = embed_graph(g)
         mis_overhead0 = mis_overhead_copylines(ug)
         ug2, tape = apply_crossing_gadgets!(copy(ug))
+        ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[RotatedGadget(UnitDiskMapping.DanglingLeg(), n) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
-        missize_map = solve(Independence(SimpleGraph(ug2)), "size max"; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())[].n
+        mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
+        @show mis_overhead2
+        gp = Independence(SimpleGraph(ug3); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+        missize_map = solve(gp, "size max")[].n
         missize = solve(Independence(g), "size max")[].n
-        @test mis_overhead0 + mis_overhead1 + missize == missize_map
-        misconfig = solve(Independence(SimpleGraph(ug2)), "config max"; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())[].c
-        c = zeros(Int, size(ug2.content))
-        for (i, loc) in enumerate(findall(!iszero, ug2.content))
+        @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
+        misconfig = solve(gp, "config max")[].c
+        c = zeros(Int, size(ug3.content))
+        for (i, loc) in enumerate(findall(!iszero, ug3.content))
             c[loc] = misconfig.data[i]
         end
         @test all(ci->UnitDiskMapping.safe_get(c, ci.I...)==0 || (UnitDiskMapping.safe_get(c, ci.I[1], ci.I[2]+1) == 0 && UnitDiskMapping.safe_get(c, ci.I[1]+1, ci.I[2]) == 0 &&
@@ -50,8 +54,29 @@ end
             UnitDiskMapping.safe_get(c, ci.I[1]-1, ci.I[2]-1) == 0 && UnitDiskMapping.safe_get(c, ci.I[1]-1, ci.I[2]+1) == 0 &&
             UnitDiskMapping.safe_get(c, ci.I[1]+1, ci.I[2]-1) == 0 && UnitDiskMapping.safe_get(c, ci.I[1]+1, ci.I[2]+1) == 0
         ), CartesianIndices((55, 55)))
-        res, cs = unapply_gadgets!(copy(ug2), tape, [copy(c)])
+        res, cs = unapply_gadgets!(copy(ug3), [tape..., tape2...], [copy(c)])
         @test count(isone, cs[1]) == missize
         @test is_independent_set(g, cs[1])
     end
+end
+
+@testset "interface" begin
+    g = smallgraph(:petersen)
+    res = map_graph(g)
+
+    # checking size
+    gp = Independence(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    missize_map = solve(gp, "size max")[].n
+    missize = solve(Independence(g), "size max")[].n
+    @test res.mis_overhead + missize == missize_map
+
+    # checking mapping back
+    misconfig = solve(gp, "config max")[].c
+    c = zeros(Int, size(res.grid_graph.content))
+    for (i, loc) in enumerate(findall(!iszero, res.grid_graph.content))
+        c[loc] = misconfig.data[i]
+    end
+    original_configs = map_configs_back(res, [c])
+    @test count(isone, original_configs[1]) == missize
+    @test is_independent_set(g, original_configs[1])
 end

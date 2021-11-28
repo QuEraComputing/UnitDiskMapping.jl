@@ -40,7 +40,7 @@ end
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
         @show mis_overhead2
-        gp = Independence(SimpleGraph(ug3); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+        gp = Independence(SimpleGraph(ug3); optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
         missize_map = solve(gp, "size max")[].n
         missize = solve(Independence(g), "size max")[].n
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map

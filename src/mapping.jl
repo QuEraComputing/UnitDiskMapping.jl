@@ -95,8 +95,8 @@ end
 function apply_simplifier_gadgets!(ug::UGrid; ruleset, nrepeat::Int=10)
     tape = Tuple{Pattern,Int,Int}[]
     for _ in 1:nrepeat, pattern in ruleset
-        for j=0:size(ug.content, 1)  # start from 0 because there can be one empty padding column/row.
-            for i=0:size(ug.content, 2)
+        for j=0:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
+            for i=0:size(ug.content, 1)
                 if match(pattern, ug.content, i, j)
                     apply_gadget!(pattern, ug.content, i, j)
                     push!(tape, (pattern, i, j))

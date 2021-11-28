@@ -21,10 +21,7 @@ using Graphs
         end
         return true, x
     end
-    for s in (Cross{false}(), Cross{true}(), Turn(),
-        TrivialTurn(), Branch(), TCon(), BranchFixB(), BranchFix(), WTurn(), RotatedGadget(TCon(), 1),
-        ReflectedGadget(TCon(), "x")
-        )
+    for s in UnitDiskMapping.crossing_ruleset
         println("Testing gadget:\n$s")
         locs1, g1, pins1 = source_graph(s)
         locs2, g2, pins2 = mapped_graph(s)

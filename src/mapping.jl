@@ -69,13 +69,12 @@ end
 # TODO:
 # 1. check if the resulting graph is a unit-disk
 # 2. other simplification rules
-function apply_crossing_gadgets!(ug::UGrid, ruleset=(
-                    Cross{false}(),
+const crossing_ruleset = (Cross{false}(),
                     Turn(), WTurn(), Branch(), BranchFix(), TCon(), TrivialTurn(),
                     RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
                     ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
-                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"),
-                ))
+                    ReflectedGadget(RotatedGadget(TCon(), 1), "y"))
+function apply_crossing_gadgets!(ug::UGrid, ruleset=crossing_ruleset)
     tape = Tuple{Pattern,Int,Int}[]
     n = length(ug.lines)
     for j=1:n  # start from 0 because there can be one empty padding column/row.

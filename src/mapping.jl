@@ -338,3 +338,27 @@ function map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for 
 end
 
 map_configs_back(r::MappingResult, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+
+function compress_graph(ug::UGrid)
+    # get locations
+    M = ug.content
+
+    locs = Vector{Tupe{Int, Int}}()
+
+    for i=1:size(ug.content[1])
+        for j = 1:size(ug.content[2])
+            if M[i][j] > 0
+                append!(locs, (i, j))
+            end
+        end
+    end
+
+    new_locs = contract_graph(locs)
+
+    while new_locs != locs
+        locs = new_locs
+        new_locs = contract_graph(locs)
+    end
+
+    return new_locs
+end

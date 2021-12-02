@@ -1,4 +1,4 @@
-using UnitDiskMapping, GraphTensorNetworks
+using UnitDiskMapping, GraphTensorNetworks, Graphs
 
 function mapped_entry_to_compact(s::Pattern)
     locs, g, pins = mapped_graph(s)
@@ -40,8 +40,8 @@ function compute_mis_overhead(s)
     locs2, g2, pins2 = mapped_graph(s)
     m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), "size max"))
     m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), "size max"))
-    @test nv(g1) == length(locs1) && nv(g2) == length(locs2)
-    sig, diff = UnitDiskMapping.is_diff_by_const(content.(m1), content.(m2))
+    @assert nv(g1) == length(locs1) && nv(g2) == length(locs2)
+    sig, diff = UnitDiskMapping.is_diff_by_const(GraphTensorNetworks.content.(m1), GraphTensorNetworks.content.(m2))
     @assert sig
     return diff
 end
@@ -74,4 +74,5 @@ end
 dump_mapping_to_julia(joinpath(@__DIR__, "..", "src", "extracting_results.jl"),
     (Cross{false}(), Cross{true}(),
     Turn(), WTurn(), Branch(), BranchFix(), TrivialTurn(), TCon(), BranchFixB(),
+    EndTurn(),
     UnitDiskMapping.simplifier_ruleset...))

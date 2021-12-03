@@ -125,7 +125,7 @@ function check_UDG_criteria(n::UNode, new_pos::Tuple{Int, Int}, node_list::Vecto
     p_x, p_y = new_pos
     p_neighbors = n.neighbors
 
-    new_neighbors = Vector{UNode}()
+    new_neighbors = Vector{Int}()
     UDG_neighbor_pos = get_udg_neighbors(new_pos)
 
     for p in UDG_neighbor_pos
@@ -133,10 +133,11 @@ function check_UDG_criteria(n::UNode, new_pos::Tuple{Int, Int}, node_list::Vecto
 
         if unode != Nothing()
             if unode.vertex != n.vertex
-                push!(new_neighbors, unode)
+                push!(new_neighbors, unode.vertex)
             end
         end
     end
+
 
     if issetequal(new_neighbors, p_neighbors) == true
         return true
@@ -149,8 +150,9 @@ function move_node(n::UNode, node_list::Vector{UNode}, candidates::Vector{Tuple{
 
     for p in candidates
         if check_UDG_criteria(n, p, node_list) == true
-            n.pos = p
-            node_list[n.vertex] = n
+            new_n = UNode(n.vertex, p, n.neighbors)
+            #n.pos = p
+            node_list[n.vertex] = new_n
             return node_list
         end
     end
@@ -277,7 +279,7 @@ function contract_graph(node_positions::Vector{Tuple{Int, Int}})
         n_list[ind] = unode
     end
 
-    xmin, xmax, ymin, ymax = find_boundaries(n_list)
+    xmin, ymin, xmax, ymax = find_boundaries(n_list)
 
     while (xmax - xmin > 1) && (ymax - ymin > 1)
         n_list = greedy_step(n_list, xmin, xmax, ymin, ymax)

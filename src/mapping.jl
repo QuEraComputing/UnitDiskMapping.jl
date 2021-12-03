@@ -343,12 +343,12 @@ function compress_graph(ug::UGrid)
     # get locations
     M = ug.content
 
-    locs = Vector{Tupe{Int, Int}}()
+    locs = Vector{Tuple{Int, Int}}()
 
-    for i=1:size(ug.content[1])
-        for j = 1:size(ug.content[2])
-            if M[i][j] > 0
-                append!(locs, (i, j))
+    for i=1:size(ug.content)[1]
+        for j = 1:size(ug.content)[2]
+            if M[i, j] > 0
+                push!(locs, (i, j))
             end
         end
     end

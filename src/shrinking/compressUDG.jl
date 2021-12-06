@@ -306,4 +306,4 @@ end
 
 
 using .CompressUDG
-export UNode, contract_graph, CompressUDGMethod
+export UNode, contract_graph_ug, compress_graph_loc, CompressUDGMethod

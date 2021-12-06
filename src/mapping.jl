@@ -384,7 +384,7 @@ end
 
 map_configs_back(r::MappingResult, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
 
-function compress_graph(ug::UGrid)
+function compress_graph_ug(ug::UGrid)
     # get locations
     M = ug.content
 
@@ -402,9 +402,10 @@ function compress_graph(ug::UGrid)
 
     count = 0
 
-    while (new_locs != locs) || (count > 3)
+    while (new_locs != locs) || (count < 10)
         locs = new_locs
         new_locs = contract_graph(locs)
+        print(count)
         count += 1
     end
 
@@ -412,14 +413,15 @@ function compress_graph(ug::UGrid)
 end
 
 
-function compress_graph(locs::Vector{Tuple{Int, Int}})
+function compress_graph_loc(locs::Vector{Tuple{Int, Int}})
     new_locs = contract_graph(locs)
 
     count = 0
 
-    while (new_locs != locs) || (count > 3)
+    while (new_locs != locs) || (count < 10)
         locs = new_locs
         new_locs = contract_graph(locs)
+        print(count)
         count += 1
     end
 

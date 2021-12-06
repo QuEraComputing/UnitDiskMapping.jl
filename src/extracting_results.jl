@@ -5,7 +5,7 @@ function mapped_entry_to_compact(::Cross{false})
 end
 
 function source_entry_to_configs(::Cross{false})
-    return Dict(Pair{Int64, Vector{BitVector}}[5 => [[1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 0, 1, 0, 0, 1, 0, 1]], 12 => [[0, 1, 0, 0, 1, 0, 1, 0, 1], [0, 0, 1, 0, 1, 0, 1, 0, 1]], 8 => [[0, 1, 0, 0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0, 1, 0, 0], [0, 1, 0, 0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 1, 0, 0, 1, 0]], 1 => [[1, 0, 1, 0, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 0, 1, 0, 0], [1, 0, 1, 0, 0, 0, 0, 1, 0], [1, 0, 0, 1, 0, 0, 0, 1, 0]], 0 => [[0, 1, 0, 1, 0, 0, 1, 0, 0], [0, 1, 0, 1, 0, 0, 0, 1, 0]], 6 => [[0, 1, 0, 1, 0, 1, 0, 0, 1]], 11 => [[1, 0, 1, 0, 1, 1, 0, 1, 0]], 9 => [[1, 0, 1, 0, 1, 0, 1, 0, 0], [1, 0, 1, 0, 1, 0, 0, 1, 0]], 14 => [[0, 1, 0, 0, 1, 1, 0, 0, 1], [0, 0, 1, 0, 1, 1, 0, 0, 1]], 3 => [[1, 0, 1, 0, 0, 1, 0, 1, 0], [1, 0, 0, 1, 0, 1, 0, 1, 0]], 7 => [[1, 0, 1, 0, 0, 1, 0, 0, 1], [1, 0, 0, 1, 0, 1, 0, 0, 1]], 4 => [[0, 1, 0, 1, 0, 0, 1, 0, 1]], 13 => [[1, 0, 1, 0, 1, 0, 1, 0, 1]], 15 => [[1, 0, 1, 0, 1, 1, 0, 0, 1]], 2 => [[0, 1, 0, 1, 0, 1, 0, 1, 0]], 10 => [[0, 1, 0, 0, 1, 1, 0, 1, 0], [0, 0, 1, 0, 1, 1, 0, 1, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[5 => [[1, 0, 1, 0, 0, 0, 1, 0, 1], [1, 0, 0, 1, 0, 0, 1, 0, 1]], 12 => [[0, 0, 1, 0, 1, 0, 1, 0, 1], [0, 1, 0, 0, 1, 0, 1, 0, 1]], 8 => [[0, 0, 1, 0, 1, 0, 0, 1, 0], [0, 1, 0, 0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 1, 0, 1, 0, 0], [0, 1, 0, 0, 1, 0, 1, 0, 0]], 1 => [[1, 0, 1, 0, 0, 0, 0, 1, 0], [1, 0, 0, 1, 0, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 0, 1, 0, 0]], 0 => [[0, 1, 0, 1, 0, 0, 0, 1, 0], [0, 1, 0, 1, 0, 0, 1, 0, 0]], 6 => [[0, 1, 0, 1, 0, 1, 0, 0, 1]], 11 => [[1, 0, 1, 0, 1, 1, 0, 1, 0]], 9 => [[1, 0, 1, 0, 1, 0, 0, 1, 0], [1, 0, 1, 0, 1, 0, 1, 0, 0]], 14 => [[0, 0, 1, 0, 1, 1, 0, 0, 1], [0, 1, 0, 0, 1, 1, 0, 0, 1]], 3 => [[1, 0, 1, 0, 0, 1, 0, 1, 0], [1, 0, 0, 1, 0, 1, 0, 1, 0]], 7 => [[1, 0, 1, 0, 0, 1, 0, 0, 1], [1, 0, 0, 1, 0, 1, 0, 0, 1]], 4 => [[0, 1, 0, 1, 0, 0, 1, 0, 1]], 13 => [[1, 0, 1, 0, 1, 0, 1, 0, 1]], 15 => [[1, 0, 1, 0, 1, 1, 0, 0, 1]], 2 => [[0, 1, 0, 1, 0, 1, 0, 1, 0]], 10 => [[0, 0, 1, 0, 1, 1, 0, 1, 0], [0, 1, 0, 0, 1, 1, 0, 1, 0]]])
 end
 
 mis_overhead(::Cross{false}) = -1.0
@@ -27,7 +27,7 @@ function mapped_entry_to_compact(::Turn)
 end
 
 function source_entry_to_configs(::Turn)
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 0, 1], [0, 0, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1]], 1 => [[1, 0, 0, 1, 0], [1, 0, 1, 0, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0]], 2 => [[0, 0, 1, 0, 1], [0, 1, 0, 0, 1]], 3 => [[1, 0, 1, 0, 1]], 1 => [[1, 0, 1, 0, 0], [1, 0, 0, 1, 0]]])
 end
 
 mis_overhead(::Turn) = -1.0
@@ -38,7 +38,7 @@ function mapped_entry_to_compact(::WTurn)
 end
 
 function source_entry_to_configs(::WTurn)
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[1, 0, 1, 0, 0]], 2 => [[0, 0, 0, 1, 1], [1, 0, 0, 0, 1]], 3 => [[0, 1, 0, 1, 1]], 1 => [[0, 1, 1, 0, 0], [0, 1, 0, 1, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[1, 0, 1, 0, 0]], 2 => [[1, 0, 0, 0, 1], [0, 0, 0, 1, 1]], 3 => [[0, 1, 0, 1, 1]], 1 => [[0, 1, 1, 0, 0], [0, 1, 0, 1, 0]]])
 end
 
 mis_overhead(::WTurn) = -1.0
@@ -60,7 +60,7 @@ function mapped_entry_to_compact(::BranchFix)
 end
 
 function source_entry_to_configs(::BranchFix)
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 0, 1, 0], [0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 1, 0, 1]], 3 => [[1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1]], 1 => [[1, 0, 1, 0, 1, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0, 0], [0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 1, 0, 1]], 3 => [[1, 0, 1, 0, 0, 1], [1, 0, 0, 1, 0, 1]], 1 => [[1, 0, 1, 0, 1, 0]]])
 end
 
 mis_overhead(::BranchFix) = -1.0
@@ -119,3 +119,36 @@ function source_entry_to_configs(::UnitDiskMapping.DanglingLeg)
 end
 
 mis_overhead(::UnitDiskMapping.DanglingLeg) = -1.0
+
+
+function mapped_entry_to_compact(::UnitDiskMapping.Square)
+    return Dict([0 => 0, 2 => 2, 3 => 3, 1 => 1])
+end
+
+function source_entry_to_configs(::UnitDiskMapping.Square)
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 0, 1, 0], [0, 0, 0, 1]], 2 => [[0, 1, 1, 0]], 3 => [], 1 => [[1, 0, 0, 1]]])
+end
+
+mis_overhead(::UnitDiskMapping.Square) = -1.0
+
+
+function mapped_entry_to_compact(::UnitDiskMapping.Cane)
+    return Dict([0 => 0, 2 => 0, 3 => 3, 1 => 0])
+end
+
+function source_entry_to_configs(::UnitDiskMapping.Cane)
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 0, 1], [0, 0, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1]], 1 => [[1, 0, 0, 1, 0], [1, 0, 1, 0, 0]]])
+end
+
+mis_overhead(::UnitDiskMapping.Cane) = -1.0
+
+
+function mapped_entry_to_compact(::UnitDiskMapping.CLoop)
+    return Dict([0 => 0, 2 => 0, 3 => 3, 1 => 0])
+end
+
+function source_entry_to_configs(::UnitDiskMapping.CLoop)
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 1, 0, 0]], 2 => [[0, 1, 0, 0, 1], [1, 0, 0, 0, 1]], 3 => [[1, 0, 0, 1, 1]], 1 => [[0, 0, 1, 1, 0], [1, 0, 0, 1, 0]]])
+end
+
+mis_overhead(::UnitDiskMapping.CLoop) = -1.0

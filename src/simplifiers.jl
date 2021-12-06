@@ -70,18 +70,67 @@ end
 # # How to add a new simplification rule
 # 1. specify a gadget like the following. Use either `o` and `●` to specify a vertex,
 # either `.` or `⋅` to specify a placeholder.
+# ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅ ⋅
 @gg DanglingLeg =
-    """ 
-    ⋅ ⋅ ⋅ 
-    ⋅ ● ⋅ 
-    ⋅ ● ⋅ 
-    ⋅ ● ⋅ 
+    """
+    ⋅ ⋅ ⋅
+    ⋅ ● ⋅
+    ⋅ ● ⋅
+    ⋅ ● ⋅
     """=>"""
-    ⋅ ⋅ ⋅ 
-    ⋅ ⋅ ⋅ 
-    ⋅ ⋅ ⋅ 
+    ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅
     ⋅ ● ⋅
     """
+
+@gg Square =
+    """
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ● ⋅
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    """=>"""
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    """
+
+@gg Cane =
+    """
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ● ⋅
+    ⋅ ⋅ ● ⋅
+    ⋅ ⋅ ● ⋅
+    """=>"""
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ● ⋅ ⋅ ⋅
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    """
+
+@gg CLoop = 
+"""
+⋅ ⋅ ⋅ ⋅
+⋅ ⋅ ● ⋅
+⋅ ● ⋅ ●
+⋅ ● ⋅ ⋅
+⋅ ⋅ ● ⋅
+"""=>"""
+⋅ ⋅ ⋅ ⋅
+⋅ ⋅ ⋅ ⋅
+⋅ ⋅ ⋅ ●
+⋅ ⋅ ● ⋅
+⋅ ⋅ ● ⋅
+"""
+
 
 # 2. run the script `project/createmap` to generate `mis_overhead` and other informations required
 # for mapping back. (Note: will overwrite the source file `src/extracting_results.jl`)

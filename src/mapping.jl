@@ -92,7 +92,29 @@ function apply_crossing_gadgets!(ug::UGrid, ruleset=crossing_ruleset)
     return ug, tape
 end
 
-function apply_simplifier_gadgets!(ug::UGrid; ruleset, nrepeat::Int=10)
+function apply_simplifier_gadgets!(ug::UGrid; ruleset=[RotatedGadget(DanglingLeg(), 0),
+    RotatedGadget(DanglingLeg(), 1), RotatedGadget(DanglingLeg(), 2),
+    RotatedGadget(DanglingLeg(), 3), RotatedGadget(Square(), 0),
+    RotatedGadget(Square(), 1), RotatedGadget(Square(), 2),
+    RotatedGadget(Square(), 3), RotatedGadget(Cane(), 0),
+    RotatedGadget(Cane(), 1), RotatedGadget(Cane(), 2),
+    RotatedGadget(Cane(), 3), RotatedGadget(ReflectedGadget(Cane(), "y"),0),
+    RotatedGadget(ReflectedGadget(Cane(), "y"),1),
+    RotatedGadget(ReflectedGadget(Cane(), "y"),2),
+    RotatedGadget(ReflectedGadget(Cane(), "y"),3),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),0),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),1),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),2),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),3), RotatedGadget(CLoop(), 0),
+    RotatedGadget(CLoop(), 1), RotatedGadget(CLoop(), 2),
+    RotatedGadget(CLoop(), 3), RotatedGadget(ReflectedGadget(CLoop(), "y"),0),
+    RotatedGadget(ReflectedGadget(CLoop(), "y"),1),
+    RotatedGadget(ReflectedGadget(CLoop(), "y"),2),
+    RotatedGadget(ReflectedGadget(CLoop(), "y"),3),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),0),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),1),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),2),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),3)], nrepeat::Int=10)
     tape = Tuple{Pattern,Int,Int}[]
     for _ in 1:nrepeat, pattern in ruleset
         for j=0:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
@@ -327,7 +349,29 @@ a maximum independent set of the original graph in polynomial time.
 
 Returns a `MappingResult` instance.
 """
-function map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
+function map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), 0),
+    RotatedGadget(DanglingLeg(), 1), RotatedGadget(DanglingLeg(), 2),
+    RotatedGadget(DanglingLeg(), 3), RotatedGadget(Square(), 0),
+    RotatedGadget(Square(), 1), RotatedGadget(Square(), 2),
+    RotatedGadget(Square(), 3), RotatedGadget(Cane(), 0),
+    RotatedGadget(Cane(), 1), RotatedGadget(Cane(), 2),
+    RotatedGadget(Cane(), 3), RotatedGadget(ReflectedGadget(Cane(), "y"),0),
+    RotatedGadget(ReflectedGadget(Cane(), "y"),1),
+    RotatedGadget(ReflectedGadget(Cane(), "y"),2),
+    RotatedGadget(ReflectedGadget(Cane(), "y"),3),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),0),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),1),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),2),
+    RotatedGadget(ReflectedGadget(Cane(), "x"),3), RotatedGadget(CLoop(), 0),
+    RotatedGadget(CLoop(), 1), RotatedGadget(CLoop(), 2),
+    RotatedGadget(CLoop(), 3), RotatedGadget(ReflectedGadget(CLoop(), "y"),0),
+    RotatedGadget(ReflectedGadget(CLoop(), "y"),1),
+    RotatedGadget(ReflectedGadget(CLoop(), "y"),2),
+    RotatedGadget(ReflectedGadget(CLoop(), "y"),3),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),0),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),1),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),2),
+    RotatedGadget(ReflectedGadget(CLoop(), "x"),3)])
     ug = embed_graph(g)
     mis_overhead0 = mis_overhead_copylines(ug)
     ug, tape = apply_crossing_gadgets!(ug)
@@ -336,6 +380,7 @@ function map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for 
     mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
     return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
 end
+
 
 map_configs_back(r::MappingResult, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
 
@@ -355,9 +400,27 @@ function compress_graph(ug::UGrid)
 
     new_locs = contract_graph(locs)
 
-    while new_locs != locs
+    count = 0
+
+    while (new_locs != locs) || (count > 3)
         locs = new_locs
         new_locs = contract_graph(locs)
+        count += 1
+    end
+
+    return new_locs
+end
+
+
+function compress_graph(locs::Vector{Tuple{Int, Int}})
+    new_locs = contract_graph(locs)
+
+    count = 0
+
+    while (new_locs != locs) || (count > 3)
+        locs = new_locs
+        new_locs = contract_graph(locs)
+        count += 1
     end
 
     return new_locs

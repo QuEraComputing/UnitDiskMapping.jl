@@ -41,8 +41,8 @@ end
 
 # find the boundaries of a grid graph given list of UNodes
 function find_boundaries(node_list::Vector{UNode})
-    min_x = Inf
-    min_y = Inf
+    min_x = typemax(Int)
+    min_y = typemax(Int)
     max_x = 0
     max_y = 0
 

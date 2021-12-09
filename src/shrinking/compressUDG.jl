@@ -131,7 +131,7 @@ function check_UDG_criteria(n::UNode, new_pos::Tuple{Int, Int}, node_list::Vecto
     for p in UDG_neighbor_pos
         unode = get_UNode_from_pos(p, node_list)
 
-        if unode != Nothing()
+        if unode !== nothing
             if unode.vertex != n.vertex
                 push!(new_neighbors, unode.vertex)
             end

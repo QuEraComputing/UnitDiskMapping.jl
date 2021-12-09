@@ -36,7 +36,7 @@ function get_UNode_from_pos(pos::Tuple{Int, Int}, node_list::Vector{UNode})
             return u
         end
     end
-    return Nothing()
+    return nothing
 end
 
 # find the boundaries of a grid graph given list of UNodes

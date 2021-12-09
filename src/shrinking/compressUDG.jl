@@ -72,7 +72,7 @@ function find_boundary_points(node_list::Vector{UNode}, x_min, x_max, y_min,
     half_x = (x_max - x_min)/2
     half_y = (y_max - y_min)/2
 
-    pts_xmin_upper = Vector{UNode}()
+    pts_xmin_upper = UNode[]
     pts_xmax_upper = Vector{UNode}()
     pts_xmin_lower = Vector{UNode}()
     pts_xmax_lower = Vector{UNode}()

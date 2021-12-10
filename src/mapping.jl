@@ -18,6 +18,7 @@ function Base.show(io::IO, cl::CopyLine)
 end
 Base.show(io::IO, ::MIME"text/plain", cl::CopyLine) = Base.show(io, cl)
 
+export Cell, AbstractCell
 abstract type AbstractCell end
 struct Cell <: AbstractCell
     occupied::Bool
@@ -36,7 +37,7 @@ end
 export coordinates
 Base.:(==)(ug::UGrid{CT}, ug2::UGrid{CT}) where CT = ug.lines == ug2.lines && ug.content == ug2.content
 padding(ug::UGrid) = ug.padding
-coordinates(ug::UGrid) = [ci.I for ci in findall(!iszero, ug.content)]
+coordinates(ug::UGrid) = [ci.I for ci in findall(!isempty, ug.content)]
 function add_cell!(m::AbstractMatrix, i::Int, j::Int)
     if isempty(m[i,j])
         m[i, j] = Cell(true, false, false)
@@ -47,13 +48,13 @@ function add_cell!(m::AbstractMatrix, i::Int, j::Int)
 end
 function connect_cell!(m::AbstractMatrix, i::Int, j::Int)
     if m[i, j] !== Cell(true, false, false)
-        error("can not connect at $i-$j")
+        error("can not connect at [$i,$j] with existing cell $(m[i,j])")
     end
     m[i, j] = Cell(true, false, true)
 end
 
 function Graphs.SimpleGraph(ug::UGrid)
-    if any(x->abs(x)>1, ug.content)
+    if any(x->x.doubled, ug.content)
         error("This mapping is not done yet!")
     end
     return unitdisk_graph(coordinates(ug), 1.6)
@@ -63,7 +64,7 @@ Base.show(io::IO, ug::UGrid) = print_ugrid(io, ug.content)
 function print_ugrid(io::IO, content::AbstractMatrix)
     for i=1:size(content, 1)
         for j=1:size(content, 2)
-            showitem(io, content[i,j])
+            print(io, content[i,j])
             print(io, " ")
         end
         if i!=size(content, 1)
@@ -73,9 +74,9 @@ function print_ugrid(io::IO, content::AbstractMatrix)
 end
 Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
 
-function showitem(io, x::Cell)
+function Base.show(io::IO, x::Cell)
     if x.occupied
-        if x.double
+        if x.doubled
             print(io, "◉")
         elseif x.connected
             print(io, "◆")
@@ -86,6 +87,7 @@ function showitem(io, x::Cell)
         print(io, "⋅")
     end
 end
+Base.show(io::IO, ::MIME"text/plain", cl::Cell) = Base.show(io, cl)
 
 # TODO:
 # 1. check if the resulting graph is a unit-disk
@@ -174,7 +176,7 @@ function map_config_copyback!(ug::UGrid, c::AbstractMatrix)
         count = 0
         for (iloc, loc) in enumerate(locs)
             gi, ci = ug.content[loc...], c[loc...]
-            if gi == 2
+            if gi.doubled
                 if ci == 2
                     count += 1
                 elseif ci == 0
@@ -184,7 +186,7 @@ function map_config_copyback!(ug::UGrid, c::AbstractMatrix)
                         count += 1
                     end
                 end
-            elseif abs(gi) == 1
+            elseif !isempty(gi)
                 count += ci
             else
                 error("check your grid at location ($(locs...))!")
@@ -309,13 +311,11 @@ function embed_graph(g::SimpleGraph; vertex_order=Greedy())
     ug = ugrid(g, L.vertices; padding=2, nrow=L.vsep+1)
     for e in edges(g)
         I, J = crossat(ug, e.src, e.dst)
-        @assert ug.content[I, J-1] == 1
-        ug.content[I, J-1] *= -1
-        if ug.content[I-1, J] == 1
-            ug.content[I-1, J] *= -1
+        connect_cell!(ug.content, I, J-1)
+        if !isempty(ug.content[I-1, J])
+            connect_cell!(ug.content, I-1, J)
         else
-            @assert ug.content[I+1, J] == 1
-            ug.content[I+1, J] *= -1
+            connect_cell!(ug.content, I+1, J)
         end
     end
     return ug

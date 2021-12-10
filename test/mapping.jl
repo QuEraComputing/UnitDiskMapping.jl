@@ -46,7 +46,7 @@ end
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
         misconfig = solve(gp, "config max")[].c
         c = zeros(Int, size(ug3.content))
-        for (i, loc) in enumerate(findall(!iszero, ug3.content))
+        for (i, loc) in enumerate(findall(!isempty, ug3.content))
             c[loc] = misconfig.data[i]
         end
         @test all(ci->UnitDiskMapping.safe_get(c, ci.I...)==0 || (UnitDiskMapping.safe_get(c, ci.I[1], ci.I[2]+1) == 0 && UnitDiskMapping.safe_get(c, ci.I[1]+1, ci.I[2]) == 0 &&
@@ -73,7 +73,7 @@ end
     # checking mapping back
     misconfig = solve(gp, "config max")[].c
     c = zeros(Int, size(res.grid_graph.content))
-    for (i, loc) in enumerate(findall(!iszero, res.grid_graph.content))
+    for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
     end
     original_configs = map_configs_back(res, [c])

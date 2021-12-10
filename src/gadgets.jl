@@ -35,9 +35,9 @@ function mapped_matrix(p::Pattern)
 end
 
 function locs2matrix(m, n, locs::AbstractVector{Tuple{Int,Int}})
-    a = zeros(Int, m, n)
+    a = fill(empty(Cell), m, n)
     for (i, j) in locs
-        a[i, j] += 1
+        add_cell!(a, i, j)
     end
     return a
 end
@@ -80,10 +80,7 @@ end
 
 function connect!(m, p::Pattern)
     for (i, j) in connect_locations(p)
-        if m[i, j] != 1
-            error("can not connect at $i-$j")
-        end
-        m[i, j] *= -1
+        connect_cell!(m, i, j)
     end
     return m
 end

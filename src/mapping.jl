@@ -18,16 +18,39 @@ function Base.show(io::IO, cl::CopyLine)
 end
 Base.show(io::IO, ::MIME"text/plain", cl::CopyLine) = Base.show(io, cl)
 
-struct UGrid
+abstract type AbstractCell end
+struct Cell <: AbstractCell
+    occupied::Bool
+    doubled::Bool
+    connected::Bool
+end
+Base.isempty(cell::Cell) = !cell.occupied
+Base.empty(::Type{Cell}) = Cell(false, false, false)
+
+struct UGrid{CT<:AbstractCell}
     lines::Vector{CopyLine}
     padding::Int
-    content::Matrix{Int}
+    content::Matrix{CT}
 end
 
 export coordinates
-Base.:(==)(ug::UGrid, ug2::UGrid) = ug.lines == ug2.lines && ug.content == ug2.content
+Base.:(==)(ug::UGrid{CT}, ug2::UGrid{CT}) where CT = ug.lines == ug2.lines && ug.content == ug2.content
 padding(ug::UGrid) = ug.padding
 coordinates(ug::UGrid) = [ci.I for ci in findall(!iszero, ug.content)]
+function add_cell!(m::AbstractMatrix, i::Int, j::Int)
+    if isempty(m[i,j])
+        m[i, j] = Cell(true, false, false)
+    else
+        @assert !(m[i, j].doubled) && !(m[i, j].connected)
+        m[i, j] = Cell(true, true, false)
+    end
+end
+function connect_cell!(m::AbstractMatrix, i::Int, j::Int)
+    if m[i, j] !== Cell(true, false, false)
+        error("can not connect at $i-$j")
+    end
+    m[i, j] = Cell(true, false, true)
+end
 
 function Graphs.SimpleGraph(ug::UGrid)
     if any(x->abs(x)>1, ug.content)
@@ -50,19 +73,17 @@ function print_ugrid(io::IO, content::AbstractMatrix)
 end
 Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
 
-function showitem(io, x)
-    if x == 1
-        print(io, "●")
-    elseif x == 0
-        print(io, "⋅")
-    elseif x == -1
-        print(io, "◆")
-    elseif x == 2
-        print(io, "◉")
-    elseif x == -2
-        print(io, "○")
+function showitem(io, x::Cell)
+    if x.occupied
+        if x.double
+            print(io, "◉")
+        elseif x.connected
+            print(io, "◆")
+        else
+            print(io, "●")
+        end
     else
-        print(io, "?")
+        print(io, "⋅")
     end
 end
 
@@ -251,13 +272,13 @@ function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nro
     s = 4
     N = (n-1)*s+1+2*padding
     M = nrow*s+1+2*padding
-    u = zeros(Int, M, N)
+    u = fill(empty(Cell), M, N)
 
     # add T-copies
     copylines = create_copylines(g, vertex_order)
     for tc in copylines
         for loc in copyline_locations(tc; padding=padding)
-            u[loc...] += 1
+            add_cell!(u, loc...)
         end
     end
     return UGrid(copylines, padding, u)

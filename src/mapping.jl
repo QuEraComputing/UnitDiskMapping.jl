@@ -98,7 +98,7 @@ Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
 const crossing_ruleset = (Cross{false}(),
                     Turn(), WTurn(), Branch(), BranchFix(), TCon(), TrivialTurn(),
                     RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
-                    ReflectedGadget(TrivialTurn(), "y"), BranchFixB(),
+                    ReflectedGadget(TrivialTurn(), "y"), BranchFixB(), EndTurn(),
                     ReflectedGadget(RotatedGadget(TCon(), 1), "y"))
 function apply_crossing_gadgets!(ug::UGrid, ruleset=crossing_ruleset)
     tape = Tuple{Pattern,Int,Int}[]

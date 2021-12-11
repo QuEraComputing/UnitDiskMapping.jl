@@ -118,18 +118,18 @@ end
 
 struct Cross{CON} <: CrossPattern end
 iscon(::Cross{CON}) where {CON} = CON
-# ⋅ ● ⋅ 
-# ◆ ◉ ● 
-# ⋅ ◆ ⋅ 
+# ⋅ ● ⋅
+# ◆ ◉ ●
+# ⋅ ◆ ⋅
 function source_graph(::Cross{true})
     locs = SimpleNode.([(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)])
     g = simplegraph([(1,2), (2,3), (4,5), (5,6), (1,6)])
     return locs, g, [1,4,6,3]
 end
 
-# ⋅ ● ⋅ 
-# ● ● ● 
-# ⋅ ● ⋅ 
+# ⋅ ● ⋅
+# ● ● ●
+# ⋅ ● ⋅
 function mapped_graph(::Cross{true})
     locs = SimpleNode.([(2,1), (2,2), (2,3), (1,2), (3,2)])
     locs, unitdisk_graph(locs, 1.5), [1,4,5,3]
@@ -138,20 +138,20 @@ Base.size(::Cross{true}) = (3, 3)
 cross_location(::Cross{true}) = (2,2)
 connected_nodes(::Cross{true}) = [1, 6]
 
-# ⋅ ⋅ ● ⋅ ⋅ 
-# ● ● ◉ ● ● 
-# ⋅ ⋅ ● ⋅ ⋅ 
-# ⋅ ⋅ ● ⋅ ⋅ 
+# ⋅ ⋅ ● ⋅ ⋅
+# ● ● ◉ ● ●
+# ⋅ ⋅ ● ⋅ ⋅
+# ⋅ ⋅ ● ⋅ ⋅
 function source_graph(::Cross{false})
     locs = SimpleNode.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)])
     g = simplegraph([(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)])
     return locs, g, [1,6,9,5]
 end
 
-# ⋅ ⋅ ● ⋅ ⋅ 
-# ● ● ● ● ● 
-# ⋅ ● ● ● ⋅ 
-# ⋅ ⋅ ● ⋅ ⋅ 
+# ⋅ ⋅ ● ⋅ ⋅
+# ● ● ● ● ●
+# ⋅ ● ● ● ⋅
+# ⋅ ⋅ ● ⋅ ⋅
 function mapped_graph(::Cross{false})
     locs = SimpleNode.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (3,3), (4,3), (3, 2), (3,4)])
     locs, unitdisk_graph(locs, 1.5), [1,6,8,5]
@@ -161,9 +161,9 @@ cross_location(::Cross{false}) = (2,3)
 
 struct Turn <: CrossPattern end
 iscon(::Turn) = false
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ● ● 
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ● ●
 # ⋅ ⋅ ⋅ ⋅
 function source_graph(::Turn)
     locs = SimpleNode.([(1,2), (2,2), (3,2), (3,3), (3,4)])
@@ -171,9 +171,9 @@ function source_graph(::Turn)
     return locs, g, [1,5]
 end
 
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ⋅ ● ⋅ 
-# ⋅ ⋅ ⋅ ● 
+# ⋅ ● ⋅ ⋅
+# ⋅ ⋅ ● ⋅
+# ⋅ ⋅ ⋅ ●
 # ⋅ ⋅ ⋅ ⋅
 function mapped_graph(::Turn)
     locs = SimpleNode.([(1,2), (2,3), (3,4)])
@@ -185,20 +185,20 @@ cross_location(::Turn) = (3,2)
 
 export Branch, TrivialTurn, BranchFix, WTurn, TCon, BranchFixB
 struct Branch <: CrossPattern end
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ● ● 
-# ⋅ ● ● ⋅ 
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ● ●
+# ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::Branch)
     locs = SimpleNode.([(1,2), (2,2), (3,2),(3,3),(3,4),(4,3),(4,2),(5,2)])
     g = simplegraph([(1,2), (2,3), (3, 4), (4,5), (4,6), (6,7), (7,8)])
     return locs, g, [1, 5, 8]
 end
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ⋅ ● ⋅ 
-# ⋅ ● ⋅ ● 
-# ⋅ ⋅ ● ⋅ 
+# ⋅ ● ⋅ ⋅
+# ⋅ ⋅ ● ⋅
+# ⋅ ● ⋅ ●
+# ⋅ ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::Branch)
     locs = SimpleNode.([(1,2), (2,3), (3,2),(3,4),(4,3),(5,2)])
@@ -209,19 +209,19 @@ cross_location(::Branch) = (3,2)
 iscon(::Branch) = false
 
 struct BranchFix <: CrossPattern end
-# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
 # ⋅ ● ● ⋅
-# ⋅ ● ● ⋅ 
+# ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFix)
     locs = SimpleNode.([(1,2), (2,2), (2,3),(3,3),(3,2),(4,2)])
     g = simplegraph([(1,2), (2,3), (3,4),(4,5), (5,6)])
     return locs, g, [1, 6]
 end
-# ⋅ ● ⋅ ⋅ 
-# ⋅ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅
-# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ⋅ ⋅
 function mapped_graph(::BranchFix)
     locs = SimpleNode.([(1,2),(2,2),(3,2),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 4]
@@ -231,18 +231,18 @@ cross_location(::BranchFix) = (2,2)
 iscon(::BranchFix) = false
 
 struct WTurn <: CrossPattern end
-# ⋅ ⋅ ⋅ ⋅ 
-# ⋅ ⋅ ● ● 
-# ⋅ ● ● ⋅ 
+# ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ● ●
+# ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::WTurn)
     locs = SimpleNode.([(2,3), (2,4), (3,2),(3,3),(4,2)])
     g = simplegraph([(1,2), (1,4), (3,4),(3,5)])
     return locs, g, [2, 5]
 end
-# ⋅ ⋅ ⋅ ⋅ 
-# ⋅ ⋅ ⋅ ● 
-# ⋅ ⋅ ● ⋅ 
+# ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ●
+# ⋅ ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::WTurn)
     locs = SimpleNode.([(2,4),(3,3),(4,2)])
@@ -253,19 +253,19 @@ cross_location(::WTurn) = (2,2)
 iscon(::WTurn) = false
 
 struct BranchFixB <: CrossPattern end
-# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ⋅ ⋅
 # ⋅ ⋅ ● ⋅
-# ⋅ ● ● ⋅ 
+# ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFixB)
     locs = SimpleNode.([(2,3),(3,3),(3,2),(4,2)])
     g = simplegraph([(1,3), (2,3), (2,4)])
     return locs, g, [1, 4]
 end
-# ⋅ ⋅ ⋅ ⋅ 
-# ⋅ ⋅ ⋅ ⋅ 
+# ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅
 # ⋅ ● ⋅ ⋅
-# ⋅ ● ⋅ ⋅ 
+# ⋅ ● ⋅ ⋅
 function mapped_graph(::BranchFixB)
     locs = SimpleNode.([(3,2),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 2]
@@ -277,7 +277,7 @@ iscon(::BranchFixB) = false
 
 struct TCon <: CrossPattern end
 # ⋅ ◆ ⋅ ⋅
-# ◆ ● ⋅ ⋅ 
+# ◆ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::TCon)
     locs = SimpleNode.([(1,2), (2,1), (2,2),(3,2)])
@@ -315,6 +315,26 @@ Base.size(::TrivialTurn) = (2,2)
 cross_location(::TrivialTurn) = (2,2)
 iscon(::TrivialTurn) = true
 connected_nodes(::TrivialTurn) = [1, 2]
+
+struct EndTurn <: CrossPattern end
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ● ⋅
+# ⋅ ⋅ ⋅ ⋅
+function source_graph(::EndTurn)
+    locs = [(1,2), (2,2), (2,3)]
+    g = simplegraph([(1,2), (2,3)])
+    return locs, g, [1]
+end
+# ⋅ ● ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅
+function mapped_graph(::EndTurn)
+    locs = [(1,2)]
+    return locs, unitdisk_graph(locs, 1.5), [1]
+end
+Base.size(::EndTurn) = (3,4)
+cross_location(::EndTurn) = (2,2)
+iscon(::EndTurn) = false
 
 ############## Rotation and Flip ###############
 export RotatedGadget, ReflectedGadget

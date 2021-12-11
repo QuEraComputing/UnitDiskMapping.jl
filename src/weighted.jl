@@ -147,6 +147,20 @@ for T in [:Turn, :Branch, :BranchFix, :BranchFixB, :WTurn]
     @eval unweighted(::$WT) = $T()
 end
 
+for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)), (:BranchFixB, (3, 2)), (:WTurn, (3, 3))]
+    WT = Symbol(:Weighted, T)
+    @eval function source_graph(r::$WT)
+        raw = unweighted(r)
+        locs, g, pins = source_graph(raw)
+        return map(loc->_mul_weight(loc, loc == SimpleNode(cross_location(raw) .+ (0, 1)) ? 1 : 2), locs), g, pins
+    end
+    @eval function mapped_graph(r::$WT)
+        raw = unweighted(r)
+        locs, g, pins = mapped_graph(raw)
+        return map(loc->_mul_weight(loc, loc == SimpleNode($centerloc) ? 1 : 2), locs), g, pins
+    end
+end
+
 for T in [:WeightedCrossPattern, :WeightedGadget]
     @eval Base.size(r::$T) = size(unweighted(r))
     @eval cross_location(r::$T) = cross_location(unweighted(r))

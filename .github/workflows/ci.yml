@@ -47,7 +47,7 @@ jobs:
           Pkg.Registry.add(RegistrySpec(url="https://DrHenryArmitage:${{ secrets.CI_TOKEN }}@github.com/Happy-Diode/Miskatonic.git"))
       - uses: julia-actions/julia-buildpkg@v1
       - name: "run tests"
-        run: julia --project 'using Pkg; Pkg.test(["UnitDiskMapping"]; coverage=true)'
+        run: julia --project 'using Pkg; Pkg.test(; coverage=true)'
       - uses: julia-actions/julia-processcoverage@v1
       - uses: coverallsapp/github-action@master
         with:

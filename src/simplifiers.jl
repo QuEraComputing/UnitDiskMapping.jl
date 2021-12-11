@@ -28,9 +28,9 @@ end
 
 struct GridGraph
     size::Tuple{Int,Int}
-    locations::Vector{Tuple{Int,Int}}
+    nodes::Vector{Node{Int}}
 end
-vertices_on_boundary(gg::GridGraph) = vertices_on_boundary(gg.locations, gg.size...)
+vertices_on_boundary(gg::GridGraph) = vertices_on_boundary(gg.nodes, gg.size...)
 
 function gridgraphfromstring(str::String)
     item_array = Vector{Bool}[]
@@ -42,7 +42,7 @@ function gridgraphfromstring(str::String)
     end
     @assert all(==(length(item_array[1])), length.(item_array))
     mat = hcat(item_array...)'
-    locs = findall(mat)
+    locs = [Node(ci.I) for ci in findall(mat)]
     return GridGraph(size(mat), locs)
 end
 
@@ -56,12 +56,12 @@ macro gg(expr)
     g1 = gridgraphfromstring(pair.args[2])
     g2 = gridgraphfromstring(pair.args[3])
     @assert g1.size == g2.size
-    @assert g1.locations[vertices_on_boundary(g1)] == g2.locations[vertices_on_boundary(g2)]
+    @assert g1.nodes[vertices_on_boundary(g1)] == g2.nodes[vertices_on_boundary(g2)]
     return quote
         struct $(esc(name)) <: SimplifyPattern end
         Base.size(::$(esc(name))) = $(g1.size)
-        $UnitDiskMapping.source_locations(::$(esc(name))) = $(g1.locations)
-        $UnitDiskMapping.mapped_locations(::$(esc(name))) = $(g2.locations)
+        $UnitDiskMapping.source_locations(::$(esc(name))) = $(g1.nodes)
+        $UnitDiskMapping.mapped_locations(::$(esc(name))) = $(g2.nodes)
         push!($(simplifier_ruleset), $(esc(name))())
         $(esc(name))
     end

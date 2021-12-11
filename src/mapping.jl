@@ -62,7 +62,7 @@ function add_cell!(m::AbstractMatrix, i::Int, j::Int)
 end
 function connect_cell!(m::AbstractMatrix, i::Int, j::Int)
     if m[i, j] !== Cell(true, false, false)
-        error("can not connect at [$i,$j] with existing cell $(m[i,j])")
+        error("can not connect at [$i,$j] of type $(m[i,j])")
     end
     m[i, j] = Cell(true, false, true)
 end

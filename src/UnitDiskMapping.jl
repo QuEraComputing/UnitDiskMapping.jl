@@ -13,6 +13,7 @@ include("utils.jl")
 include("gadgets.jl")
 include("simplifiers.jl")
 include("mapping.jl")
+include("weighted.jl")
 include("extracting_results.jl")
 include("pathdecomposition/pathdecomposition.jl")
 

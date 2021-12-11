@@ -27,6 +27,20 @@ struct Cell <: AbstractCell
 end
 Base.isempty(cell::Cell) = !cell.occupied
 Base.empty(::Type{Cell}) = Cell(false, false, false)
+function Base.show(io::IO, x::Cell)
+    if x.occupied
+        if x.doubled
+            print(io, "◉")
+        elseif x.connected
+            print(io, "◆")
+        else
+            print(io, "●")
+        end
+    else
+        print(io, "⋅")
+    end
+end
+Base.show(io::IO, ::MIME"text/plain", cl::Cell) = Base.show(io, cl)
 
 struct UGrid{CT<:AbstractCell}
     lines::Vector{CopyLine}
@@ -73,21 +87,6 @@ function print_ugrid(io::IO, content::AbstractMatrix)
     end
 end
 Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
-
-function Base.show(io::IO, x::Cell)
-    if x.occupied
-        if x.doubled
-            print(io, "◉")
-        elseif x.connected
-            print(io, "◆")
-        else
-            print(io, "●")
-        end
-    else
-        print(io, "⋅")
-    end
-end
-Base.show(io::IO, ::MIME"text/plain", cl::Cell) = Base.show(io, cl)
 
 # TODO:
 # 1. check if the resulting graph is a unit-disk

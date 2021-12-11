@@ -19,12 +19,22 @@ abstract type Pattern end
 """
 abstract type CrossPattern <: Pattern end
 
+struct Node{T}
+    x::T
+    y::T
+end
+Base.iterate(p::Node) = Base.iterate((p.x, p.y))
+
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     m, n = size(p)
     locs, _, _ = source_graph(p)
     a = locs2matrix(m, n, locs)
-    iscon(p) && connect!(a, p)
+    if iscon(p)
+        for i in connect_locations(p)
+            connect_cell!(m, locs[i]...)
+        end
+    end
     return a
 end
 
@@ -78,13 +88,6 @@ function Base.show(io::IO, p::Pattern)
     print_ugrid(io, mapped_matrix(p))
 end
 
-function connect!(m, p::Pattern)
-    for (i, j) in connect_locations(p)
-        connect_cell!(m, i, j)
-    end
-    return m
-end
-
 function apply_gadget!(p::Pattern, matrix, i, j)
     a = mapped_matrix(p)
     m, n = size(a)
@@ -109,7 +112,7 @@ iscon(::Cross{CON}) where {CON} = CON
 # ◆ ◉ ● 
 # ⋅ ◆ ⋅ 
 function source_graph(::Cross{true})
-    locs = [(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)]
+    locs = Node.([(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)])
     g = simplegraph([(1,2), (2,3), (4,5), (5,6), (1,6)])
     return locs, g, [1,4,6,3]
 end
@@ -118,19 +121,19 @@ end
 # ● ● ● 
 # ⋅ ● ⋅ 
 function mapped_graph(::Cross{true})
-    locs = [(2,1), (2,2), (2,3), (1,2), (3,2)]
+    locs = Node.([(2,1), (2,2), (2,3), (1,2), (3,2)])
     locs, unitdisk_graph(locs, 1.5), [1,4,5,3]
 end
 Base.size(::Cross{true}) = (3, 3)
 cross_location(::Cross{true}) = (2,2)
-connect_locations(::Cross{true}) = [(2, 1), (3,2)]
+connect_locations(::Cross{true}) = [1, 5]
 
 # ⋅ ⋅ ● ⋅ ⋅ 
 # ● ● ◉ ● ● 
 # ⋅ ⋅ ● ⋅ ⋅ 
 # ⋅ ⋅ ● ⋅ ⋅ 
 function source_graph(::Cross{false})
-    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)]
+    locs = Node.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)])
     g = simplegraph([(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)])
     return locs, g, [1,6,9,5]
 end
@@ -140,7 +143,7 @@ end
 # ⋅ ● ● ● ⋅ 
 # ⋅ ⋅ ● ⋅ ⋅ 
 function mapped_graph(::Cross{false})
-    locs = [(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (3,3), (4,3), (3, 2), (3,4)]
+    locs = Node.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (3,3), (4,3), (3, 2), (3,4)])
     locs, unitdisk_graph(locs, 1.5), [1,6,8,5]
 end
 Base.size(::Cross{false}) = (4, 5)
@@ -153,7 +156,7 @@ iscon(::Turn) = false
 # ⋅ ● ● ● 
 # ⋅ ⋅ ⋅ ⋅
 function source_graph(::Turn)
-    locs = [(1,2), (2,2), (3,2), (3,3), (3,4)]
+    locs = Node.([(1,2), (2,2), (3,2), (3,3), (3,4)])
     g = simplegraph([(1,2), (2,3), (3,4), (4,5)])
     return locs, g, [1,5]
 end
@@ -163,7 +166,7 @@ end
 # ⋅ ⋅ ⋅ ● 
 # ⋅ ⋅ ⋅ ⋅
 function mapped_graph(::Turn)
-    locs = [(1,2), (2,3), (3,4)]
+    locs = Node.([(1,2), (2,3), (3,4)])
     locs, unitdisk_graph(locs, 1.5), [1,3]
 end
 Base.size(::Turn) = (4, 4)
@@ -178,7 +181,7 @@ struct Branch <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::Branch)
-    locs = [(1,2), (2,2), (3,2),(3,3),(3,4),(4,3),(4,2),(5,2)]
+    locs = Node.([(1,2), (2,2), (3,2),(3,3),(3,4),(4,3),(4,2),(5,2)])
     g = simplegraph([(1,2), (2,3), (3, 4), (4,5), (4,6), (6,7), (7,8)])
     return locs, g, [1, 5, 8]
 end
@@ -188,7 +191,7 @@ end
 # ⋅ ⋅ ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::Branch)
-    locs = [(1,2), (2,3), (3,2),(3,4),(4,3),(5,2)]
+    locs = Node.([(1,2), (2,3), (3,2),(3,4),(4,3),(5,2)])
     return locs, unitdisk_graph(locs, 1.5), [1,4,6]
 end
 Base.size(::Branch) = (5, 4)
@@ -201,7 +204,7 @@ struct BranchFix <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFix)
-    locs = [(1,2), (2,2), (2,3),(3,3),(3,2),(4,2)]
+    locs = Node.([(1,2), (2,2), (2,3),(3,3),(3,2),(4,2)])
     g = simplegraph([(1,2), (2,3), (3,4),(4,5), (5,6)])
     return locs, g, [1, 6]
 end
@@ -210,7 +213,7 @@ end
 # ⋅ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅ 
 function mapped_graph(::BranchFix)
-    locs = [(1,2),(2,2),(3,2),(4,2)]
+    locs = Node.([(1,2),(2,2),(3,2),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 4]
 end
 Base.size(::BranchFix) = (4, 4)
@@ -223,7 +226,7 @@ struct WTurn <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::WTurn)
-    locs = [(2,3), (2,4), (3,2),(3,3),(4,2)]
+    locs = Node.([(2,3), (2,4), (3,2),(3,3),(4,2)])
     g = simplegraph([(1,2), (1,4), (3,4),(3,5)])
     return locs, g, [2, 5]
 end
@@ -232,7 +235,7 @@ end
 # ⋅ ⋅ ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::WTurn)
-    locs = [(2,4),(3,3),(4,2)]
+    locs = Node.([(2,4),(3,3),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 3]
 end
 Base.size(::WTurn) = (4, 4)
@@ -245,7 +248,7 @@ struct BranchFixB <: CrossPattern end
 # ⋅ ● ● ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFixB)
-    locs = [(2,3),(3,3),(3,2),(4,2)]
+    locs = Node.([(2,3),(3,3),(3,2),(4,2)])
     g = simplegraph([(1,3), (2,3), (2,4)])
     return locs, g, [1, 4]
 end
@@ -254,7 +257,7 @@ end
 # ⋅ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅ 
 function mapped_graph(::BranchFixB)
-    locs = [(3,2),(4,2)]
+    locs = Node.([(3,2),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 2]
 end
 Base.size(::BranchFixB) = (4, 4)
@@ -267,17 +270,17 @@ struct TCon <: CrossPattern end
 # ◆ ● ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅
 function source_graph(::TCon)
-    locs = [(1,2), (2,1), (2,2),(3,2)]
+    locs = Node.([(1,2), (2,1), (2,2),(3,2)])
     g = simplegraph([(1,2), (1,3), (3,4)])
     return locs, g, [1,2,4]
 end
-connect_locations(::TCon) = [(1,2), (2,1)]
+connect_locations(::TCon) = [1, 2]
 
 # ⋅ ● ⋅ ⋅
 # ● ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::TCon)
-    locs = [(1,2),(2,1),(2,3),(3,2)]
+    locs = Node.([(1,2),(2,1),(2,3),(3,2)])
     return locs, unitdisk_graph(locs, 1.5), [1,2,4]
 end
 Base.size(::TCon) = (3,4)
@@ -288,20 +291,20 @@ struct TrivialTurn <: CrossPattern end
 # ⋅ ◆
 # ◆ ⋅
 function source_graph(::TrivialTurn)
-    locs = [(1,2), (2,1)]
+    locs = Node.([(1,2), (2,1)])
     g = simplegraph([(1,2)])
     return locs, g, [1,2]
 end
 # ⋅ ●
 # ● ⋅
 function mapped_graph(::TrivialTurn)
-    locs = [(1,2),(2,1)]
+    locs = Node.([(1,2),(2,1)])
     return locs, unitdisk_graph(locs, 1.5), [1,2]
 end
 Base.size(::TrivialTurn) = (2,2)
 cross_location(::TrivialTurn) = (2,2)
 iscon(::TrivialTurn) = true
-connect_locations(::TrivialTurn) = [(1,2), (2,1)]
+connect_locations(::TrivialTurn) = [1, 2]
 
 ############## Rotation and Flip ###############
 export RotatedGadget, ReflectedGadget

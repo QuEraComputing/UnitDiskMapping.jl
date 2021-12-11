@@ -3,17 +3,17 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   test:
     runs-on: [self-hosted, linux, x64]
     strategy:
       matrix: # https://github.com/julia-actions/setup-julia/issues/32
-        julia-version: ['1.4']
+        julia-version: ['1']
         julia-arch: [x64]
 
     steps:

@@ -60,6 +60,37 @@ end
     end
 end
 
+
+@testset "interface_K23" begin
+    g = SimpleGraph(5)
+
+    add_edge!(g, 1, 5)
+    add_edge!(g, 4, 5)
+    add_edge!(g, 4, 3)
+    add_edge!(g, 3, 2)
+    add_edge!(g, 5, 2)
+    add_edge!(g, 1, 3)
+
+    res = map_graph(g)
+
+    # checking size
+    gp = Independence(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    missize_map = solve(gp, "size max")[].n
+    missize = solve(Independence(g), "size max")[].n
+    @test res.mis_overhead + missize == missize_map
+
+    # checking mapping back
+    misconfig = solve(gp, "config max")[].c
+    c = zeros(Int, size(res.grid_graph.content))
+    for (i, loc) in enumerate(findall(!iszero, res.grid_graph.content))
+        c[loc] = misconfig.data[i]
+    end
+    original_configs = map_configs_back(res, [c])
+    @test count(isone, original_configs[1]) == missize
+    @test is_independent_set(g, original_configs[1])
+end
+
+
 @testset "interface" begin
     g = smallgraph(:petersen)
     res = map_graph(g)

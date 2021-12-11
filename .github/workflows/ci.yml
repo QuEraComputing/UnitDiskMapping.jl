@@ -45,7 +45,7 @@ jobs:
           ENV["JULIA_PKG_SERVER"] = ""
           Pkg.Registry.add("General")
           Pkg.Registry.add(RegistrySpec(url="https://DrHenryArmitage:${{ secrets.CI_TOKEN }}@github.com/Happy-Diode/Miskatonic.git"))
-          Pkg.add(url="https://DrHenryArmitage:${{ secrets.CI_TOKEN }}@github.comHappy-Diode/GraphTensorNetworks.jl", rev="master")
+          Pkg.add(url="https://DrHenryArmitage:${{ secrets.CI_TOKEN }}@github.com/Happy-Diode/GraphTensorNetworks.jl", rev="master")
       - uses: julia-actions/julia-buildpkg@v1
       - name: "run tests"
         run: julia --color=yes --check-bounds=yes --project -e 'using Pkg; Pkg.test(; coverage=true)'

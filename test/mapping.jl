@@ -82,7 +82,7 @@ end
     # checking mapping back
     misconfig = solve(gp, "config max")[].c
     c = zeros(Int, size(res.grid_graph.content))
-    for (i, loc) in enumerate(findall(!iszero, res.grid_graph.content))
+    for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
     end
     original_configs = map_configs_back(res, [c])

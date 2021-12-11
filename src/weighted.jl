@@ -132,6 +132,15 @@ struct WeightedBranchFixB <: WeightedCrossPattern end
 # ⋅ ◯ ⋅ ⋅ 
 # ⋅ ● ⋅ ⋅
 
+struct WeightedEndTurn <: WeightedCrossPattern end
+# ⋅ ● ⋅ ⋅
+# ⋅ ● ◯ ⋅
+# ⋅ ⋅ ⋅ ⋅
+
+# ⋅ ◯ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅
+# ⋅ ⋅ ⋅ ⋅
+
 for T in [:Cross, :TrivialTurn, :TCon]
     @eval weighted(c::$T) = WeightedGadget(c, 2)
 end
@@ -141,13 +150,13 @@ weighted(r::ReflectedGadget) = ReflectedGadget(weighted(r.gadget), r.mirror)
 unweighted(r::RotatedGadget) = RotatedGadget(unweighted(r.gadget), r.n)
 unweighted(r::ReflectedGadget) = ReflectedGadget(unweighted(r.gadget), r.mirror)
 
-for T in [:Turn, :Branch, :BranchFix, :BranchFixB, :WTurn]
+for T in [:Turn, :Branch, :BranchFix, :BranchFixB, :WTurn, :EndTurn]
     WT = Symbol(:Weighted, T)
     @eval weighted(::$T) = $WT()
     @eval unweighted(::$WT) = $T()
 end
 
-for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)), (:BranchFixB, (3, 2)), (:WTurn, (3, 3))]
+for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)), (:BranchFixB, (3, 2)), (:WTurn, (3, 3)), (:EndTurn, (1, 2))]
     WT = Symbol(:Weighted, T)
     @eval function source_graph(r::$WT)
         raw = unweighted(r)

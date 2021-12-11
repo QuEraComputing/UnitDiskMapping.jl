@@ -321,7 +321,7 @@ struct EndTurn <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ⋅ ⋅ ⋅
 function source_graph(::EndTurn)
-    locs = [(1,2), (2,2), (2,3)]
+    locs = SimpleNode.([(1,2), (2,2), (2,3)])
     g = simplegraph([(1,2), (2,3)])
     return locs, g, [1]
 end
@@ -329,7 +329,7 @@ end
 # ⋅ ⋅ ⋅ ⋅
 # ⋅ ⋅ ⋅ ⋅
 function mapped_graph(::EndTurn)
-    locs = [(1,2)]
+    locs = SimpleNode.([(1,2)])
     return locs, unitdisk_graph(locs, 1.5), [1]
 end
 Base.size(::EndTurn) = (3,4)

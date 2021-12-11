@@ -26,9 +26,9 @@ function vertices_on_boundary(locs, m, n)
     findall(loc->loc[1]==1 || loc[1]==m || loc[2]==1 || loc[2]==n, locs)
 end
 
-struct GridGraph
+struct GridGraph{NT<:Node}
     size::Tuple{Int,Int}
-    nodes::Vector{Node{Int}}
+    nodes::Vector{NT}
 end
 vertices_on_boundary(gg::GridGraph) = vertices_on_boundary(gg.nodes, gg.size...)
 
@@ -42,7 +42,7 @@ function gridgraphfromstring(str::String)
     end
     @assert all(==(length(item_array[1])), length.(item_array))
     mat = hcat(item_array...)'
-    locs = [Node(ci.I) for ci in findall(mat)]
+    locs = [SimpleNode(ci.I) for ci in findall(mat)]
     return GridGraph(size(mat), locs)
 end
 

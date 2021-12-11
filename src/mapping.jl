@@ -1,3 +1,6 @@
+export UnWeighted, Weighted
+struct UnWeighted end
+struct Weighted end
 #    vslot
 #      ↓
 #      |          ← vstart
@@ -5,7 +8,7 @@
 #      |-------   ← hslot
 #      |      ↑   ← vstop
 #            hstop
-struct CopyLine
+struct CopyLine{W}
     vertex::Int
     vslot::Int
     hslot::Int
@@ -14,7 +17,7 @@ struct CopyLine
     hstop::Int  # there is no hstart
 end
 function Base.show(io::IO, cl::CopyLine)
-    print(io, "vslot → [$(cl.vstart):$(cl.vstop),$(cl.vslot)], hslot → [$(cl.hslot),$(cl.vslot):$(cl.hstop)]")
+    print(io, "$(typeof(cl)): vslot → [$(cl.vstart):$(cl.vstop),$(cl.vslot)], hslot → [$(cl.hslot),$(cl.vslot):$(cl.hstop)]")
 end
 Base.show(io::IO, ::MIME"text/plain", cl::CopyLine) = Base.show(io, cl)
 
@@ -42,8 +45,8 @@ function Base.show(io::IO, x::Cell)
 end
 Base.show(io::IO, ::MIME"text/plain", cl::Cell) = Base.show(io, cl)
 
-struct UGrid{CT<:AbstractCell}
-    lines::Vector{CopyLine}
+struct UGrid{CT<:AbstractCell, W}
+    lines::Vector{CopyLine{W}}
     padding::Int
     content::Matrix{CT}
 end
@@ -52,7 +55,8 @@ export coordinates
 Base.:(==)(ug::UGrid{CT}, ug2::UGrid{CT}) where CT = ug.lines == ug2.lines && ug.content == ug2.content
 padding(ug::UGrid) = ug.padding
 coordinates(ug::UGrid) = [ci.I for ci in findall(!isempty, ug.content)]
-function add_cell!(m::AbstractMatrix, i::Int, j::Int)
+function add_cell!(m::AbstractMatrix{<:Cell}, node::SimpleNode)
+    i, j = node
     if isempty(m[i,j])
         m[i, j] = Cell(true, false, false)
     else
@@ -60,7 +64,7 @@ function add_cell!(m::AbstractMatrix, i::Int, j::Int)
         m[i, j] = Cell(true, true, false)
     end
 end
-function connect_cell!(m::AbstractMatrix, i::Int, j::Int)
+function connect_cell!(m::AbstractMatrix{<:Cell}, i::Int, j::Int)
     if m[i, j] !== Cell(true, false, false)
         error("can not connect at [$i,$j] of type $(m[i,j])")
     end
@@ -213,7 +217,7 @@ function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     return addremove
 end
 
-function create_copylines(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
+function create_copylines(mode::WT, g::SimpleGraph, ordered_vertices::AbstractVector{Int}) where WT
     slots = zeros(Int, nv(g))
     hslots = zeros(Int, nv(g))
     rmorder = remove_order(g, ordered_vertices)
@@ -237,49 +241,49 @@ function create_copylines(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
         vstops[i] = maximum(relevant_hslots)
         hstops[i] = maximum(relevant_vslots)
     end
-    return [CopyLine(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
+    return [CopyLine{WT}(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
 end
 
-function copyline_locations(tc::CopyLine; padding::Int)
+function copyline_locations(tc::CopyLine{UnWeighted}; padding::Int)
     s = 4
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
-    locations = Tuple{Int,Int}[]
+    locations = SimpleNode{Int}[]
     # grow up
     for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
-        push!(locations, (i, J))
+        push!(locations, SimpleNode(i, J))
     end
     # grow down
     for i=I:I+s*(tc.vstop-tc.hslot)-1              # even number of nodes down
         if i == I
-            push!(locations, (i+1, J+1))
+            push!(locations, SimpleNode(i+1, J+1))
         else
-            push!(locations, (i, J))
+            push!(locations, SimpleNode(i, J))
         end
     end
     # grow right
     for j=J+2:J+s*(tc.hstop-tc.vslot)-1            # even number of nodes right
-        push!(locations, (I, j))
+        push!(locations, SimpleNode(I, j))
     end
-    push!(locations, (I, J+1))                     # center node
+    push!(locations, SimpleNode(I, J+1))                     # center node
     return locations
 end
 
 export ugrid
-function ugrid(g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
+function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
     @assert padding >= 2
     # create an empty canvas
     n = nv(g)
     s = 4
     N = (n-1)*s+1+2*padding
     M = nrow*s+1+2*padding
-    u = fill(empty(Cell), M, N)
+    u = fill(empty(mode isa Weighted ? WeightedCell{Int} : Cell), M, N)
 
     # add T-copies
-    copylines = create_copylines(g, vertex_order)
+    copylines = create_copylines(mode, g, vertex_order)
     for tc in copylines
         for loc in copyline_locations(tc; padding=padding)
-            add_cell!(u, loc...)
+            add_cell!(u, loc)
         end
     end
     return UGrid(copylines, padding, u)
@@ -301,13 +305,14 @@ Embed graph `g` into a unit disk grid. The `vertex_order` can be a vector or one
     * `Greedy()` fast but non-optimal.
     * `Branching()` slow but optimal.
 """
-function embed_graph(g::SimpleGraph; vertex_order=Greedy())
+embed_graph(g::SimpleGraph; vertex_order=Greedy()) = embed_graph(UnWeighted(), g; vertex_order)
+function embed_graph(mode, g::SimpleGraph; vertex_order=Greedy())
     if vertex_order isa AbstractVector
         L = PathDecomposition.Layout(g, collect(vertex_order))
     else
         L = pathwidth(g, vertex_order)
     end
-    ug = ugrid(g, L.vertices; padding=2, nrow=L.vsep+1)
+    ug = ugrid(mode, g, L.vertices; padding=2, nrow=L.vsep+1)
     for e in edges(g)
         I, J = crossat(ug, e.src, e.dst)
         connect_cell!(ug.content, I, J-1)
@@ -321,11 +326,11 @@ function embed_graph(g::SimpleGraph; vertex_order=Greedy())
 end
 
 export mis_overhead_copylines
-function mis_overhead_copylines(ug::UGrid)
+function mis_overhead_copylines(ug::UGrid{WC,W}) where {WC,W}
     sum(ug.lines) do line
         locs = copyline_locations(line; padding=ug.padding)
         @assert length(locs) % 2 == 1
-        length(locs) ÷ 2
+        W === Weighted ? length(locs)-1 : length(locs) ÷ 2
     end
 end
 

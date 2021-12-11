@@ -55,8 +55,8 @@ end
 
 function locs2matrix(m, n, locs::AbstractVector{<:Node})
     a = fill(empty(Cell), m, n)
-    for (i, j) in locs
-        add_cell!(a, i, j)
+    for loc in locs
+        add_cell!(a, loc)
     end
     return a
 end

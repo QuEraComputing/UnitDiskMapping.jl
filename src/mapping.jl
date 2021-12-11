@@ -217,7 +217,7 @@ function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     return addremove
 end
 
-function create_copylines(mode::WT, g::SimpleGraph, ordered_vertices::AbstractVector{Int}) where WT
+function create_copylines(::WT, g::SimpleGraph, ordered_vertices::AbstractVector{Int}) where WT
     slots = zeros(Int, nv(g))
     hslots = zeros(Int, nv(g))
     rmorder = remove_order(g, ordered_vertices)
@@ -244,30 +244,33 @@ function create_copylines(mode::WT, g::SimpleGraph, ordered_vertices::AbstractVe
     return [CopyLine{WT}(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
 end
 
-function copyline_locations(tc::CopyLine{UnWeighted}; padding::Int)
+function copyline_locations(tc::CopyLine; padding::Int)
     s = 4
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
-    locations = SimpleNode{Int}[]
+    locations = _weight_type(tc)[]
     # grow up
     for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
-        push!(locations, SimpleNode(i, J))
+        push!(locations, _weight2(tc, i, J))
     end
     # grow down
     for i=I:I+s*(tc.vstop-tc.hslot)-1              # even number of nodes down
         if i == I
-            push!(locations, SimpleNode(i+1, J+1))
+            push!(locations, _weight2(tc, i+1, J+1))
         else
-            push!(locations, SimpleNode(i, J))
+            push!(locations, _weight2(tc, i, J))
         end
     end
     # grow right
     for j=J+2:J+s*(tc.hstop-tc.vslot)-1            # even number of nodes right
-        push!(locations, SimpleNode(I, j))
+        push!(locations, _weight2(tc, I, j))
     end
-    push!(locations, SimpleNode(I, J+1))                     # center node
+    push!(locations, _weight1(tc, I, J+1))                     # center node
     return locations
 end
+_weight_type(::CopyLine{UnWeighted}) = SimpleNode{Int}
+_weight2(::CopyLine{UnWeighted}, i, j) = SimpleNode(i, j)
+_weight1(::CopyLine{UnWeighted}, i, j) = SimpleNode(i, j)
 
 export ugrid
 function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))

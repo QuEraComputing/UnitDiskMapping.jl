@@ -53,13 +53,14 @@ function mapped_matrix(p::Pattern)
     locs2matrix(m, n, locs)
 end
 
-function locs2matrix(m, n, locs::AbstractVector{<:Node})
-    a = fill(empty(Cell), m, n)
+function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: Node
+    a = fill(empty(_cell_type(NT)), m, n)
     for loc in locs
         add_cell!(a, loc)
     end
     return a
 end
+_cell_type(::Type{<:SimpleNode}) = Cell
 
 function Base.match(p::Pattern, matrix, i, j)
     a = source_matrix(p)

@@ -204,3 +204,8 @@ function trace_centers(ug::UGrid, tape)
     end
     return center_locations
 end
+
+function map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
+    center_locations = CartesianIndex.(trace_centers(r))
+    [c[center_locations] for c in configs]
+end

@@ -371,7 +371,6 @@ function map_graph(mode, g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n
     mis_overhead0 = mis_overhead_copylines(ug)
     ug, tape = apply_crossing_gadgets!(mode, ug)
     ug, tape2 = apply_simplifier_gadgets!(ug; ruleset=ruleset)
-    @show ntuple(x->mis_overhead(tape[x][1]), length(tape))
     mis_overhead1 = isempty(tape) ? 0 : sum(x->mis_overhead(x[1]), tape)
     mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
     @show mis_overhead0 , mis_overhead1 , mis_overhead2

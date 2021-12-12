@@ -154,6 +154,7 @@ for T in [:Turn, :Branch, :BranchFix, :BranchFixB, :WTurn, :EndTurn]
     WT = Symbol(:Weighted, T)
     @eval weighted(::$T) = $WT()
     @eval unweighted(::$WT) = $T()
+    @eval mis_overhead(::$WT) = mis_overhead($T()) * 2
 end
 
 for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)), (:BranchFixB, (3, 2)), (:WTurn, (3, 3)), (:EndTurn, (1, 2))]
@@ -178,4 +179,7 @@ for T in [:WeightedCrossPattern, :WeightedGadget]
     @eval vertex_overhead(r::$T) = vertex_overhead(unweighted(r))
 end
 
-const crossing_ruleset_weighted3 = weighted.(crossing_ruleset)
+const crossing_ruleset_weighted = weighted.(crossing_ruleset)
+
+export get_weights
+get_weights(ug::UGrid) = [ug.content[ci...].weight for ci in coordinates(ug)]

@@ -53,7 +53,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           flag-name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
-          parallel: true
+          parallel: false
           path-to-lcov: lcov.info
 
   finish:

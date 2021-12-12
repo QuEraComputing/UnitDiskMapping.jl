@@ -24,3 +24,7 @@ end
 @testset "simplifiers" begin
     include("simplifiers.jl")
 end
+
+@testset "weighted" begin
+    include("weighted.jl")
+end

@@ -20,7 +20,7 @@ using Graphs, GraphTensorNetworks
         @show s
         @test sum(match.(Ref(s), Ref(ug.content), (0:size(ug.content, 1))', 0:size(ug.content,2))) == c
     end
-    mug, tape = apply_crossing_gadgets!(copy(ug))
+    mug, tape = apply_crossing_gadgets!(UnWeighted(), copy(ug))
     for s in gadgets
         @test sum(match.(Ref(s), Ref(mug.content), (0:size(mug.content, 1))', 0:size(mug.content,2))) == 0
     end
@@ -35,7 +35,7 @@ end
         g = smallgraph(graphname)
         ug = embed_graph(g)
         mis_overhead0 = mis_overhead_copylines(ug)
-        ug2, tape = apply_crossing_gadgets!(copy(ug))
+        ug2, tape = apply_crossing_gadgets!(UnWeighted(), copy(ug))
         ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[RotatedGadget(UnitDiskMapping.DanglingLeg(), n) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
@@ -46,7 +46,7 @@ end
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
         misconfig = solve(gp, "config max")[].c
         c = zeros(Int, size(ug3.content))
-        for (i, loc) in enumerate(findall(!iszero, ug3.content))
+        for (i, loc) in enumerate(findall(!isempty, ug3.content))
             c[loc] = misconfig.data[i]
         end
         @test all(ci->UnitDiskMapping.safe_get(c, ci.I...)==0 || (UnitDiskMapping.safe_get(c, ci.I[1], ci.I[2]+1) == 0 && UnitDiskMapping.safe_get(c, ci.I[1]+1, ci.I[2]) == 0 &&
@@ -82,7 +82,7 @@ end
     # checking mapping back
     misconfig = solve(gp, "config max")[].c
     c = zeros(Int, size(res.grid_graph.content))
-    for (i, loc) in enumerate(findall(!iszero, res.grid_graph.content))
+    for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
     end
     original_configs = map_configs_back(res, [c])
@@ -104,7 +104,7 @@ end
     # checking mapping back
     misconfig = solve(gp, "config max")[].c
     c = zeros(Int, size(res.grid_graph.content))
-    for (i, loc) in enumerate(findall(!iszero, res.grid_graph.content))
+    for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
     end
     original_configs = map_configs_back(res, [c])

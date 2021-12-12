@@ -60,7 +60,7 @@ function source_entry_to_configs(::$(typeof(s)))
     return Dict($(collect(d2)))
 end
 
-mis_overhead(::$(typeof(s))) = $(-diff)
+mis_overhead(::$(typeof(s))) = $(-Int(diff))
 """
 end
 

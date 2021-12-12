@@ -100,7 +100,9 @@ const crossing_ruleset = (Cross{false}(),
                     RotatedGadget(TCon(), 1), ReflectedGadget(Cross{true}(), "y"),
                     ReflectedGadget(TrivialTurn(), "y"), BranchFixB(), EndTurn(),
                     ReflectedGadget(RotatedGadget(TCon(), 1), "y"))
-function apply_crossing_gadgets!(ug::UGrid, ruleset=crossing_ruleset)
+get_ruleset(::UnWeighted) = crossing_ruleset
+function apply_crossing_gadgets!(mode, ug::UGrid)
+    ruleset = get_ruleset(mode)
     tape = Tuple{Pattern,Int,Int}[]
     n = length(ug.lines)
     for j=1:n  # start from 0 because there can be one empty padding column/row.
@@ -244,10 +246,15 @@ function create_copylines(::WT, g::SimpleGraph, ordered_vertices::AbstractVector
     return [CopyLine{WT}(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
 end
 
-function copyline_locations(tc::CopyLine; padding::Int)
+function center_location(tc::CopyLine; padding::Int)
     s = 4
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
+    return I, J
+end
+function copyline_locations(tc::CopyLine; padding::Int)
+    s = 4
+    I, J = center_location(tc; padding=padding)
     locations = _weight_type(tc)[]
     # grow up
     for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
@@ -289,7 +296,17 @@ function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=
             add_cell!(u, loc)
         end
     end
-    return UGrid(copylines, padding, u)
+    ug = UGrid(copylines, padding, u)
+    for e in edges(g)
+        I, J = crossat(ug, e.src, e.dst)
+        connect_cell!(ug.content, I, J-1)
+        if !isempty(ug.content[I-1, J])
+            connect_cell!(ug.content, I-1, J)
+        else
+            connect_cell!(ug.content, I+1, J)
+        end
+    end
+    return ug
 end
 
 function crossat(ug::UGrid, v, w)
@@ -301,9 +318,10 @@ function crossat(ug::UGrid, v, w)
 end
 
 """
-    embed_graph(g::SimpleGraph; vertex_order=Greedy())
+    embed_graph([mode,] g::SimpleGraph; vertex_order=Greedy())
 
-Embed graph `g` into a unit disk grid. The `vertex_order` can be a vector or one of the following inputs
+Embed graph `g` into a unit disk grid, where the optional argument `mode` can be `Weighted()` or `UnWeighted`.
+The `vertex_order` can be a vector or one of the following inputs
 
     * `Greedy()` fast but non-optimal.
     * `Branching()` slow but optimal.
@@ -316,15 +334,6 @@ function embed_graph(mode, g::SimpleGraph; vertex_order=Greedy())
         L = pathwidth(g, vertex_order)
     end
     ug = ugrid(mode, g, L.vertices; padding=2, nrow=L.vsep+1)
-    for e in edges(g)
-        I, J = crossat(ug, e.src, e.dst)
-        connect_cell!(ug.content, I, J-1)
-        if !isempty(ug.content[I-1, J])
-            connect_cell!(ug.content, I-1, J)
-        else
-            connect_cell!(ug.content, I+1, J)
-        end
-    end
     return ug
 end
 
@@ -340,29 +349,33 @@ end
 ##### Interfaces ######
 export MappingResult, map_graph, map_configs_back
 
-struct MappingResult
-    grid_graph::UGrid
+struct MappingResult{CT,WT}
+    grid_graph::UGrid{CT,WT}
     mapping_history::Vector{Tuple{Pattern,Int,Int}}
     mis_overhead::Int
 end
 
 """
-    map_graph(g::SimpleGraph; ruleset=[...])
+    map_graph([mode,] g::SimpleGraph; ruleset=[...])
 
-Map a graph to a unit disk grid graph that being "equivalent" to the original graph.
+Map a graph to a unit disk grid graph that being "equivalent" to the original graph,
+where the optional argument `mode` can be `Weighted()` or `UnWeighted`.
 Here "equivalent" means a maximum independent set in the grid graph can be mapped back to
 a maximum independent set of the original graph in polynomial time.
 
 Returns a `MappingResult` instance.
 """
-function map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
-    ug = embed_graph(g)
+map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3]) = map_graph(UnWeighted(), g; ruleset=ruleset)
+function map_graph(mode, g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
+    ug = embed_graph(mode, g)
     mis_overhead0 = mis_overhead_copylines(ug)
-    ug, tape = apply_crossing_gadgets!(ug)
+    ug, tape = apply_crossing_gadgets!(mode, ug)
     ug, tape2 = apply_simplifier_gadgets!(ug; ruleset=ruleset)
-    mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
-    mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
+    @show ntuple(x->mis_overhead(tape[x][1]), length(tape))
+    mis_overhead1 = isempty(tape) ? 0 : sum(x->mis_overhead(x[1]), tape)
+    mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
+    @show mis_overhead0 , mis_overhead1 , mis_overhead2
     return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
 end
 
-map_configs_back(r::MappingResult, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]

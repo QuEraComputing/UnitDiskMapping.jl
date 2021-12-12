@@ -169,7 +169,11 @@ for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)),
         locs, g, pins = mapped_graph(raw)
         return map(loc->_mul_weight(loc, loc == SimpleNode($centerloc) ? 1 : 2), locs), g, pins
     end
+    @eval function move_center(::$WT, nodexy)
+        nodexy .+ $centerloc .- (cross_location($WT()) .+ (0, 1))
+    end
 end
+move_center(::Pattern, nodexy) = nodexy
 
 for T in [:WeightedCrossPattern, :WeightedGadget]
     @eval Base.size(r::$T) = size(unweighted(r))
@@ -180,6 +184,23 @@ for T in [:WeightedCrossPattern, :WeightedGadget]
 end
 
 const crossing_ruleset_weighted = weighted.(crossing_ruleset)
+get_ruleset(::Weighted) = crossing_ruleset_weighted
 
 export get_weights
 get_weights(ug::UGrid) = [ug.content[ci...].weight for ci in coordinates(ug)]
+
+export trace_centers
+trace_centers(r::MappingResult) = trace_centers(r.grid_graph, r.mapping_history)
+function trace_centers(ug::UGrid, tape)
+    center_locations = map(x->center_location(x; padding=ug.padding) .+ (0, 1), ug.lines)
+    for (gadget, i, j) in tape
+        m, n = size(gadget)
+        for (k, centerloc) in enumerate(center_locations)
+            offset = centerloc .- (i,j)
+            if 0<=offset[1] <= m-1 && 0<=offset[2] <= n-1
+                center_locations[k] = move_center(gadget, centerloc)
+            end
+        end
+    end
+    return center_locations
+end

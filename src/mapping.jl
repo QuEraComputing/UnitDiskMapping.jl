@@ -356,24 +356,31 @@ struct MappingResult{CT,WT}
 end
 
 """
-    map_graph([mode,] g::SimpleGraph; ruleset=[...])
+    map_graph([mode=Weighted(),] g::SimpleGraph; vertex_order=Greedy(), ruleset=[...])
 
-Map a graph to a unit disk grid graph that being "equivalent" to the original graph,
-where the optional argument `mode` can be `Weighted()` or `UnWeighted`.
+Map a graph to a unit disk grid graph that being "equivalent" to the original graph.
 Here "equivalent" means a maximum independent set in the grid graph can be mapped back to
 a maximum independent set of the original graph in polynomial time.
 
+
+* `mode` is optional, it can be `Weighted()` (default) or `UnWeighted`.
+* `vertex_order` specifies the order finding algorithm for vertices.
+Different vertex orders have different path width, i.e. different depth of mapped grid graph.
+It can be a vector or one of the following inputs
+    * `Greedy()` fast but not optimal.
+    * `Branching()` slow but optimal.
+* `ruleset` specifies and extra set of optimization patterns (not the crossing patterns).
+
 Returns a `MappingResult` instance.
 """
-map_graph(g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3]) = map_graph(UnWeighted(), g; ruleset=ruleset)
-function map_graph(mode, g::SimpleGraph; ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
-    ug = embed_graph(mode, g)
+map_graph(g::SimpleGraph; vertex_order=Greedy(), ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3]) = map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
+function map_graph(mode, g::SimpleGraph; vertex_order=Greedy(), ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
+    ug = embed_graph(mode, g; vertex_order=vertex_order)
     mis_overhead0 = mis_overhead_copylines(ug)
     ug, tape = apply_crossing_gadgets!(mode, ug)
     ug, tape2 = apply_simplifier_gadgets!(ug; ruleset=ruleset)
     mis_overhead1 = isempty(tape) ? 0 : sum(x->mis_overhead(x[1]), tape)
     mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
-    @show mis_overhead0 , mis_overhead1 , mis_overhead2
     return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
 end
 

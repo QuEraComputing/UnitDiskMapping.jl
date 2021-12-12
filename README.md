@@ -1,6 +1,7 @@
 # UnitDiskMapping
 
-[![Build Status](https://github.com/Happy-Diode/UnitDiskMapping.jl/workflows/CI/badge.svg)](https://github.com/Happy-Diode/UnitDiskMapping.jl/actions)
+[![CI](https://github.com/Happy-Diode/UnitDiskMapping.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/Happy-Diode/UnitDiskMapping.jl/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/Happy-Diode/UnitDiskMapping.jl/badge.svg?branch=main&t=H2ReMe)](https://coveralls.io/github/Happy-Diode/UnitDiskMapping.jl?branch=main)
 
 ## Installation
 <p>

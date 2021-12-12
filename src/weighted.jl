@@ -206,6 +206,12 @@ function trace_centers(ug::UGrid, tape)
 end
 
 function map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
-    center_locations = CartesianIndex.(trace_centers(r))
-    [c[center_locations] for c in configs]
+    center_locations = trace_centers(r)
+    res = [zeros(Int, length(r.grid_graph.lines)) for i=1:length(configs)]
+    for (ri, c) in zip(res, configs)
+        for (line, loc) in zip(r.grid_graph.lines, center_locations)
+            ri[line.vertex] = c[loc...]
+        end
+    end
+    return res
 end

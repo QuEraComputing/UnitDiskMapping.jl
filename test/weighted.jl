@@ -55,9 +55,11 @@ end
         for (i, loc) in enumerate(findall(!isempty, ug3.content))
             c[loc] = misconfig.data[i]
         end
-        sc = c[CartesianIndex.(center_locations)]
+        indices = CartesianIndex.(center_locations)
+        sc = zeros(Int, nv(g))
+        sc[getfield.(ug3.lines, :vertex)] = c[indices]
         @test count(isone, sc) == missize
-        #@test_broken is_independent_set(g, sc)
+        @test is_independent_set(g, sc)
     end
 end
 
@@ -71,18 +73,20 @@ end
     res = map_graph(Weighted(), g)
 
     # checking size
-    gp = Independence(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    mgraph = SimpleGraph(res.grid_graph)
+    gp = Independence(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
     missize_map = wmissize(gp, get_weights(res.grid_graph))[].n
     missize = solve(Independence(g), "size max")[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
-    misconfig = solve(gp, "config max")[].c
+    T = GraphTensorNetworks.sampler_type(nv(mgraph), 2)
+    misconfig = contractf(x->CountingTropical(get_weights(res.grid_graph)[x[1]], onehotv(T, x[1], 1)), gp)[].c
     c = zeros(Int, size(res.grid_graph.content))
     for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
     end
     original_configs = map_configs_back(res, [c])
-    @test_broken count(isone, original_configs[1]) == missize
-    @test_broken is_independent_set(g, original_configs[1])
+    @test count(isone, original_configs[1]) == missize
+    @test is_independent_set(g, original_configs[1])
 end

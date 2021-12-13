@@ -11,6 +11,7 @@ end
 struct WeightedGadget{GT} <: Pattern
     gadget::GT
 end
+const WeightedGadgetTypes = Union{WeightedGadget, RotatedGadget{<:WeightedGadget}, ReflectedGadget{<:WeightedGadget}}
 
 Base.isempty(cell::WeightedCell) = !cell.occupied
 Base.empty(::Type{WeightedCell{RT}}) where RT = WeightedCell(false, false, false,0)
@@ -83,9 +84,18 @@ for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)),
     @eval source_centers(::WeightedGadget{<:$T}) = [cross_location($T()) .+ (0, 1)]
     @eval mapped_centers(::WeightedGadget{<:$T}) = [$centerloc]
 end
-for T in [:Cross, :TrivialTurn, :TCon]
-    @eval source_centers(::WeightedGadget{<:$T}) = Tuple{Int,Int}[]
-    @eval mapped_centers(::WeightedGadget{<:$T}) = Tuple{Int,Int}[]
+# default to having no source center!
+source_centers(::WeightedGadget) = Tuple{Int,Int}[]
+mapped_centers(::WeightedGadget) = Tuple{Int,Int}[]
+for T in [:(RotatedGadget{<:WeightedGadget}), :(ReflectedGadget{<:WeightedGadget})]
+    @eval function source_centers(r::$T)
+        cross = cross_location(r.gadget)
+        return map(loc->loc .+ _get_offset(r), _apply_transform.(Ref(r), source_centers(r.gadget), Ref(cross)))
+    end
+    @eval function mapped_centers(r::$T)
+        cross = cross_location(r.gadget)
+        return map(loc->loc .+ _get_offset(r), _apply_transform.(Ref(r), mapped_centers(r.gadget), Ref(cross)))
+    end
 end
 
 Base.size(r::WeightedGadget) = size(unweighted(r))
@@ -102,7 +112,7 @@ get_weights(ug::UGrid) = [ug.content[ci...].weight for ci in coordinates(ug)]
 
 # mapping configurations back
 export trace_centers
-function move_center(w::WeightedGadget, nodexy, offset)
+function move_center(w::WeightedGadgetTypes, nodexy, offset)
     for (sc, mc) in zip(source_centers(w), mapped_centers(w))
         if offset == sc
             return nodexy .+ mc .- sc  # found

@@ -373,7 +373,7 @@ It can be a vector or one of the following inputs
 
 Returns a `MappingResult` instance.
 """
-function map_graph(g::SimpleGraph; vertex_order=Greedy(), ruleset=default_simplifier_ruleset(mode))
+function map_graph(g::SimpleGraph; vertex_order=Greedy(), ruleset=default_simplifier_ruleset(UnWeighted()))
     map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
 end
 function map_graph(mode, g::SimpleGraph; vertex_order=Greedy(), ruleset=default_simplifier_ruleset(mode))
@@ -388,4 +388,4 @@ end
 
 map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
-default_simplifier_ruleset(::UnWeighted) = WeightedGadget.(default_simplifier_ruleset(UnWeighted))
+default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))

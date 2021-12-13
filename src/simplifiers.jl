@@ -36,7 +36,7 @@ function gridgraphfromstring(mode::Union{Weighted, UnWeighted}, str::String)
     item_array = Vector{Int}[]
     for line in split(str, "\n")
         items = [item for item in split(line, " ") if !isempty(item)]
-        list = if mode isa Weighted   # TODO: the weighted version need to be tested!
+        list = if mode isa Weighted   # TODO: the weighted version need to be tested! Consider removing it!
             @assert all(item->item ∈ (".", "⋅", "@", "●", "o", "◯"), items)
             [item ∈ ("@", "●") ? 2 : (item ∈ ("o", "◯") ? 1 : 0) for item in items]
         else
@@ -95,6 +95,9 @@ end
 
 # 2. add your gadget to simplifier ruleset.
 const simplifier_ruleset = SimplifyPattern[DanglingLeg()]
+# set centers (vertices with weight 1) for the weighted version
+source_centers(::WeightedGadget{DanglingLeg}) = [(2,2)]
+mapped_centers(::WeightedGadget{DanglingLeg}) = [(4,2)]
 
 # 3. run the script `project/createmap` to generate `mis_overhead` and other informations required
 # for mapping back. (Note: will overwrite the source file `src/extracting_results.jl`)

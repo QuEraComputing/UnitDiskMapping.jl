@@ -386,16 +386,17 @@ for T in [:RotatedGadget, :ReflectedGadget]
     @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
 end
 
-function _apply_transform(r::RotatedGadget, node::Node, center)
-    loc = getxy(node)
+for T in [:RotatedGadget, :ReflectedGadget]
+    @eval _apply_transform(r::$T, node::Node, center) = chxy(node, _apply_transform(r, getxy(node), center))
+end
+function _apply_transform(r::RotatedGadget, loc::Tuple{Int,Int}, center)
     for _=1:r.n
         loc = rotate90(loc, center)
     end
-    return chxy(node, loc)
+    return loc
 end
 
-function _apply_transform(r::ReflectedGadget, node::Node, center)
-    loc = getxy(node)
+function _apply_transform(r::ReflectedGadget, loc::Tuple{Int,Int}, center)
     loc = if r.mirror == "x"
         reflectx(loc, center)
     elseif r.mirror == "y"
@@ -407,7 +408,7 @@ function _apply_transform(r::ReflectedGadget, node::Node, center)
     else
         throw(ArgumentError("reflection direction $(r.direction) is not defined!"))
     end
-    chxy(node, loc)
+    return loc
 end
 
 export vertex_overhead
@@ -428,4 +429,18 @@ function _boundary_config(pins, config)
         res += Int(config[p]) << (i-1)
     end
     return res
+end
+
+export rotated_and_reflected
+function rotated_and_reflected(p::Pattern)
+    patterns = Pattern[p]
+    source_matrices = [source_matrix(p)]
+    for pi in [[RotatedGadget(p, i) for i=1:3]..., [ReflectedGadget(p, axis) for axis in ["x", "y", "diag", "offdiag"]]...]
+        m = source_matrix(pi)
+        if m ∉ source_matrices
+            push!(patterns, pi)
+            push!(source_matrices, m)
+        end
+    end
+    return patterns
 end

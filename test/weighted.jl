@@ -14,12 +14,21 @@ using Random
         @assert length(locs1) == nv(g1)
         gp1 = Independence(g1, openvertices=pins1)
         gp2 = Independence(g2, openvertices=pins2)
-        m1 = mis_compactify!(missize(gp1, getfield.(locs1, :weight)))
-        m2 = mis_compactify!(missize(gp2, getfield.(locs2, :weight)))
+        w1 = getfield.(locs1, :weight)
+        w2 = getfield.(locs2, :weight)
+        w1[pins1] .-= 1
+        w2[pins2] .-= 1
+        m1 = missize(gp1, w1)
+        m2 = missize(gp2, w2)
+        mm1 = maximum(m1)
+        mm2 = maximum(m2)
         @test nv(g1) == length(locs1) && nv(g2) == length(locs2)
-        sig, diff = UnitDiskMapping.is_diff_by_const(content.(m1), content.(m2))
-        @test sig
-        @test diff == -mis_overhead(s)
+        if !(all((mm1 .== m1) .== (mm2 .== m2)))
+            @show m1
+            @show m2
+        end
+        @test all((mm1 .== m1) .== (mm2 .== m2))
+        @test content(mm1 / mm2) == -mis_overhead(s)
     end
 end
 

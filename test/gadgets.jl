@@ -17,3 +17,10 @@ using Graphs
         @test sig
     end
 end
+
+@testset "rotated_and_reflected" begin
+    @test length(rotated_and_reflected(UnitDiskMapping.DanglingLeg())) == 4
+    @test length(rotated_and_reflected(Cross{false}())) == 4
+    @test length(rotated_and_reflected(Cross{true}())) == 4
+    @test length(rotated_and_reflected(BranchFixB())) == 8
+end

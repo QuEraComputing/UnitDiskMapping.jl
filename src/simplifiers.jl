@@ -69,12 +69,9 @@ function gg_func(mode, expr)
         Base.size(::$(esc(name))) = $(g1.size)
         $UnitDiskMapping.source_locations(::$(esc(name))) = $(g1.nodes)
         $UnitDiskMapping.mapped_locations(::$(esc(name))) = $(g2.nodes)
-        push!($(simplifier_ruleset), $(esc(name))())
         $(esc(name))
     end
 end
-
-const simplifier_ruleset = SimplifyPattern[]
 
 macro gg(expr)
     gg_func(UnWeighted(), expr)
@@ -96,5 +93,8 @@ end
     ⋅ ● ⋅
     """
 
-# 2. run the script `project/createmap` to generate `mis_overhead` and other informations required
+# 2. add your gadget to simplifier ruleset.
+const simplifier_ruleset = SimplifyPattern[DanglingLeg()]
+
+# 3. run the script `project/createmap` to generate `mis_overhead` and other informations required
 # for mapping back. (Note: will overwrite the source file `src/extracting_results.jl`)

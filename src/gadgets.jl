@@ -429,3 +429,17 @@ function _boundary_config(pins, config)
     end
     return res
 end
+
+export rotated_and_reflected
+function rotated_and_reflected(p::Pattern)
+    patterns = Pattern[p]
+    source_matrices = [source_matrix(p)]
+    for pi in [[RotatedGadget(p, i) for i=1:3]..., [ReflectedGadget(p, axis) for axis in ["x", "y", "diag", "offdiag"]]...]
+        m = source_matrix(pi)
+        if m ∉ source_matrices
+            push!(patterns, pi)
+            push!(source_matrices, m)
+        end
+    end
+    return patterns
+end

@@ -17,6 +17,6 @@ include("weighted.jl")
 include("simplifiers.jl")
 include("extracting_results.jl")
 include("pathdecomposition/pathdecomposition.jl")
-#include("shrinking/compressUDG.jl")
+include("tikz/tikz.jl")
 
 end

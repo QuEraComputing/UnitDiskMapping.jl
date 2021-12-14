@@ -32,7 +32,7 @@ function Base.show(io::IO, x::WeightedCell)
 end
 Base.show(io::IO, ::MIME"text/plain", cl::WeightedCell) = Base.show(io, cl)
 
-struct WeightedNode{T,WT} <: Node
+struct WeightedNode{T,WT} <: AbstractNode
     x::T
     y::T
     weight::WT

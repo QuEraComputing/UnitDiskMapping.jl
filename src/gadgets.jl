@@ -19,8 +19,8 @@ abstract type Pattern end
 """
 abstract type CrossPattern <: Pattern end
 
-abstract type Node end
-struct SimpleNode{T} <: Node
+abstract type AbstractNode end
+struct SimpleNode{T} <: AbstractNode
     x::T
     y::T
 end
@@ -28,11 +28,11 @@ SimpleNode(xy::Tuple{Int,Int}) = SimpleNode(xy...)
 SimpleNode(xy::Vector{Int}) = SimpleNode(xy...)
 getxy(p::SimpleNode) = (p.x, p.y)
 chxy(p::SimpleNode, loc) = SimpleNode(loc...)
-Base.iterate(p::Node, i) = Base.iterate((p.x, p.y), i)
-Base.iterate(p::Node) = Base.iterate((p.x, p.y))
-Base.length(p::Node) = 2
-Base.getindex(p::Node, i::Int) = i==1 ? p.x : (@assert i==2; p.y)
-offset(p::Node, xy) = chxy(p, getxy(p) .+ xy)
+Base.iterate(p::AbstractNode, i) = Base.iterate((p.x, p.y), i)
+Base.iterate(p::AbstractNode) = Base.iterate((p.x, p.y))
+Base.length(p::AbstractNode) = 2
+Base.getindex(p::AbstractNode, i::Int) = i==1 ? p.x : (@assert i==2; p.y)
+offset(p::AbstractNode, xy) = chxy(p, getxy(p) .+ xy)
 
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
@@ -53,7 +53,7 @@ function mapped_matrix(p::Pattern)
     locs2matrix(m, n, locs)
 end
 
-function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: Node
+function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: AbstractNode
     a = fill(empty(_cell_type(NT)), m, n)
     for loc in locs
         add_cell!(a, loc)
@@ -386,7 +386,7 @@ for T in [:RotatedGadget, :ReflectedGadget]
     @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
 end
 
-function _apply_transform(r::RotatedGadget, node::Node, center)
+function _apply_transform(r::RotatedGadget, node::AbstractNode, center)
     loc = getxy(node)
     for _=1:r.n
         loc = rotate90(loc, center)
@@ -394,7 +394,7 @@ function _apply_transform(r::RotatedGadget, node::Node, center)
     return chxy(node, loc)
 end
 
-function _apply_transform(r::ReflectedGadget, node::Node, center)
+function _apply_transform(r::ReflectedGadget, node::AbstractNode, center)
     loc = getxy(node)
     loc = if r.mirror == "x"
         reflectx(loc, center)

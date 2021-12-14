@@ -26,7 +26,7 @@ function vertices_on_boundary(locs, m, n)
     findall(loc->loc[1]==1 || loc[1]==m || loc[2]==1 || loc[2]==n, locs)
 end
 
-struct GridGraph{NT<:Node}
+struct GridGraph{NT<:AbstractNode}
     size::Tuple{Int,Int}
     nodes::Vector{NT}
 end

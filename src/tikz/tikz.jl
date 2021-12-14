@@ -42,7 +42,7 @@ struct BoundingBox <: AbstractTikzElement
     ymax::Float64
 end
 function command(box::BoundingBox)
-    return "\\useasboundingbox ($(box.xmin),$(box.ymin)) rectangle ($(box.xmax),$(box.ymax));"
+    return "\\useasboundingbox ($(box.xmin),$(box.ymin)) rectangle ($(box.xmax-box.xmin),$(box.ymax-box.ymin));"
 end
 
 struct Node <: AbstractTikzElement

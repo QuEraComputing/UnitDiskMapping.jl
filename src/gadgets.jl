@@ -387,7 +387,7 @@ for T in [:RotatedGadget, :ReflectedGadget]
 end
 
 for T in [:RotatedGadget, :ReflectedGadget]
-    @eval _apply_transform(r::$T, node::Node, center) = chxy(node, _apply_transform(r, getxy(node), center))
+    @eval _apply_transform(r::$T, node::AbstractNode, center) = chxy(node, _apply_transform(r, getxy(node), center))
 end
 function _apply_transform(r::RotatedGadget, loc::Tuple{Int,Int}, center)
     for _=1:r.n

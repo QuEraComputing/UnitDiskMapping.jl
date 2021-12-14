@@ -12,11 +12,11 @@ export UNode, contract_graph, compress_graph
 
 include("utils.jl")
 include("gadgets.jl")
-include("simplifiers.jl")
 include("mapping.jl")
 include("weighted.jl")
+include("simplifiers.jl")
 include("extracting_results.jl")
 include("pathdecomposition/pathdecomposition.jl")
-#include("shrinking/compressUDG.jl")
+include("tikz/tikz.jl")
 
 end

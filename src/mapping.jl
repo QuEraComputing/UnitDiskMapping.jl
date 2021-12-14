@@ -373,8 +373,10 @@ It can be a vector or one of the following inputs
 
 Returns a `MappingResult` instance.
 """
-map_graph(g::SimpleGraph; vertex_order=Greedy(), ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3]) = map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
-function map_graph(mode, g::SimpleGraph; vertex_order=Greedy(), ruleset=[RotatedGadget(DanglingLeg(), n) for n=0:3])
+function map_graph(g::SimpleGraph; vertex_order=Greedy(), ruleset=default_simplifier_ruleset(UnWeighted()))
+    map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
+end
+function map_graph(mode, g::SimpleGraph; vertex_order=Greedy(), ruleset=default_simplifier_ruleset(mode))
     ug = embed_graph(mode, g; vertex_order=vertex_order)
     mis_overhead0 = mis_overhead_copylines(ug)
     ug, tape = apply_crossing_gadgets!(mode, ug)
@@ -385,3 +387,5 @@ function map_graph(mode, g::SimpleGraph; vertex_order=Greedy(), ruleset=[Rotated
 end
 
 map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
+default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))

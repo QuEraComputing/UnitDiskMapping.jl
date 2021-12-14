@@ -1,38 +1,16 @@
-using UnitDiskMapping, Graphs
+using UnitDiskMapping.TikzGraph, Graphs
+using UnitDiskMapping: crossing_ruleset, Pattern, source_graph, mapped_graph
 
-function command_graph(locs, graph, pins, dx, dy, r, name)
-    cmd = ""
+function command_graph!(canvas, locs, graph, pins, dx, dy, r, name)
     for (i,loc) in enumerate(locs)
         if count(==(loc), locs) == 2
-            type = 2
-        else
-            type = 1
+            Node(loc[1]+dx, loc[2]+dy, fill="none", id="ext-$name$i", minimum_size="$(1.5*r)cm") >> canvas
         end
-        cmd *= command_node(loc[1]+dx, loc[2]+dy, type, i ∈ pins, "$name$i", r) * "\n"
+        Node(loc[1]+dx, loc[2]+dy, fill=i∈pins ? "red" : "black", draw="none", id="$name$i", minimum_size="$(r)cm") >> canvas
     end
     for e in edges(graph)
-        cmd *= command_edge("$name$(e.src)", "$name$(e.dst)") * "\n"
+        Line("$name$(e.src)", "$name$(e.dst)"; line_width=1.0) >> canvas
     end
-    return cmd
-end
-
-function command_node(x, y, type::Int, ispin::Bool, id, r)
-    if type == 2
-        return "\\node[fill=black,circle,radius=$(r)cm,inner sep=0cm, minimum size=$(r)cm] at ($x, $y) () {};\n\\node[draw=black,fill=none,circle,radius=$(1.5*r)cm,minimum size=$(1.5*r)cm,inner sep=0cm] at ($x, $y) ($id) {};"
-    elseif abs(type) == 1
-        if ispin
-            color = "red"
-        else
-            color = "black"
-        end
-        return "\\node[fill=$color,circle,radius=$(r)cm,inner sep=0cm, minimum size=$(r)cm] at ($x, $y) ($id) {};"
-    else
-        error("")
-    end
-end
-
-function command_edge(i, j)
-    return "\\draw[thick] ($i) -- ($j);"
 end
 
 function viz_gadget(p::Pattern)
@@ -45,28 +23,22 @@ function viz_gadget(p::Pattern)
     xmid, ymid = Wx/2-0.5, Wy/2-0.5
     dx1, dy1 = xmid-Gx, 0
     dx2, dy2 = xmid+1, 0
-    source_nodes = command_graph(locs1, g1, pin1, dx1, dy1, 0.3, "s")
-    mapped_nodes = command_graph(locs2, g2, pin2, dx2, dy2, 0.3, "d")
-    return """
-\\documentclass[crop,tikz]{standalone}% 'crop' is the default for v1.0, before it was 'preview'
-\\begin{document}
-\\begin{tikzpicture}[scale=0.8]
-    \\useasboundingbox (-1,-1) rectangle ($Wx,$Wy);
-    \\draw[step=1cm,gray,very thin] ($dx1,$(dy1)) grid ($(Gx+dx1-1),$(Gy+dy1-1));
-    $source_nodes
-    \\draw[step=1cm,gray,very thin] ($dx2,$(dy2)) grid ($(Gx+dx2-1),$(Gy+dy2-1));
-    $mapped_nodes
-    \\node at ($xmid, $ymid) {\$\\mathbf{\\rightarrow}\$};
-\\end{tikzpicture}
-
-\\end{document}
-"""
+    return canvas(; props=Dict("scale"=>"0.8")) do c
+        BoundingBox(-1,Wx-1,-1,Wy-1) >> c
+        Mesh(dx1, Gx+dx1-1, dy1, Gy+dy1-1; step="1cm", draw=rgbcolor!(c, 100,200,200), line_width=0.5) >> c
+        command_graph!(c, locs1, g1, pin1, dx1, dy1, 0.3, "s")
+        Mesh(dx2, Gx+dx2-1, dy2, Gy+dy2-1; step="1cm", draw=rgbcolor!(c, 200,100,100), line_width=0.03) >> c
+        command_graph!(c, locs2, g2, pin2, dx2, dy2, 0.3, "d")
+        PlainText(xmid, ymid, "\$\\mathbf{\\rightarrow}\$") >> c
+    end
 end
 
 function pattern2tikz(folder::String)
-    for (p, sub) in UnitDiskMapping.crossing_ruleset
-        open(joinpath(folder, sub*"-udg.tex"), "w") do f
+    for p in crossing_ruleset
+        open(joinpath(folder, string(typeof(p).name.name)*"-udg.tex"), "w") do f
             write(f, viz_gadget(p))
         end
     end
 end
+
+pattern2tikz(joinpath("_local"))

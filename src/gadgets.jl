@@ -19,8 +19,8 @@ abstract type Pattern end
 """
 abstract type CrossPattern <: Pattern end
 
-abstract type Node end
-struct SimpleNode{T} <: Node
+abstract type AbstractNode end
+struct SimpleNode{T} <: AbstractNode
     x::T
     y::T
 end
@@ -28,11 +28,11 @@ SimpleNode(xy::Tuple{Int,Int}) = SimpleNode(xy...)
 SimpleNode(xy::Vector{Int}) = SimpleNode(xy...)
 getxy(p::SimpleNode) = (p.x, p.y)
 chxy(p::SimpleNode, loc) = SimpleNode(loc...)
-Base.iterate(p::Node, i) = Base.iterate((p.x, p.y), i)
-Base.iterate(p::Node) = Base.iterate((p.x, p.y))
-Base.length(p::Node) = 2
-Base.getindex(p::Node, i::Int) = i==1 ? p.x : (@assert i==2; p.y)
-offset(p::Node, xy) = chxy(p, getxy(p) .+ xy)
+Base.iterate(p::AbstractNode, i) = Base.iterate((p.x, p.y), i)
+Base.iterate(p::AbstractNode) = Base.iterate((p.x, p.y))
+Base.length(p::AbstractNode) = 2
+Base.getindex(p::AbstractNode, i::Int) = i==1 ? p.x : (@assert i==2; p.y)
+offset(p::AbstractNode, xy) = chxy(p, getxy(p) .+ xy)
 
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
@@ -53,7 +53,7 @@ function mapped_matrix(p::Pattern)
     locs2matrix(m, n, locs)
 end
 
-function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: Node
+function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: AbstractNode
     a = fill(empty(_cell_type(NT)), m, n)
     for loc in locs
         add_cell!(a, loc)
@@ -386,16 +386,17 @@ for T in [:RotatedGadget, :ReflectedGadget]
     @eval mis_overhead(p::$T) = mis_overhead(p.gadget)
 end
 
-function _apply_transform(r::RotatedGadget, node::Node, center)
-    loc = getxy(node)
+for T in [:RotatedGadget, :ReflectedGadget]
+    @eval _apply_transform(r::$T, node::AbstractNode, center) = chxy(node, _apply_transform(r, getxy(node), center))
+end
+function _apply_transform(r::RotatedGadget, loc::Tuple{Int,Int}, center)
     for _=1:r.n
         loc = rotate90(loc, center)
     end
-    return chxy(node, loc)
+    return loc
 end
 
-function _apply_transform(r::ReflectedGadget, node::Node, center)
-    loc = getxy(node)
+function _apply_transform(r::ReflectedGadget, loc::Tuple{Int,Int}, center)
     loc = if r.mirror == "x"
         reflectx(loc, center)
     elseif r.mirror == "y"
@@ -407,7 +408,7 @@ function _apply_transform(r::ReflectedGadget, node::Node, center)
     else
         throw(ArgumentError("reflection direction $(r.direction) is not defined!"))
     end
-    chxy(node, loc)
+    return loc
 end
 
 export vertex_overhead
@@ -428,4 +429,18 @@ function _boundary_config(pins, config)
         res += Int(config[p]) << (i-1)
     end
     return res
+end
+
+export rotated_and_reflected
+function rotated_and_reflected(p::Pattern)
+    patterns = Pattern[p]
+    source_matrices = [source_matrix(p)]
+    for pi in [[RotatedGadget(p, i) for i=1:3]..., [ReflectedGadget(p, axis) for axis in ["x", "y", "diag", "offdiag"]]...]
+        m = source_matrix(pi)
+        if m ∉ source_matrices
+            push!(patterns, pi)
+            push!(source_matrices, m)
+        end
+    end
+    return patterns
 end

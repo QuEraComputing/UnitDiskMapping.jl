@@ -25,9 +25,9 @@ function viz_gadget(p::Pattern)
     dx2, dy2 = xmid+1, 0
     return canvas(; props=Dict("scale"=>"0.8")) do c
         BoundingBox(-1,Wx-1,-1,Wy-1) >> c
-        Mesh(dx1, Gx+dx1-1, dy1, Gy+dy1-1; step="1cm", draw=rgbcolor!(c, 100,200,200), line_width=0.5) >> c
+        Mesh(dx1, Gx+dx1-1, dy1, Gy+dy1-1; step="1cm", draw=rgbcolor!(c, 200,200,200), line_width=0.5) >> c
         command_graph!(c, locs1, g1, pin1, dx1, dy1, 0.3, "s")
-        Mesh(dx2, Gx+dx2-1, dy2, Gy+dy2-1; step="1cm", draw=rgbcolor!(c, 200,100,100), line_width=0.03) >> c
+        Mesh(dx2, Gx+dx2-1, dy2, Gy+dy2-1; step="1cm", draw=rgbcolor!(c, 200,200,200), line_width=0.03) >> c
         command_graph!(c, locs2, g2, pin2, dx2, dy2, 0.3, "d")
         PlainText(xmid, ymid, "\$\\mathbf{\\rightarrow}\$") >> c
     end

@@ -1,6 +1,6 @@
 module TikzGraph
 export rgbcolor!, Node, Line, BoundingBox, Mesh, Canvas, >>, command, canvas, generate_standalone, StringElement, PlainText, uselib!
-export Cycle, Controls, annotate, Annotate
+export Cycle, Controls, annotate, Annotate, autoid!, vizgraph!
 
 const instance_counter = Ref(0)
 abstract type AbstractTikzElement end
@@ -27,8 +27,7 @@ function uselib!(canvas::Canvas, lib::String)
     return lib
 end
 function rgbcolor!(canvas::Canvas, red::Int, green::Int, blue::Int)
-    instance_counter[] += 1
-    colorname = "color$(instance_counter[])"
+    colorname = "color$(autoid!())"
     canvas.colors[colorname] = (red,green,blue)
     return colorname
 end
@@ -62,7 +61,7 @@ end
 
 function Node(x, y;
         shape::String = "circle",
-        id = string((instance_counter[] += 1; instance_counter[])), 
+        id = autoid!(),
         text::String = "",
         fill = "none",
         draw = "black",
@@ -79,6 +78,7 @@ function Node(x, y;
         kwargs...)
     return Node(x, y, shape, id, text, props)
 end
+autoid!() = string((instance_counter[] += 1; instance_counter[]))
 function build_props(; kwargs...)
     Dict([replace(string(k), "_"=>" ")=>string(v) for (k,v) in kwargs])
 end
@@ -139,6 +139,7 @@ function command(edge::Line)
     head = "\\draw[$(parse_args([edge.arrow], edge.props))]"
     path = join(edge.path, " -- ")
     ann = edge.annotate
+    isempty(ann) && return "$head $path;"
     annotate = "node [$(parse_args(ann.args, Dict{String,String}()))] ($(ann.id)) {$(ann.text)}"
     return "$head $path $annotate;"
 end
@@ -178,6 +179,21 @@ generate_standalone(canvas::Canvas) = generate_standalone(canvas.libs, canvas.he
 
 function Base.write(io::IO, canvas::Canvas)
     write(io, generate_standalone(canvas))
+end
+
+function vizgraph!(c::Canvas, locations::AbstractVector, edges; fills=fill("black", length(locations)),
+        texts=fill("", length(locations)), ids=[autoid!() for i=1:length(locations)], minimum_size="0.4cm", draw="", line_width="1pt")
+    nodes = Node[]
+    lines = Line[]
+    for i=1:length(locations)
+        n = Node(locations[i]...; fill=fills[i], minimum_size=minimum_size, draw=draw, id=ids[i], text=texts[i]) >> c
+        push!(nodes, n)
+    end
+    for (i, j) in edges
+        l = Line(nodes[i], nodes[j], line_width=line_width) >> c
+        push!(lines, l)
+    end
+    return nodes, lines
 end
 
 end

@@ -27,7 +27,7 @@ end
 # find UDNode given a position; return nothing if no node at that position
 function get_UNode_from_pos(pos::Tuple{Int, Int}, node_list::Vector{UNode})
     for u in node_list
-        (u.pos == pos) && return u 
+        (u.pos == pos) && return u
     end
     return nothing
 end
@@ -50,36 +50,15 @@ function find_boundaries(node_list::Vector{UNode})
 end
 
 # find points on the boundary that can be moved
-# divide region into 4 and move nodes greedily closer to center
 function find_boundary_points(node_list::Vector{UNode}, x_min, x_max, y_min, y_max)
-    half_x = (x_max - x_min)/2 + x_min
-    half_y = (y_max - y_min)/2 + y_min
-
-    pts_xmin_upper = UNode[]
-    pts_xmax_upper = Vector{UNode}()
-    pts_xmin_lower = Vector{UNode}()
-    pts_xmax_lower = Vector{UNode}()
-
-    pts_ymin_left = Vector{UNode}()
-    pts_ymax_left = Vector{UNode}()
-    pts_ymin_right = Vector{UNode}()
-    pts_ymax_right = Vector{UNode}()
+    pts_boundary = Vector{UNode}()
 
     for u in node_list
         p_x, p_y = u.pos
-
-        (p_x == x_min && p_y >= half_y) && push!(pts_xmin_upper, u)
-        (p_x == x_min && p_y < half_y) && push!(pts_xmin_lower, u)
-        (p_x == x_max && p_y >= half_y) && push!(pts_xmax_upper, u)
-        (p_x == x_max && p_y < half_y) && push!(pts_xmax_lower, u)
-        (p_x >= half_x && p_y == y_min) && push!(pts_ymin_right, u)
-        (p_x < half_x && p_y == y_min) && push!(pts_ymin_left, u)
-        (p_x >= half_x && p_y == y_max) && push!(pts_ymax_right, u)
-        (p_x < half_x && p_y == y_max) && push!(pts_ymax_left, u)
+        (p_x == x_min || p_x == x_max || p_y == y_min || p_y == y_max) && push!(pts_boundary, u)
     end
 
-    return pts_xmin_upper, pts_xmin_lower, pts_xmax_upper, pts_xmax_lower,
-    pts_ymin_right, pts_ymin_left, pts_ymax_right, pts_ymax_left
+    return pts_boundary
 end
 
 
@@ -100,7 +79,7 @@ function check_UDG_criteria(n::UNode, new_pos::Tuple{Int, Int},
         end
     end
 
-    (issetequal(new_neighbors, n.neighbors) == true) & return true
+    (issetequal(new_neighbors, n.neighbors) == true) && return true
     return false
 end
 
@@ -115,85 +94,51 @@ function move_node(n::UNode, node_list::Vector{UNode}, candidates::Vector{Tuple{
     return node_list
 end
 
-# determine candidates
-function candidates_xmin_upper(pos::Tuple{Int, Int})
+# determine candidates to move
+function determine_candidates(pos::Tuple{Int, Int}, x_min, x_max, y_min, y_max)
     p_x, p_y = pos
-    return [(p_x + 1, p_y), (p_x + 1, p_y - 1), (p_x, p_y - 1)]
+
+    halfx = (x_max - x_min)/2 + x_min
+    halfy = (y_max - y_min)/2 + y_min
+
+    # move boundary vertices such that we can shrink graph from four quadrants
+    (p_x == x_min && p_y >= halfy) && return [(p_x + 1, p_y), (p_x + 1, p_y - 1), (p_x, p_y - 1)]
+    (p_x == x_min && p_y < halfy) && return [(p_x + 1, p_y), (p_x + 1, p_y + 1), (p_x, p_y + 1)]
+    (p_x == x_max && p_y >= halfy) && return [(p_x - 1, p_y), (p_x - 1, p_y - 1), (p_x, p_y - 1)]
+    (p_x == x_max && p_y < halfy) && return [(p_x - 1, p_y), (p_x - 1, p_y + 1), (p_x, p_y + 1)]
+
+    (p_x < halfx && p_y == y_min) && return [(p_x, p_y + 1), (p_x + 1, p_y + 1), (p_x + 1, p_y)]
+    (p_x >= halfx && p_y == y_min) && return [(p_x, p_y + 1), (p_x - 1, p_y + 1), (p_x - 1, p_y)]
+    (p_x < halfx && p_y == y_max) && return [(p_x, p_y - 1), (p_x + 1, p_y - 1), (p_x + 1, p_y)]
+    (p_x >= halfx && p_y == y_max) && return [(p_x, p_y - 1), (p_x - 1, p_y - 1), (p_x - 1, p_y)]
+
 end
 
-function candidates_xmin_lower(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x + 1, p_y), (p_x + 1, p_y + 1), (p_x, p_y + 1)]
-end
-
-
-function candidates_xmax_upper(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x - 1, p_y), (p_x - 1, p_y - 1), (p_x, p_y - 1)]
-end
-
-
-function candidates_xmax_lower(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x - 1, p_y), (p_x - 1, p_y + 1), (p_x, p_y + 1)]
-end
-
-
-function candidates_ymin_left(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x, p_y + 1), (p_x + 1, p_y + 1), (p_x + 1, p_y)]
-end
-
-function candidates_ymin_right(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x, p_y + 1), (p_x - 1, p_y + 1), (p_x - 1, p_y)]
-end
-
-function candidates_ymax_left(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x, p_y - 1), (p_x + 1, p_y - 1), (p_x + 1, p_y)]
-end
-
-function candidates_ymax_right(pos::Tuple{Int, Int})
-    p_x, p_y = pos
-    return [(p_x, p_y - 1), (p_x - 1, p_y - 1), (p_x - 1, p_y)]
-end
 
 # one shrinking step
 function greedy_step(node_list::Vector{UNode}, min_x::Int, max_x::Int,
     min_y::Int, max_y::Int)
 
-    xmin_upper, xmin_lower, xmax_upper, xmax_lower, ymin_right, ymin_left,
-    ymax_right, ymax_left = find_boundary_points(node_list, min_x, max_x,
+    boundary_pts = find_boundary_points(node_list, min_x, max_x,
     min_y, max_y)
 
-    for p in xmin_upper
-        node_list = move_node(p, node_list, candidates_xmin_upper(p.pos))
-    end
-    for p in xmin_lower
-        node_list = move_node(p, node_list, candidates_xmin_lower(p.pos))
-    end
-    for p in xmax_upper
-        node_list = move_node(p, node_list, candidates_xmax_upper(p.pos))
-    end
-    for p in xmax_lower
-        node_list = move_node(p, node_list, candidates_xmax_lower(p.pos))
-    end
-
-    for p in ymin_left
-        node_list = move_node(p, node_list, candidates_ymin_left(p.pos))
-    end
-    for p in ymin_right
-        node_list = move_node(p, node_list, candidates_ymin_right(p.pos))
-    end
-    for p in ymax_left
-        node_list = move_node(p, node_list, candidates_ymax_left(p.pos))
-    end
-    for p in ymax_right
-        node_list = move_node(p, node_list, candidates_ymax_right(p.pos))
+    for p in boundary_pts
+        node_list = move_node(p, node_list, determine_candidates(p.pos, min_x, max_x,
+        min_y, max_y))
     end
 
     return node_list
+end
+
+function unitdisk_graph(locs::AbstractVector, unit::Real)
+    n = length(locs)
+    g = SimpleGraph(n)
+    for i=1:n, j=i+1:n
+        if sum(abs2, locs[i] .- locs[j]) < unit ^ 2
+            add_edge!(g, i, j)
+        end
+    end
+    return g
 end
 
 # interfaces
@@ -216,6 +161,7 @@ function contract_graph(node_positions::Vector{Tuple{Int, Int}})
 
     xmin, ymin, xmax, ymax = find_boundaries(n_list)
 
+
     while (xmax - xmin > 1) && (ymax - ymin > 1)
         n_list = greedy_step(n_list, xmin, xmax, ymin, ymax)
 
@@ -228,6 +174,7 @@ function contract_graph(node_positions::Vector{Tuple{Int, Int}})
             ymin += 1
             ymax -= 1
         end
+
     end
 
     locs_new = Vector{Tuple{Int, Int}}(undef, size(node_positions)[1])
@@ -239,7 +186,6 @@ function contract_graph(node_positions::Vector{Tuple{Int, Int}})
 end
 
 end
-
 
 using .CompressUDG
 export UNode, contract_graph, CompressUDGMethod

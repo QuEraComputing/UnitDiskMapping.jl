@@ -81,20 +81,76 @@ end
 # 1. specify a gadget like the following. Use either `o` and `●` to specify a vertex,
 # either `.` or `⋅` to specify a placeholder.
 @gg DanglingLeg =
-    """ 
-    ⋅ ⋅ ⋅ 
-    ⋅ ● ⋅ 
-    ⋅ ● ⋅ 
-    ⋅ ● ⋅ 
+    """
+    ⋅ ⋅ ⋅
+    ⋅ ● ⋅
+    ⋅ ● ⋅
+    ⋅ ● ⋅
     """=>"""
-    ⋅ ⋅ ⋅ 
-    ⋅ ⋅ ⋅ 
-    ⋅ ⋅ ⋅ 
+    ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅
     ⋅ ● ⋅
     """
 
+@gg Square =
+    """
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ● ⋅
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    """=>"""
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    """
+
+@gg EndCrossing_with_Edge =
+    """
+    ⋅ ● ⋅ ⋅
+    ● ● ● ●
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    """=>"""
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ⋅ ●
+    ⋅ ● ● ⋅
+    ⋅ ⋅ ⋅ ⋅
+    """
+
+@gg Cane =
+    """
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ● ⋅ ⋅
+    ● ⋅ ● ⋅
+    ⋅ ⋅ ● ⋅
+    ⋅ ⋅ ● ⋅
+    """=>"""
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ● ⋅ ⋅ ⋅
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    """
+
+@gg CLoop =
+    """
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    ⋅ ● ⋅ ●
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    """=>"""
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ●
+    ⋅ ⋅ ● ⋅
+    ⋅ ⋅ ● ⋅
+    """
+
 # 2. add your gadget to simplifier ruleset.
-const simplifier_ruleset = SimplifyPattern[DanglingLeg()]
+const simplifier_ruleset = SimplifyPattern[DanglingLeg(), Square(), EndCrossing_with_Edge(), Cane(), CLoop()]
 # set centers (vertices with weight 1) for the weighted version
 source_centers(::WeightedGadget{DanglingLeg}) = [(2,2)]
 mapped_centers(::WeightedGadget{DanglingLeg}) = [(4,2)]

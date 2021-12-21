@@ -347,7 +347,7 @@ function mis_overhead_copylines(ug::UGrid{WC,W}) where {WC,W}
 end
 
 ##### Interfaces ######
-export MappingResult, map_graph, map_configs_back
+export MappingResult, map_graph, map_configs_back, apply_simplifiers_unweighted
 
 struct MappingResult{CT,WT}
     grid_graph::UGrid{CT,WT}
@@ -384,6 +384,10 @@ function map_graph(mode, g::SimpleGraph; vertex_order=Greedy(), ruleset=default_
     mis_overhead1 = isempty(tape) ? 0 : sum(x->mis_overhead(x[1]), tape)
     mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
     return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
+end
+
+function apply_simplifiers_unweighted(ug::UGrid)
+    return apply_simplifier_gadgets!(ug; ruleset=default_simplifier_ruleset(UnWeighted()))
 end
 
 map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]

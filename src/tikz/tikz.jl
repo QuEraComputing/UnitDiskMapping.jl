@@ -1,28 +1,33 @@
 module TikzGraph
-export rgbcolor!, Node, Line, BoundingBox, Mesh, Canvas, >>, command, canvas, generate_standalone, StringElement, PlainText
+export rgbcolor!, Node, Line, BoundingBox, Mesh, Canvas, >>, command, canvas, generate_standalone, StringElement, PlainText, uselib!
+export Cycle, Controls, annotate, Annotate, autoid!, vizgraph!
 
 const instance_counter = Ref(0)
 abstract type AbstractTikzElement end
 
 struct Canvas
     header::String
+    libs::Vector{String}
     colors::Dict{String, Tuple{Int,Int,Int}}
     contents::Vector{AbstractTikzElement}
     props::Dict{String,String}
 end
 
-function canvas(f; header="", colors=Dict{String,Tuple{Int,Int,Int}}(), props=Dict{String,String}())
-    canvas = Canvas(header, colors, AbstractTikzElement[], props)
+function canvas(f; header="", libs=String[], colors=Dict{String,Tuple{Int,Int,Int}}(), props=Dict{String,String}())
+    canvas = Canvas(header, libs, colors, AbstractTikzElement[], props)
     f(canvas)
     return canvas
 end
 
-Base.:(>>)(element::AbstractTikzElement, canvas::Canvas) = push!(canvas.contents, element)
-Base.:(>>)(element::String, canvas::Canvas) = push!(canvas.contents, StringElement(element))
+Base.:(>>)(element::AbstractTikzElement, canvas::Canvas) = (push!(canvas.contents, element); element)
+Base.:(>>)(element::String, canvas::Canvas) = (push!(canvas.contents, StringElement(element)); element)
 
+function uselib!(canvas::Canvas, lib::String)
+    push!(canvas.libs, lib)
+    return lib
+end
 function rgbcolor!(canvas::Canvas, red::Int, green::Int, blue::Int)
-    instance_counter[] += 1
-    colorname = "color$(instance_counter[])"
+    colorname = "color$(autoid!())"
     canvas.colors[colorname] = (red,green,blue)
     return colorname
 end
@@ -56,7 +61,7 @@ end
 
 function Node(x, y;
         shape::String = "circle",
-        id = string((instance_counter[] += 1; instance_counter[])), 
+        id = autoid!(),
         text::String = "",
         fill = "none",
         draw = "black",
@@ -73,12 +78,13 @@ function Node(x, y;
         kwargs...)
     return Node(x, y, shape, id, text, props)
 end
+autoid!() = string((instance_counter[] += 1; instance_counter[]))
 function build_props(; kwargs...)
     Dict([replace(string(k), "_"=>" ")=>string(v) for (k,v) in kwargs])
 end
 
 function command(node::Node)
-    return "\\node[$(node.shape), $(command(node.props))] at ($(node.x), $(node.y)) ($(node.id)) {$(node.text)};"
+    return "\\node[$(parse_args([string(node.shape)], node.props))] at ($(node.x), $(node.y)) ($(node.id)) {$(node.text)};"
 end
 
 struct Mesh <: AbstractTikzElement
@@ -93,28 +99,52 @@ function Mesh(xmin, xmax, ymin, ymax; step="1.0cm", draw="gray", line_width=0.03
     Mesh(xmin, xmax, ymin, ymax, build_props(; step=step, draw=draw, line_width=line_width, kwargs...))
 end
 function command(grid::Mesh)
-    return "\\draw[$(command(grid.props))] ($(grid.xmin),$(grid.ymin)) grid ($(grid.xmax),$(grid.ymax));"
+    return "\\draw[$(parse_args(String[], grid.props))] ($(grid.xmin),$(grid.ymin)) grid ($(grid.xmax),$(grid.ymax));"
 end
 
+struct Cycle end
+struct Controls
+    start::String
+    controls::Vector{String}
+    stop::String
+    Controls(start, c1, stop) = new(parse_path(start), [parse_path(c1)], parse_path(stop))
+    Controls(start, c1, c2, stop) = new(parse_path(start), [parse_path(c1), parse_path(c2)], parse_path(stop))
+end
+
+struct Annotate
+    args::Vector{String}   # e.g. "[midway, above]"
+    id::String
+    text::String
+end
+Base.isempty(ann::Annotate) = isempty(ann.text)
+
+# arrow styles: https://latexdraw.com/exploring-tikz-arrows/
+# line styles: https://tex.stackexchange.com/questions/45275/tikz-get-values-for-predefined-dash-patterns
 struct Line <: AbstractTikzElement
-    src::String
-    dst::String
-    controls::Vector{Int}
+    path::Vector{String}
+    arrow::String
+    line_style::String
+    annotate::Annotate
     props::Dict{String,String}
 end
-
-function Line(src, dst; controls=Int[], line_width = "0.03", kwargs...)
-    Line(string(src), string(dst), controls, build_props(; line_width=line_width, kwargs...))
+function Line(path...; annotate::Union{String,Annotate}="", arrow::String="", line_width = "0.03", line_style="", kwargs...)
+    ann = annotate isa String ? Annotate(["midway", "above", "sloped"], "", annotate) : annotate
+    Line(collect(parse_path.(path)), arrow, line_style, ann, build_props(; line_width=line_width, kwargs...))
 end
-Line(src::Node, dst::Node; kwargs...) = Line(src.id, dst.id)
-
+parse_path(t::Tuple) = "$(t)"
+parse_path(n::Node) = "($(n.id))"
+parse_path(s::String) = "($s)"
+parse_path(s::Cycle) = "cycle"
+function parse_path(c::Controls)
+    "$(c.start) .. controls $(join(["$c" for c in c.controls], " and ")) .. $(c.stop)"
+end
 function command(edge::Line)
-    head = "\\draw[$(command(edge.props))]"
-    if isempty(edge.controls)
-        return "$head ($(edge.src)) -- ($(edge.dst));"
-    else
-        return "$head ($(edge.src)) .. controls $(join(["($c)" for c in edge.controls], " and ")) .. ($(edge.dst));"
-    end
+    head = "\\draw[$(parse_args([edge.arrow, edge.line_style], edge.props))]"
+    path = join(edge.path, " -- ")
+    ann = edge.annotate
+    isempty(ann) && return "$head $path;"
+    annotate = "node [$(parse_args(ann.args, Dict{String,String}()))] ($(ann.id)) {$(ann.text)}"
+    return "$head $path $annotate;"
 end
 
 struct PlainText <: AbstractTikzElement
@@ -127,28 +157,47 @@ function PlainText(x, y, text; kwargs...)
     PlainText(x, y, text, build_props(; kwargs...))
 end
 function command(text::PlainText)
-    "\\node[$(command(text.props))] at ($(text.x), $(text.y)) {$(text.text)};"
+    "\\node[$(parse_args(String[], text.props))] at ($(text.x), $(text.y)) {$(text.text)};"
 end
 
-function command(node::Dict)  # properties
-    return join(["$k=$v" for (k,v) in node], ", ")
+annotate(node::Node, text; offsetx=0, offsety=0, kwargs...) = PlainText(node.x+offsetx, node.y+offsety, text; kwargs...)
+
+function parse_args(args::Vector, kwargs::Dict)  # properties
+    return join(filter(!isempty, [args..., ["$k=$v" for (k,v) in kwargs if !isempty(v)]...]), ", ")
 end
 
-function generate_standalone(header::String, props::Dict, content::String)
+function generate_standalone(libs::Vector, header::String, props::Dict, content::String)
     return """
 \\documentclass[crop,tikz]{standalone}
+$(join(["\\usepgflibrary{$lib}" for lib in libs], "\n"))
 $(header)
 \\begin{document}
-\\begin{tikzpicture}[$(command(props))]
+\\begin{tikzpicture}[$(parse_args(String[], props))]
 $content
 \\end{tikzpicture}
 \\end{document}
 """
 end
-generate_standalone(canvas::Canvas) = generate_standalone(canvas.header, canvas.props, join([[generate_rgbcolor(k,v...) for (k,v) in canvas.colors]..., command.(canvas.contents)...], "\n"))
+generate_standalone(canvas::Canvas) = generate_standalone(canvas.libs, canvas.header, canvas.props, join([[generate_rgbcolor(k,v...) for (k,v) in canvas.colors]..., command.(canvas.contents)...], "\n"))
 
 function Base.write(io::IO, canvas::Canvas)
     write(io, generate_standalone(canvas))
+end
+
+function vizgraph!(c::Canvas, locations::AbstractVector, edges; fills=fill("black", length(locations)),
+        texts=fill("", length(locations)), ids=[autoid!() for i=1:length(locations)], minimum_size="0.4cm",
+        draw="", line_width="1pt", edgecolors=fill("black", length(edges)))
+    nodes = Node[]
+    lines = Line[]
+    for i=1:length(locations)
+        n = Node(locations[i]...; fill=fills[i], minimum_size=minimum_size, draw=draw, id=ids[i], text=texts[i]) >> c
+        push!(nodes, n)
+    end
+    for (k, (i, j)) in enumerate(edges)
+        l = Line(nodes[i], nodes[j], line_width=line_width, draw=edgecolors[k]) >> c
+        push!(lines, l)
+    end
+    return nodes, lines
 end
 
 end

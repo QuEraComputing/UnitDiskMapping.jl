@@ -149,8 +149,34 @@ end
     ⋅ ⋅ ● ⋅
     """
 
+@gg CurveEnd =
+    """
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    ⋅ ⋅ ● ⋅
+    """=>"""
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    """
+
+@gg DiagonalEnd =
+    """
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ● ⋅ ⋅
+    ⋅ ⋅ ● ⋅
+    ⋅ ⋅ ⋅ ●
+    """=>"""
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ⋅
+    ⋅ ⋅ ⋅ ●
+    """
+
 # 2. add your gadget to simplifier ruleset.
-const simplifier_ruleset = SimplifyPattern[DanglingLeg(), Square(), EndCrossing_with_Edge(), Cane(), CLoop()]
+const simplifier_ruleset = SimplifyPattern[DanglingLeg(), Square(), EndCrossing_with_Edge(), Cane(), CLoop(), CurveEnd(), DiagonalEnd()]
 # set centers (vertices with weight 1) for the weighted version
 source_centers(::WeightedGadget{DanglingLeg}) = [(2,2)]
 mapped_centers(::WeightedGadget{DanglingLeg}) = [(4,2)]

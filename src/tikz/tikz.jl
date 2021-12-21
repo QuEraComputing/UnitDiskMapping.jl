@@ -118,15 +118,18 @@ struct Annotate
 end
 Base.isempty(ann::Annotate) = isempty(ann.text)
 
+# arrow styles: https://latexdraw.com/exploring-tikz-arrows/
+# line styles: https://tex.stackexchange.com/questions/45275/tikz-get-values-for-predefined-dash-patterns
 struct Line <: AbstractTikzElement
     path::Vector{String}
     arrow::String
+    line_style::String
     annotate::Annotate
     props::Dict{String,String}
 end
-function Line(path...; annotate::Union{String,Annotate}="", arrow::String="", line_width = "0.03", kwargs...)
+function Line(path...; annotate::Union{String,Annotate}="", arrow::String="", line_width = "0.03", line_style="", kwargs...)
     ann = annotate isa String ? Annotate(["midway", "above", "sloped"], "", annotate) : annotate
-    Line(collect(parse_path.(path)), arrow, ann, build_props(; line_width=line_width, kwargs...))
+    Line(collect(parse_path.(path)), arrow, line_style, ann, build_props(; line_width=line_width, kwargs...))
 end
 parse_path(t::Tuple) = "$(t)"
 parse_path(n::Node) = "($(n.id))"
@@ -136,7 +139,7 @@ function parse_path(c::Controls)
     "$(c.start) .. controls $(join(["$c" for c in c.controls], " and ")) .. $(c.stop)"
 end
 function command(edge::Line)
-    head = "\\draw[$(parse_args([edge.arrow], edge.props))]"
+    head = "\\draw[$(parse_args([edge.arrow, edge.line_style], edge.props))]"
     path = join(edge.path, " -- ")
     ann = edge.annotate
     isempty(ann) && return "$head $path;"
@@ -182,15 +185,16 @@ function Base.write(io::IO, canvas::Canvas)
 end
 
 function vizgraph!(c::Canvas, locations::AbstractVector, edges; fills=fill("black", length(locations)),
-        texts=fill("", length(locations)), ids=[autoid!() for i=1:length(locations)], minimum_size="0.4cm", draw="", line_width="1pt")
+        texts=fill("", length(locations)), ids=[autoid!() for i=1:length(locations)], minimum_size="0.4cm",
+        draw="", line_width="1pt", edgecolors=fill("black", length(edges)))
     nodes = Node[]
     lines = Line[]
     for i=1:length(locations)
         n = Node(locations[i]...; fill=fills[i], minimum_size=minimum_size, draw=draw, id=ids[i], text=texts[i]) >> c
         push!(nodes, n)
     end
-    for (i, j) in edges
-        l = Line(nodes[i], nodes[j], line_width=line_width) >> c
+    for (k, (i, j)) in enumerate(edges)
+        l = Line(nodes[i], nodes[j], line_width=line_width, draw=edgecolors[k]) >> c
         push!(lines, l)
     end
     return nodes, lines

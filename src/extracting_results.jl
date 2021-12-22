@@ -27,7 +27,7 @@ function mapped_entry_to_compact(::Turn)
 end
 
 function source_entry_to_configs(::Turn)
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0]], 2 => [[0, 0, 1, 0, 1], [0, 1, 0, 0, 1]], 3 => [[1, 0, 1, 0, 1]], 1 => [[1, 0, 1, 0, 0], [1, 0, 0, 1, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 0, 1], [0, 0, 1, 0, 1]], 3 => [[1, 0, 1, 0, 1]], 1 => [[1, 0, 1, 0, 0], [1, 0, 0, 1, 0]]])
 end
 
 mis_overhead(::Turn) = -1
@@ -38,7 +38,7 @@ function mapped_entry_to_compact(::WTurn)
 end
 
 function source_entry_to_configs(::WTurn)
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[1, 0, 1, 0, 0]], 2 => [[0, 0, 0, 1, 1], [1, 0, 0, 0, 1]], 3 => [[0, 1, 0, 1, 1]], 1 => [[0, 1, 1, 0, 0], [0, 1, 0, 1, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[1, 0, 1, 0, 0]], 2 => [[0, 0, 0, 1, 1], [1, 0, 0, 0, 1]], 3 => [[0, 1, 0, 1, 1]], 1 => [[0, 1, 0, 1, 0], [0, 1, 1, 0, 0]]])
 end
 
 mis_overhead(::WTurn) = -1
@@ -60,7 +60,7 @@ function mapped_entry_to_compact(::BranchFix)
 end
 
 function source_entry_to_configs(::BranchFix)
-    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 0, 1, 0, 1, 0], [0, 1, 0, 0, 1, 0], [0, 1, 0, 1, 0, 0]], 2 => [[0, 1, 0, 1, 0, 1]], 3 => [[1, 0, 1, 0, 0, 1], [1, 0, 0, 1, 0, 1]], 1 => [[1, 0, 1, 0, 1, 0]]])
+    return Dict(Pair{Int64, Vector{BitVector}}[0 => [[0, 1, 0, 1, 0, 0], [0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 1, 0]], 2 => [[0, 1, 0, 1, 0, 1]], 3 => [[1, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 1]], 1 => [[1, 0, 1, 0, 1, 0]]])
 end
 
 mis_overhead(::BranchFix) = -1

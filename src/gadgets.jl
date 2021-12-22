@@ -258,7 +258,7 @@ struct BranchFixB <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFixB)
-    locs = SimpleNode.([(2,3),(3,3),(3,2),(4,2)])
+    locs = SimpleNode.([(2,3),(3,2),(3,3),(4,2)])
     g = simplegraph([(1,3), (2,3), (2,4)])
     return locs, g, [1, 4]
 end

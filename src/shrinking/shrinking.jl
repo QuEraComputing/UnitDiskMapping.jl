@@ -141,6 +141,122 @@ function unitdisk_graph(locs::AbstractVector, unit::Real)
     return g
 end
 
+module CompressUDG
+using Graphs
+using ..UnitDiskMapping: unitdisk_graph
+
+export UNode, contract_graph, CompressUDGMethod
+
+struct UNode
+    vertex::Int
+    pos::Tuple{Int, Int}
+    neighbors::Vector{Int}
+end
+function Base.(==)(x::UNode, y::UNode)
+    x.vertex == y.vertex && x.neighbors == y.neighbors
+end
+
+# get surrounding neighbor points on UDG
+function get_UDG_neighbors(pos::Tuple{Int, Int})
+    # udg radius = 1.5
+    p_x, p_y = pos
+    pos_udg_neighbors = Vector{Tuple{Int, Int}}
+
+    for i = -1:1, j = -1:1
+        !(i == 0 && j == 0) && push!(pos_udg_neighbors, (p_x + i, p_y + j))
+    end
+    return pos_udg_neighbors
+end
+
+# find UNode from given position and return nothing if no node in that position
+function get_UNode_from_pos(pos::Tuple{Int, Int}, node_list::Vector{UNode})
+    for u in node_list
+        (u.pos == pos) && return u
+    end
+    return nothing
+end
+
+# find the center of the graph given list of UNodes
+function find_center(node_list::Vector{UNode})
+    min_x = typemax(Int)
+    min_y = typemax(Int)
+    max_x = 0
+    max_y = 0
+
+    for u in node_list
+        p_x, p_y = u.pos
+        (p_x > max_x) && (max_x = p_x)
+        (p_x < min_x) && (min_x = p_x)
+        (p_y > max_y) && (max_y = p_y)
+        (p_y < min_y) && (min_y = p_y)
+    end
+
+    return (max_x - min_x)/2 + min_x, (max_y - min_y)/2 + min_y
+end
+
+# filter function that checks that new position of node n satisfies UDG requirements
+function check_UDG_criteria(n::UNode, new_pos::Tuple{Int, Int}, node_list::Vector{UNode})
+    # check if new_pos is already occupied
+    (get_UNode_from_pos(new_pos, node_list) !== nothing) && return false
+
+    p_x, p_y = new_pos
+    new_neighbors = Vector{Int}()
+
+    for p in get_udg_neighbors(new_pos)
+        unode = get_UNode_from_pos(p, node_list)
+        ((unode !== nothing) && (unode.vertex != n.vertex)) && push!(new_neighbors, unode.vertex)
+    end
+
+    (issetequal(new_neighbors, n.neighbors)) && return true
+end
+
+# determine cost for a position
+# defined as distance from center of graph
+function node_cost(pos::Tuple{Int, Int}, node_list::Vector{UNode})
+    center_x, center_y = find_center(node_list)
+    p_x, p_y = pos
+    return (center_x - p_x)^2 + (center_y - p_y)^2
+end
+
+# move a node n to minimize cost
+function move_node(n::UNode, node_list::Vector{UNode})
+    min_cost = node_cost(n.pos, node_list)
+
+    candidates = get_UDG_neighbors(n.pos)
+
+    for p in candidates
+        if check_UDG_criteria(n, p, node_list)
+            if node_cost(p, node_list) < min_cost
+                node_list[n.vertex] = UNode(n.vertex, p, n.neighbors)
+                return node_list
+            end
+        end
+    end
+    return node_list, min_cost
+end
+
+function total_cost(node_list::Vector{UNode})
+    total_cost = 0
+    for n in node_list
+        total_cost += node_cost(n.pos, node_list)
+    end
+    return total_cost
+end
+
+# move all nodes to minimize cost one by one
+function greedy_step(node_list::Vector{UNode})
+    for n in node_list
+        node_list, min_cost1 = move_node(n, node_list)
+        node_list, min_cost2 = move_node(n, node_list)
+        while min_cost2 != min_cost1
+            min_cost1 = min_cost2
+            node_list, min_cost2 = move_node(n, node_list)
+        end
+    end
+
+    return node_list, total_cost(node_list)
+end
+
 # interfaces
 abstract type CompressUDGMethod end
 
@@ -159,23 +275,14 @@ function contract_graph(node_positions::Vector{Tuple{Int, Int}})
         n_list[ind] = UNode(ind, n_pos, neighbors(g, ind))
     end
 
-    xmin, ymin, xmax, ymax = find_boundaries(n_list)
+    n_list, cost = greedy_step(n_list)
+    n_list, cost2 = greedy_step(n_list)
 
-
-    while (xmax - xmin > 1) && (ymax - ymin > 1)
-        n_list = greedy_step(n_list, xmin, xmax, ymin, ymax)
-
-        if xmin < xmax
-            xmin += 1
-            xmax -= 1
-        end
-
-        if ymin < ymax
-            ymin += 1
-            ymax -= 1
-        end
-
+    while cost != cost2
+        cost = cost2
+        n_list, cost2 = greedy_step(n_list)
     end
+
 
     locs_new = Vector{Tuple{Int, Int}}(undef, size(node_positions)[1])
     for (ind, un) in enumerate(n_list)

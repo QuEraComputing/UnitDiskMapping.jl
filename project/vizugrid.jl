@@ -1,8 +1,9 @@
 using UnitDiskMapping
+using UnitDiskMapping.TikzGraph
 
 function print_mapback(folder::String)
     for (p, sub) in ((Cross{true}(), "crosscon"), (Cross{false}(), "cross"),
-        (Turn(), "turn"))
+        (Branch(), "branch"), (TCon(), "tcon"))
         println()
         println(typeof(p))
         for (bc, bcs) in allbcs(p)
@@ -76,14 +77,3 @@ function latex_config(p::Pattern, config)
     s *= raw"\end{matrix}\end{equation*}"
     return s
 end
-
-using UnitDiskMapping, Graphs
-
-g = SimpleGraph(5)
-for (i,j) in [(1,2), (2,4), (1,3), (3,4), (4,5), (1,5)]
-    add_edge!(g, i, j)
-end
-ug = embed_graph(g)
-join(["$((ci.I[1],ci.I[2]))" for ci in findall(!iszero, ug.content)], ", ")
-ug2 = apply_gadgets!(copy(ug))[1]
-join(["$((ci.I[1],ci.I[2]))" for ci in findall(!iszero, ug2.content)], ", ")

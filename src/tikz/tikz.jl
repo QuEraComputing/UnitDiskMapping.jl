@@ -1,6 +1,6 @@
 module TikzGraph
 export rgbcolor!, Node, Line, BoundingBox, Mesh, Canvas, >>, command, canvas, generate_standalone, StringElement, PlainText, uselib!
-export Cycle, Controls, annotate, Annotate, autoid!, vizgraph!
+export Cycle, Controls, annotate, Annotate, autoid!, vizgraph!, writepdf
 
 const instance_counter = Ref(0)
 abstract type AbstractTikzElement end
@@ -99,7 +99,7 @@ function Mesh(xmin, xmax, ymin, ymax; step="1.0cm", draw="gray", line_width=0.03
     Mesh(xmin, xmax, ymin, ymax, build_props(; step=step, draw=draw, line_width=line_width, kwargs...))
 end
 function command(grid::Mesh)
-    return "\\draw[$(parse_args(String[], grid.props))] ($(grid.xmin),$(grid.ymin)) grid ($(grid.xmax),$(grid.ymax));"
+    return "\\draw[$(parse_args(String[], grid.props))] ($(grid.xmin-1e-3),$(grid.ymin-1e-3)) grid ($(grid.xmax),$(grid.ymax));"
 end
 
 struct Cycle end
@@ -182,6 +182,11 @@ generate_standalone(canvas::Canvas) = generate_standalone(canvas.libs, canvas.he
 
 function Base.write(io::IO, canvas::Canvas)
     write(io, generate_standalone(canvas))
+end
+
+function writepdf(filename::AbstractString, canvas::Canvas)
+    write(filename, canvas)
+    run(`latexmk -pdf $filename -output-directory=$(dirname(filename))`)
 end
 
 function vizgraph!(c::Canvas, locations::AbstractVector, edges; fills=fill("black", length(locations)),

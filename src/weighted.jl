@@ -24,7 +24,7 @@ function Base.show(io::IO, x::WeightedCell)
         elseif x.weight == 2
             print(io, "●")
         else
-            print(io, "◯")
+            print(io, "○")
         end
     else
         print(io, "⋅")

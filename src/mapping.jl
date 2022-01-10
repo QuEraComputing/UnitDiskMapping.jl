@@ -403,7 +403,7 @@ function print_config(io::IO, mr::MappingResult, config::AbstractMatrix)
                 if !iszero(config[i,j])
                     print(io, "●")
                 else
-                    print(io, "◯")
+                    print(io, "○")
                 end
             else
                 if !iszero(config[i,j])

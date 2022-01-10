@@ -4,9 +4,12 @@ using UnitDiskMapping: crossing_ruleset, Pattern, source_graph, mapped_graph
 function command_graph!(canvas, locs, graph, pins, dx, dy, r, name)
     for (i,loc) in enumerate(locs)
         if count(==(loc), locs) == 2
-            Node(loc[1]+dx, loc[2]+dy, fill="none", id="ext-$name$i", minimum_size="$(1.5*r)cm") >> canvas
+            Node(loc[1]+dx, loc[2]+dy, fill="black", draw="none", id="$name$i", minimum_size="0cm") >> canvas
+            Node(loc[1]+dx+0.4, loc[2]+dy, fill="black", draw="none", id="$name$i-A", minimum_size="$(r)cm") >> canvas
+            Node(loc[1]+dx, loc[2]+dy+0.4, fill="black", draw="none", id="$name$i-B", minimum_size="$(r)cm") >> canvas
+        else
+            Node(loc[1]+dx, loc[2]+dy, fill=i∈pins ? "red" : "black", draw="none", id="$name$i", minimum_size="$(r)cm") >> canvas
         end
-        Node(loc[1]+dx, loc[2]+dy, fill=i∈pins ? "red" : "black", draw="none", id="$name$i", minimum_size="$(r)cm") >> canvas
     end
     for e in edges(graph)
         Line("$name$(e.src)", "$name$(e.dst)"; line_width=1.0) >> canvas
@@ -35,9 +38,7 @@ end
 
 function pattern2tikz(folder::String)
     for p in crossing_ruleset
-        open(joinpath(folder, string(typeof(p).name.name)*"-udg.tex"), "w") do f
-            write(f, viz_gadget(p))
-        end
+        writepdf(joinpath(folder, string(typeof(p).name.name)*"-udg.tex"), viz_gadget(p))
     end
 end
 

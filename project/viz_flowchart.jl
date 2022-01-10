@@ -24,5 +24,4 @@ function draw_flowchart()
     end
 end
 
-write("_local/flowchart.tex", draw_flowchart())
-run(`latexmk -pdf _local/flowchart.tex`)
+writepdf("_local/flowchart.tex", draw_flowchart())

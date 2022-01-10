@@ -90,35 +90,6 @@ function print_ugrid(io::IO, content::AbstractMatrix)
         end
     end
 end
-export print_config
-print_config(mr::MappingResult, config::AbstractMatrix) = print_config(stdout, mr, config)
-function print_config(io::IO, mr::MappingResult, config::AbstractMatrix)
-    content = mr.grid_graph.content
-    @assert size(content) == size(config)
-    for i=1:size(content, 1)
-        for j=1:size(content, 2)
-            cell = content[i, j]
-            @assert !(cell.connected || cell.doubled)
-            if !isempty(cell)
-                if !iszero(config[i,j])
-                    print(io, "●")
-                else
-                    print(io, "◯")
-                end
-            else
-                if !iszero(config[i,j])
-                    error("configuration not valid, there is not vertex at location $((i,j)).")
-                end
-                print(io, "⋅")
-            end
-            print(io, " ")
-        end
-        if i!=size(content, 1)
-            println(io)
-        end
-    end
-end
-
 Base.copy(ug::UGrid) = UGrid(ug.lines, ug.padding, copy(ug.content))
 
 # TODO:
@@ -418,3 +389,33 @@ end
 map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
 default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))
+
+export print_config
+print_config(mr::MappingResult, config::AbstractMatrix) = print_config(stdout, mr, config)
+function print_config(io::IO, mr::MappingResult, config::AbstractMatrix)
+    content = mr.grid_graph.content
+    @assert size(content) == size(config)
+    for i=1:size(content, 1)
+        for j=1:size(content, 2)
+            cell = content[i, j]
+            @assert !(cell.connected || cell.doubled)
+            if !isempty(cell)
+                if !iszero(config[i,j])
+                    print(io, "●")
+                else
+                    print(io, "◯")
+                end
+            else
+                if !iszero(config[i,j])
+                    error("configuration not valid, there is not vertex at location $((i,j)).")
+                end
+                print(io, "⋅")
+            end
+            print(io, " ")
+        end
+        if i!=size(content, 1)
+            println(io)
+        end
+    end
+end
+

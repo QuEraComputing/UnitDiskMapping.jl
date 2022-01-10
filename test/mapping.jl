@@ -110,4 +110,6 @@ end
     original_configs = map_configs_back(res, [c])
     @test count(isone, original_configs[1]) == missize
     @test is_independent_set(g, original_configs[1])
+    @test println(res.grid_graph) === nothing
+    @test print_config(res, c) === nothing
 end

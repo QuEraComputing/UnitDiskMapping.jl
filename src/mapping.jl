@@ -329,11 +329,13 @@ The `vertex_order` can be a vector or one of the following inputs
 embed_graph(g::SimpleGraph; vertex_order=Branching()) = embed_graph(UnWeighted(), g; vertex_order)
 function embed_graph(mode, g::SimpleGraph; vertex_order=Branching())
     if vertex_order isa AbstractVector
-        L = PathDecomposition.Layout(g, collect(vertex_order))
+        L = PathDecomposition.Layout(g, collect(vertex_order[end:-1:1]))
     else
         L = pathwidth(g, vertex_order)
     end
-    ug = ugrid(mode, g, L.vertices; padding=2, nrow=L.vsep+1)
+    # we reverse the vertex order of the pathwidth result,
+    # because this order corresponds to the vertex-seperation.
+    ug = ugrid(mode, g, L.vertices[end:-1:1]; padding=2, nrow=L.vsep+1)
     return ug
 end
 

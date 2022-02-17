@@ -87,7 +87,7 @@ end
     end
     original_configs = map_configs_back(res, [c])
     @test count(isone, original_configs[1]) == missize
-    @test UnitDiskMappingis_independent_set(g, original_configs[1])
+    @test UnitDiskMapping.is_independent_set(g, original_configs[1])
 end
 
 

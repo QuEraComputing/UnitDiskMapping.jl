@@ -7,8 +7,8 @@ using GraphTensorNetworks
         locs, g, pins = mapped_graph(s)
         d1 = mapped_entry_to_compact(s)
         d2 = source_entry_to_configs(s)
-        m = solve(Independence(g, openvertices=pins), "configs max")
-        t = solve(Independence(g0, openvertices=pins0), "size max")
+        m = solve(Independence(g, openvertices=pins), ConfigsMax())
+        t = solve(Independence(g0, openvertices=pins0), SizeMax())
         for i=1:length(m)
             for v in m[i].c.data
                 bc = mapped_boundary_config(s, v)

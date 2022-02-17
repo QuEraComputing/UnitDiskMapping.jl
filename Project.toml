@@ -7,7 +7,7 @@ version = "0.1.0"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 
 [compat]
-Graphs = "1.4"
+Graphs = "1.6"
 julia = "1"
 
 [extras]

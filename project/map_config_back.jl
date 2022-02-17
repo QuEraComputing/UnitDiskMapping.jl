@@ -5,7 +5,7 @@ using GraphTensorNetworks, Graphs
 function all_configurations(p::Pattern)
     mlocs, mg, mpins = mapped_graph(p)
     gp = Independence(mg, openvertices=mpins)
-    res = solve(gp, "configs max")
+    res = solve(gp, ConfigsMax())
     configs = []
     for element in res
         for bs in element.c.data

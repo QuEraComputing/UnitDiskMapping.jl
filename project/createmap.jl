@@ -2,7 +2,7 @@ using UnitDiskMapping, GraphTensorNetworks, Graphs
 
 function mapped_entry_to_compact(s::Pattern)
     locs, g, pins = mapped_graph(s)
-    a = solve(Independence(g; openvertices=pins), "size max")
+    a = solve(Independence(g; openvertices=pins), SizeMax())
     b = mis_compactify!(copy(a))
     n = length(a)
     d = Dict{Int,Int}()  # the mapping from bad to good
@@ -27,7 +27,7 @@ end
 # from mapped graph bounary configuration to compact bounary configuration
 function source_entry_to_configs(s::Pattern)
     locs, g, pins = source_graph(s)
-    a = solve(Independence(g, openvertices=pins), "configs max")
+    a = solve(Independence(g, openvertices=pins), ConfigsMax())
     d = Dict{Int,Vector{BitVector}}()  # the mapping from bad to good
     for i=1:length(a)
         d[i-1] = [BitVector(s) for s in a[i].c.data]
@@ -38,8 +38,8 @@ end
 function compute_mis_overhead(s)
     locs1, g1, pins1 = source_graph(s)
     locs2, g2, pins2 = mapped_graph(s)
-    m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), "size max"))
-    m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), "size max"))
+    m1 = mis_compactify!(solve(Independence(g1, openvertices=pins1), SizeMax()))
+    m2 = mis_compactify!(solve(Independence(g2, openvertices=pins2), SizeMax()))
     @assert nv(g1) == length(locs1) && nv(g2) == length(locs2)
     sig, diff = UnitDiskMapping.is_diff_by_const(GraphTensorNetworks.content.(m1), GraphTensorNetworks.content.(m2))
     @assert sig

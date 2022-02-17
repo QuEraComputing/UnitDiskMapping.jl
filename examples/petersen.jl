@@ -15,8 +15,8 @@ G, tape = apply_gadgets!(copy(ug))
 locs = coordinates(G)
 
 using GraphTensorNetworks
-s1 = solve(Independence(g), "size max")
-s2 = solve(Independence(SimpleGraph(G)), "size max")
+s1 = solve(Independence(g), SizeMax())
+s2 = solve(Independence(SimpleGraph(G)), SizeMax())
 mis_overhead0 = 2 * nv(g) * (nv(g)-1) + nv(g)
 mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
 s1[].n == s2[].n - mis_overhead0 - mis_overhead1

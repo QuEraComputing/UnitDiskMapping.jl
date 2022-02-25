@@ -1,6 +1,7 @@
 using Test, UnitDiskMapping, Graphs, GraphTensorNetworks
 using GraphTensorNetworks: TropicalF64, content
 using Random
+using UnitDiskMapping: is_independent_set
 
 @testset "gadgets" begin
     function missize(gp, weights)
@@ -12,8 +13,8 @@ using Random
         locs1, g1, pins1 = source_graph(s)
         locs2, g2, pins2 = mapped_graph(s)
         @assert length(locs1) == nv(g1)
-        gp1 = Independence(g1, openvertices=pins1)
-        gp2 = Independence(g2, openvertices=pins2)
+        gp1 = IndependentSet(g1, openvertices=pins1)
+        gp2 = IndependentSet(g2, openvertices=pins2)
         w1 = getfield.(locs1, :weight)
         w2 = getfield.(locs2, :weight)
         w1[pins1] .-= 1
@@ -48,9 +49,9 @@ end
         mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
         mgraph = SimpleGraph(ug3)
         mapped_weights = get_weights(ug3)
-        gp = Independence(mgraph; optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
+        gp = IndependentSet(mgraph; optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
         missize_map = wmissize(gp, mapped_weights)[].n
-        missize = solve(Independence(g), "size max")[].n
+        missize = solve(IndependentSet(g), SizeMax())[].n
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
 
         # trace back configurations
@@ -83,9 +84,9 @@ end
 
     # checking size
     mgraph = SimpleGraph(res.grid_graph)
-    gp = Independence(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    gp = IndependentSet(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
     missize_map = wmissize(gp, get_weights(res.grid_graph))[].n
-    missize = solve(Independence(g), "size max")[].n
+    missize = solve(IndependentSet(g), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back

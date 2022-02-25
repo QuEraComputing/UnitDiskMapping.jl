@@ -86,9 +86,9 @@ The generic tensor network approach for solving MIS works best for graphs with s
 ```julia
 julia> using GraphTensorNetworks
 
-julia> gp = Independence(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy());
+julia> gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy());
 
-julia> misconfig = solve(gp, "config max")[].c;
+julia> misconfig = solve(gp, SingleConfigMax())[].c;
 
 # create a grid mask as the solution, where occupied locations are marked as value 1.
 julia> c = zeros(Int, size(res.grid_graph.content));

@@ -18,9 +18,19 @@ Base.empty(::Type{WeightedCell{RT}}) where RT = WeightedCell(false, false, false
 function Base.show(io::IO, x::WeightedCell)
     if x.occupied
         if x.doubled
-            print(io, "◉")
+            if x.weight == 2
+                print(io, "◉")
+            else
+                print(io, "?")
+            end
         elseif x.connected
-            print(io, "◆")
+            if x.weight == 1
+                print(io, "◇")
+            elseif x.weight == 2
+                print(io, "◆")
+            else
+                print(io, "?")
+            end
         elseif x.weight == 3
             print(io, "▴")
         elseif x.weight == 2
@@ -62,8 +72,7 @@ function connect_cell!(m::AbstractMatrix{<:WeightedCell}, i::Int, j::Int)
     m[i, j] = WeightedCell(true, false, true, m[i,j].weight)
 end
 _weight_type(::CopyLine{Weighted}) = WeightedNode{Int,Int}
-_weight2(::CopyLine{Weighted}, i, j) = WeightedNode(i, j, 2)
-_weight1(::CopyLine{Weighted}, i, j) = WeightedNode(i, j, 1)
+_weighted(::CopyLine{Weighted}, i, j, w) = WeightedNode(i, j, w)
 _cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
 
 weighted(c::Pattern) = WeightedGadget(c)

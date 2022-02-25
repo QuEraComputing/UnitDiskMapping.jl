@@ -1,5 +1,6 @@
 using UnitDiskMapping, Test
 using Graphs, GraphTensorNetworks
+using UnitDiskMapping: is_independent_set
 
 @testset "crossing connect count" begin
     g = smallgraph(:bull)
@@ -40,11 +41,11 @@ end
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
         @show mis_overhead2
-        gp = Independence(SimpleGraph(ug3); optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
-        missize_map = solve(gp, "size max")[].n
-        missize = solve(Independence(g), "size max")[].n
+        gp = IndependentSet(SimpleGraph(ug3); optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
+        missize_map = solve(gp, SizeMax())[].n
+        missize = solve(IndependentSet(g), SizeMax())[].n
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
-        misconfig = solve(gp, "config max")[].c
+        misconfig = solve(gp, SingleConfigMax())[].c
         c = zeros(Int, size(ug3.content))
         for (i, loc) in enumerate(findall(!isempty, ug3.content))
             c[loc] = misconfig.data[i]
@@ -74,13 +75,13 @@ end
     res = map_graph(g)
 
     # checking size
-    gp = Independence(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
-    missize_map = solve(gp, "size max")[].n
-    missize = solve(Independence(g), "size max")[].n
+    gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    missize_map = solve(gp, SizeMax())[].n
+    missize = solve(IndependentSet(g), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
-    misconfig = solve(gp, "config max")[].c
+    misconfig = solve(gp, SingleConfigMax())[].c
     c = zeros(Int, size(res.grid_graph.content))
     for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
@@ -96,13 +97,13 @@ end
     res = map_graph(g)
 
     # checking size
-    gp = Independence(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
-    missize_map = solve(gp, "size max")[].n
-    missize = solve(Independence(g), "size max")[].n
+    gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    missize_map = solve(gp, SizeMax())[].n
+    missize = solve(IndependentSet(g), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
-    misconfig = solve(gp, "config max")[].c
+    misconfig = solve(gp, SingleConfigMax())[].c
     c = zeros(Int, size(res.grid_graph.content))
     for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]

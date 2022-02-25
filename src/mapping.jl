@@ -254,30 +254,42 @@ function center_location(tc::CopyLine; padding::Int)
 end
 function copyline_locations(tc::CopyLine; padding::Int)
     s = 4
+    nline = 0
     I, J = center_location(tc; padding=padding)
     locations = _weight_type(tc)[]
     # grow up
-    for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
-        push!(locations, _weight2(tc, i, J))
+    start = I+s*(tc.vstart-tc.hslot)+1
+    if tc.vstart < tc.hslot
+        nline += 1
+    end
+    for i=start:I             # even number of nodes up
+        push!(locations, _weighted(tc, i, J, 1+(i!=start)))   # half weight on last node
     end
     # grow down
-    for i=I:I+s*(tc.vstop-tc.hslot)-1              # even number of nodes down
+    stop = I+s*(tc.vstop-tc.hslot)-1
+    if tc.vstop > tc.hslot
+        nline += 1
+    end
+    for i=I:stop              # even number of nodes down
         if i == I
-            push!(locations, _weight2(tc, i+1, J+1))
+            push!(locations, _weighted(tc, i+1, J+1, 2))
         else
-            push!(locations, _weight2(tc, i, J))
+            push!(locations, _weighted(tc, i, J, 1+(i!=stop)))
         end
     end
     # grow right
-    for j=J+2:J+s*(tc.hstop-tc.vslot)-1            # even number of nodes right
-        push!(locations, _weight2(tc, I, j))
+    stop = J+s*(tc.hstop-tc.vslot)-1
+    if tc.hstop > tc.vslot
+        nline += 1
     end
-    push!(locations, _weight1(tc, I, J+1))                     # center node
+    for j=J+2:stop            # even number of nodes right
+        push!(locations, _weighted(tc, I, j, 1 + (j!=stop)))   # half weight on last node
+    end
+    push!(locations, _weighted(tc, I, J+1, nline))                     # center node
     return locations
 end
 _weight_type(::CopyLine{UnWeighted}) = SimpleNode{Int}
-_weight2(::CopyLine{UnWeighted}, i, j) = SimpleNode(i, j)
-_weight1(::CopyLine{UnWeighted}, i, j) = SimpleNode(i, j)
+_weighted(::CopyLine{UnWeighted}, i, j, w) = SimpleNode(i, j)
 
 export ugrid
 function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))

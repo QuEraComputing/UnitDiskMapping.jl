@@ -21,10 +21,16 @@ function Base.show(io::IO, x::WeightedCell)
             print(io, "◉")
         elseif x.connected
             print(io, "◆")
+        elseif x.weight == 3
+            print(io, "▴")
         elseif x.weight == 2
             print(io, "●")
-        else
+        elseif x.weight == 1
             print(io, "○")
+        elseif x.weight == 0
+            print(io, "∅")
+        else
+            print(io, "?")
         end
     else
         print(io, "⋅")

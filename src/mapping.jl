@@ -254,30 +254,42 @@ function center_location(tc::CopyLine; padding::Int)
 end
 function copyline_locations(tc::CopyLine; padding::Int)
     s = 4
+    nline = 0
     I, J = center_location(tc; padding=padding)
     locations = _weight_type(tc)[]
     # grow up
-    for i=I+s*(tc.vstart-tc.hslot)+1:I             # even number of nodes up
-        push!(locations, _weight2(tc, i, J))
+    start = I+s*(tc.vstart-tc.hslot)+1
+    if tc.vstart < tc.hslot
+        nline += 1
+    end
+    for i=I:-1:start             # even number of nodes up
+        push!(locations, _weighted(tc, i, J, 1+(i!=start)))   # half weight on last node
     end
     # grow down
-    for i=I:I+s*(tc.vstop-tc.hslot)-1              # even number of nodes down
+    stop = I+s*(tc.vstop-tc.hslot)-1
+    if tc.vstop > tc.hslot
+        nline += 1
+    end
+    for i=I:stop              # even number of nodes down
         if i == I
-            push!(locations, _weight2(tc, i+1, J+1))
+            push!(locations, _weighted(tc, i+1, J+1, 2))
         else
-            push!(locations, _weight2(tc, i, J))
+            push!(locations, _weighted(tc, i, J, 1+(i!=stop)))
         end
     end
     # grow right
-    for j=J+2:J+s*(tc.hstop-tc.vslot)-1            # even number of nodes right
-        push!(locations, _weight2(tc, I, j))
+    stop = J+s*(tc.hstop-tc.vslot)-1
+    if tc.hstop > tc.vslot
+        nline += 1
     end
-    push!(locations, _weight1(tc, I, J+1))                     # center node
+    for j=J+2:stop            # even number of nodes right
+        push!(locations, _weighted(tc, I, j, 1 + (j!=stop)))   # half weight on last node
+    end
+    push!(locations, _weighted(tc, I, J+1, nline))                     # center node
     return locations
 end
 _weight_type(::CopyLine{UnWeighted}) = SimpleNode{Int}
-_weight2(::CopyLine{UnWeighted}, i, j) = SimpleNode(i, j)
-_weight1(::CopyLine{UnWeighted}, i, j) = SimpleNode(i, j)
+_weighted(::CopyLine{UnWeighted}, i, j, w) = SimpleNode(i, j)
 
 export ugrid
 function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
@@ -342,9 +354,20 @@ end
 export mis_overhead_copylines
 function mis_overhead_copylines(ug::UGrid{WC,W}) where {WC,W}
     sum(ug.lines) do line
-        locs = copyline_locations(line; padding=ug.padding)
+        mis_overhead_copyline(line)
+    end
+end
+
+function mis_overhead_copyline(line::CopyLine{W}) where {W}
+    if W === Weighted
+        s = 4
+        return (line.hslot - line.vstart) * s +
+            (line.vstop - line.hslot) * s +
+            max((line.hstop - line.vslot) * s - 2, 0)
+    else
+        locs = copyline_locations(line; padding=2)
         @assert length(locs) % 2 == 1
-        W === Weighted ? length(locs)-1 : length(locs) ÷ 2
+        return length(locs) ÷ 2
     end
 end
 
@@ -360,20 +383,23 @@ end
 """
     map_graph([mode=Weighted(),] g::SimpleGraph; vertex_order=Branching(), ruleset=[...])
 
-Map a graph to a unit disk grid graph that being "equivalent" to the original graph.
+Map a graph to a unit disk grid graph that being "equivalent" to the original graph, and return a `MappingResult` instance.
 Here "equivalent" means a maximum independent set in the grid graph can be mapped back to
 a maximum independent set of the original graph in polynomial time.
 
+Positional Arguments
+-------------------------------------
+* `mode` is optional, it can be `Weighted()` (default) or `UnWeighted()`.
+* `g` is a graph instance, check the documentation of [`Graphs`](https://juliagraphs.org/Graphs.jl/dev/) for details.
 
-* `mode` is optional, it can be `Weighted()` (default) or `UnWeighted`.
+Keyword Arguments
+-------------------------------------
 * `vertex_order` specifies the order finding algorithm for vertices.
 Different vertex orders have different path width, i.e. different depth of mapped grid graph.
 It can be a vector or one of the following inputs
     * `Greedy()` fast but not optimal.
     * `Branching()` slow but optimal.
 * `ruleset` specifies and extra set of optimization patterns (not the crossing patterns).
-
-Returns a `MappingResult` instance.
 """
 function map_graph(g::SimpleGraph; vertex_order=Branching(), ruleset=default_simplifier_ruleset(UnWeighted()))
     map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
@@ -388,7 +414,23 @@ function map_graph(mode, g::SimpleGraph; vertex_order=Branching(), ruleset=defau
     return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
 end
 
-map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+"""
+    map_configs_back(res::MappingResult, configs::AbstractVector)
+
+Map MIS solutions for the mapped graph to a solution for the source graph.
+"""
+function map_configs_back(res::MappingResult, configs::AbstractVector)
+    cs = map(configs) do cfg
+        c = zeros(Int, size(res.grid_graph.content))
+        for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
+            c[loc] = cfg[i]
+        end
+        c
+    end
+    return _map_configs_back(res, cs)
+end
+_map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector{<:AbstractMatrix}) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
 default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))
 

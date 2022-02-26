@@ -1,25 +1,22 @@
 using Test, UnitDiskMapping, Graphs, GraphTensorNetworks
 using GraphTensorNetworks: TropicalF64, content
 using Random
+using UnitDiskMapping: is_independent_set
 
 @testset "gadgets" begin
-    function missize(gp, weights)
-        contractf(x->TropicalF64(weights[x[1]]), gp)
-    end
-
-    for s in [UnitDiskMapping.crossing_ruleset_weighted...]
+    for s in [UnitDiskMapping.crossing_ruleset_weighted..., UnitDiskMapping.default_simplifier_ruleset(Weighted())...]
         println("Testing gadget:\n$s")
         locs1, g1, pins1 = source_graph(s)
         locs2, g2, pins2 = mapped_graph(s)
         @assert length(locs1) == nv(g1)
-        gp1 = Independence(g1, openvertices=pins1)
-        gp2 = Independence(g2, openvertices=pins2)
         w1 = getfield.(locs1, :weight)
         w2 = getfield.(locs2, :weight)
         w1[pins1] .-= 1
         w2[pins2] .-= 1
-        m1 = missize(gp1, w1)
-        m2 = missize(gp2, w2)
+        gp1 = IndependentSet(g1, openvertices=pins1, weights=w1)
+        gp2 = IndependentSet(g2, openvertices=pins2, weights=w2)
+        m1 = solve(gp1, SizeMax())
+        m2 = solve(gp2, SizeMax())
         mm1 = maximum(m1)
         mm2 = maximum(m2)
         @test nv(g1) == length(locs1) && nv(g2) == length(locs2)
@@ -32,42 +29,59 @@ using Random
     end
 end
 
+@testset "copy lines" begin
+    for (vstart, vstop, hstop) in [
+            (3, 7, 8), (3, 5, 8), (5, 9, 8), (5, 5, 8),
+            (1, 7, 5), (5, 8, 5),  (1, 5, 5), (5, 5, 5)]
+        tc = UnitDiskMapping.CopyLine{Weighted}(1, 5, 5, vstart, vstop, hstop)
+        locs = UnitDiskMapping.copyline_locations(tc; padding=2)
+        g = SimpleGraph(length(locs))
+        weights = getfield.(locs, :weight)
+        for i=1:length(locs)-1
+            if i==1 || locs[i-1].weight == 1  # starting point
+                add_edge!(g, length(locs), i)
+            else
+                add_edge!(g, i, i-1)
+            end
+        end
+        gp = IndependentSet(g; weights=weights)
+        @test solve(gp, SizeMax())[].n == UnitDiskMapping.mis_overhead_copyline(tc)
+    end
+end
+
 @testset "map configurations back" begin
     Random.seed!(2)
-    function wmissize(gp, weights)
-        contractf(x->TropicalF64(weights[x[1]]), gp)
-    end
     for graphname in [:petersen, :bull, :cubical, :house, :diamond, :tutte]
         @show graphname
         g = smallgraph(graphname)
         ug = embed_graph(Weighted(), g)
         mis_overhead0 = mis_overhead_copylines(ug)
         ug2, tape = apply_crossing_gadgets!(Weighted(), copy(ug))
-        ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[RotatedGadget(UnitDiskMapping.DanglingLeg(), n) for n=0:3])
+        ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[UnitDiskMapping.weighted(RotatedGadget(UnitDiskMapping.DanglingLeg(), n)) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
-        mgraph = SimpleGraph(ug3)
-        mapped_weights = get_weights(ug3)
-        gp = Independence(mgraph; optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
-        missize_map = wmissize(gp, mapped_weights)[].n
-        missize = solve(Independence(g), "size max")[].n
-        @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
 
         # trace back configurations
-        center_locations = trace_centers(ug3, [tape..., tape2...])
-        onelocs = [ci.I for ci in findall(c->c.weight==1, ug3.content)]
-        @test sort(onelocs) == sort(center_locations)
+        mgraph = SimpleGraph(ug3)
+        weights = fill(0.5, nv(g))
+        mapped_weights = UnitDiskMapping.map_weights(UnitDiskMapping.MappingResult(ug3, [tape..., tape2...], mis_overhead0+mis_overhead1+mis_overhead2), weights)
+        gp = IndependentSet(mgraph; optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy(), weights=mapped_weights)
+        missize_map = solve(gp, CountingMax())[]
+        missize = solve(IndependentSet(g; weights=weights), CountingMax())[]
+        @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize.n == missize_map.n
+        @test missize.c == missize_map.c
 
         T = GraphTensorNetworks.sampler_type(nv(mgraph), 2)
-        misconfig = contractf(x->CountingTropical(mapped_weights[x[1]], onehotv(T, x[1], 1)), gp)[].c
+        misconfig = solve(gp, SingleConfigMax())[].c
         c = zeros(Int, size(ug3.content))
         for (i, loc) in enumerate(findall(!isempty, ug3.content))
             c[loc] = misconfig.data[i]
         end
+
+        center_locations = trace_centers(ug3, [tape..., tape2...])
         indices = CartesianIndex.(center_locations)
-        sc = zeros(Int, nv(g))
-        sc[getfield.(ug3.lines, :vertex)] = c[indices]
-        @test count(isone, sc) == missize
+        sc = c[indices]
+        @test count(isone, sc) == missize.n * 2
         @test is_independent_set(g, sc)
     end
 end
@@ -75,27 +89,23 @@ end
 
 @testset "interface" begin
     Random.seed!(2)
-    function wmissize(gp, weights)
-        contractf(x->TropicalF64(weights[x[1]]), gp)
-    end
     g = smallgraph(:petersen)
     res = map_graph(Weighted(), g)
 
     # checking size
     mgraph = SimpleGraph(res.grid_graph)
-    gp = Independence(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
-    missize_map = wmissize(gp, get_weights(res.grid_graph))[].n
-    missize = solve(Independence(g), "size max")[].n
+    ws = rand(nv(g))
+    weights = UnitDiskMapping.map_weights(res, ws)
+
+    gp = IndependentSet(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy(), weights=weights)
+    missize_map = solve(gp, SizeMax())[].n
+    missize = solve(IndependentSet(g; weights=ws), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
     T = GraphTensorNetworks.sampler_type(nv(mgraph), 2)
-    misconfig = contractf(x->CountingTropical(get_weights(res.grid_graph)[x[1]], onehotv(T, x[1], 1)), gp)[].c
-    c = zeros(Int, size(res.grid_graph.content))
-    for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
-        c[loc] = misconfig.data[i]
-    end
-    original_configs = map_configs_back(res, [c])
-    @test count(isone, original_configs[1]) == missize
+    misconfig = solve(gp, SingleConfigMax())[].c
+    original_configs = map_configs_back(res, [collect(misconfig.data)])
+    @test count(isone, original_configs[1]) == solve(IndependentSet(g), SizeMax())[].n
     @test is_independent_set(g, original_configs[1])
 end

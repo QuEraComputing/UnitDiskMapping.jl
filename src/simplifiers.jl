@@ -101,3 +101,19 @@ mapped_centers(::WeightedGadget{DanglingLeg}) = [(4,2)]
 
 # 3. run the script `project/createmap` to generate `mis_overhead` and other informations required
 # for mapping back. (Note: will overwrite the source file `src/extracting_results.jl`)
+
+# simple rules for crossing gadgets
+for (GT, s1, m1, s3, m3) in [
+            (:(DanglingLeg), [1], [1], [], []),
+        ]
+    @eval function weighted(g::$GT)
+        slocs, sg, spins = source_graph(g)
+        mlocs, mg, mpins = mapped_graph(g)
+        sw, mw = fill(2, length(slocs)), fill(2, length(mlocs))
+        sw[$(s1)] .= 1
+        sw[$(s3)] .= 3
+        mw[$(m1)] .= 1
+        mw[$(m3)] .= 3
+        return weighted(g, sw, mw)
+    end
+end

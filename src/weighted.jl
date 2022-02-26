@@ -8,8 +8,10 @@ struct WeightedCell{RT} <: AbstractCell
     weight::RT
 end
 
-struct WeightedGadget{GT} <: Pattern
+struct WeightedGadget{GT, WT} <: Pattern
     gadget::GT
+    source_weights::Vector{WT}
+    mapped_weights::Vector{WT}
 end
 const WeightedGadgetTypes = Union{WeightedGadget, RotatedGadget{<:WeightedGadget}, ReflectedGadget{<:WeightedGadget}}
 
@@ -18,13 +20,29 @@ Base.empty(::Type{WeightedCell{RT}}) where RT = WeightedCell(false, false, false
 function Base.show(io::IO, x::WeightedCell)
     if x.occupied
         if x.doubled
-            print(io, "◉")
+            if x.weight == 2
+                print(io, "◉")
+            else
+                print(io, "?")
+            end
         elseif x.connected
-            print(io, "◆")
+            if x.weight == 1
+                print(io, "◇")
+            elseif x.weight == 2
+                print(io, "◆")
+            else
+                print(io, "?")
+            end
+        elseif x.weight == 3
+            print(io, "▴")
         elseif x.weight == 2
             print(io, "●")
-        else
+        elseif x.weight == 1
             print(io, "○")
+        elseif x.weight == 0
+            print(io, "∅")
+        else
+            print(io, "?")
         end
     else
         print(io, "⋅")
@@ -56,12 +74,13 @@ function connect_cell!(m::AbstractMatrix{<:WeightedCell}, i::Int, j::Int)
     m[i, j] = WeightedCell(true, false, true, m[i,j].weight)
 end
 _weight_type(::CopyLine{Weighted}) = WeightedNode{Int,Int}
-_weight2(::CopyLine{Weighted}, i, j) = WeightedNode(i, j, 2)
-_weight1(::CopyLine{Weighted}, i, j) = WeightedNode(i, j, 1)
+_weighted(::CopyLine{Weighted}, i, j, w) = WeightedNode(i, j, w)
 _cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
 
-weighted(c::Pattern) = WeightedGadget(c)
+weighted(c::Pattern, source_weights, mapped_weights) = WeightedGadget(c, source_weights, mapped_weights)
 unweighted(w::WeightedGadget) = w.gadget
+weighted(r::RotatedGadget, source_weights, mapped_weights) = RotatedGadget(weighted(r.gadget, source_weights, mapped_weights), r.n)
+weighted(r::ReflectedGadget, source_weights, mapped_weights) = ReflectedGadget(weighted(r.gadget, source_weights, mapped_weights), r.mirror)
 weighted(r::RotatedGadget) = RotatedGadget(weighted(r.gadget), r.n)
 weighted(r::ReflectedGadget) = ReflectedGadget(weighted(r.gadget), r.mirror)
 unweighted(r::RotatedGadget) = RotatedGadget(unweighted(r.gadget), r.n)
@@ -71,12 +90,12 @@ mis_overhead(w::WeightedGadget) = mis_overhead(w.gadget) * 2
 function source_graph(r::WeightedGadget)
     raw = unweighted(r)
     locs, g, pins = source_graph(raw)
-    return map(loc->_mul_weight(loc, getxy(loc) ∈ source_centers(r) ? 1 : 2), locs), g, pins
+    return [_mul_weight(loc, r.source_weights[i]) for (i, loc) in enumerate(locs)], g, pins
 end
 function mapped_graph(r::WeightedGadget)
     raw = unweighted(r)
     locs, g, pins = mapped_graph(raw)
-    return map(loc->_mul_weight(loc, getxy(loc) ∈ mapped_centers(r) ? 1 : 2), locs), g, pins
+    return [_mul_weight(loc, r.mapped_weights[i]) for (i, loc) in enumerate(locs)], g, pins
 end
 _mul_weight(node::SimpleNode, factor) = WeightedNode(node..., factor)
 
@@ -104,11 +123,22 @@ iscon(r::WeightedGadget) = iscon(unweighted(r))
 connected_nodes(r::WeightedGadget) = connected_nodes(unweighted(r))
 vertex_overhead(r::WeightedGadget) = vertex_overhead(unweighted(r))
 
-const crossing_ruleset_weighted = weighted.(crossing_ruleset)
-get_ruleset(::Weighted) = crossing_ruleset_weighted
+export map_weights
+"""
+    map_weights(r::MappingResult{<:WeightedCell}, source_weights)
 
-export get_weights
-get_weights(ug::UGrid) = [ug.content[ci...].weight for ci in coordinates(ug)]
+Map the weights in the source graph to weights in the mapped graph, returns a vector.
+"""
+function map_weights(r::MappingResult{<:WeightedCell}, source_weights)
+    if !all(w -> 0 <= w <= 1, source_weights)
+        error("all weights must be in range [0, 1], got: $(source_weights)")
+    end
+    weights = eltype(source_weights)[r.grid_graph.content[ci...].weight for ci in coordinates(r.grid_graph)]
+    locs = coordinates(r.grid_graph)
+    center_indices = map(loc->findfirst(==(loc), locs), trace_centers(r))
+    weights[center_indices] .+= source_weights
+    return weights
+end
 
 # mapping configurations back
 export trace_centers
@@ -133,16 +163,38 @@ function trace_centers(ug::UGrid, tape)
             end
         end
     end
-    return center_locations
+    return center_locations[sortperm(getfield.(ug.lines, :vertex))]
 end
 
-function map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
+function _map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
     center_locations = trace_centers(r)
     res = [zeros(Int, length(r.grid_graph.lines)) for i=1:length(configs)]
     for (ri, c) in zip(res, configs)
-        for (line, loc) in zip(r.grid_graph.lines, center_locations)
-            ri[line.vertex] = c[loc...]
+        for (i, loc) in enumerate(center_locations)
+            ri[i] = c[loc...]
         end
     end
     return res
 end
+
+# simple rules for crossing gadgets
+for (GT, s1, m1, s3, m3) in [(:(Cross{true}), [], [], [], []), (:(Cross{false}), [], [], [], []),
+        (:(WTurn), [], [], [], []), (:(BranchFix), [], [], [], []), (:(Turn), [], [], [], []),
+        (:(TrivialTurn), [1, 2], [1, 2], [], []), (:(BranchFixB), [1], [1], [], []),
+        (:(EndTurn), [3], [1], [], []), (:(TCon), [2], [2], [], []),
+        (:(Branch), [], [], [4], [2]),
+        ]
+    @eval function weighted(g::$GT)
+        slocs, sg, spins = source_graph(g)
+        mlocs, mg, mpins = mapped_graph(g)
+        sw, mw = fill(2, length(slocs)), fill(2, length(mlocs))
+        sw[$(s1)] .= 1
+        sw[$(s3)] .= 3
+        mw[$(m1)] .= 1
+        mw[$(m3)] .= 3
+        return weighted(g, sw, mw)
+    end
+end
+
+const crossing_ruleset_weighted = weighted.(crossing_ruleset)
+get_ruleset(::Weighted) = crossing_ruleset_weighted

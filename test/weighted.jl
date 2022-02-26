@@ -4,7 +4,7 @@ using Random
 using UnitDiskMapping: is_independent_set
 
 @testset "gadgets" begin
-    for s in [UnitDiskMapping.crossing_ruleset_weighted...]
+    for s in [UnitDiskMapping.crossing_ruleset_weighted..., UnitDiskMapping.default_simplifier_ruleset(Weighted())...]
         println("Testing gadget:\n$s")
         locs1, g1, pins1 = source_graph(s)
         locs2, g2, pins2 = mapped_graph(s)
@@ -57,7 +57,7 @@ end
         ug = embed_graph(Weighted(), g)
         mis_overhead0 = mis_overhead_copylines(ug)
         ug2, tape = apply_crossing_gadgets!(Weighted(), copy(ug))
-        ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[RotatedGadget(UnitDiskMapping.DanglingLeg(), n) for n=0:3])
+        ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[UnitDiskMapping.weighted(RotatedGadget(UnitDiskMapping.DanglingLeg(), n)) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
 
@@ -98,20 +98,27 @@ end
 
     # checking size
     mgraph = SimpleGraph(res.grid_graph)
-    weights = get_weights(res.grid_graph)
+    ws = rand(nv(g))
+    center_locations = trace_centers(res.grid_graph, res.mapping_history)
+    weights = Float64.(UnitDiskMapping.get_weights(res.grid_graph))
+
+    locs = coordinates(res.grid_graph)
+    center_indices = map(loc->findfirst(==(loc), locs), center_locations)
+    weights[center_indices[getfield.(res.grid_graph.lines, :vertex)]] .+= ws
+
     gp = IndependentSet(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy(), weights=weights)
     missize_map = solve(gp, SizeMax())[].n
-    missize = solve(IndependentSet(g), SizeMax())[].n
+    missize = solve(IndependentSet(g; weights=ws), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
     T = GraphTensorNetworks.sampler_type(nv(mgraph), 2)
-    solve(gp, SingleConfigMax())[].c
+    misconfig = solve(gp, SingleConfigMax())[].c
     c = zeros(Int, size(res.grid_graph.content))
     for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
         c[loc] = misconfig.data[i]
     end
     original_configs = map_configs_back(res, [c])
-    @test count(isone, original_configs[1]) == missize
+    @test count(isone, original_configs[1]) == solve(IndependentSet(g), SizeMax())[].n
     @test is_independent_set(g, original_configs[1])
 end

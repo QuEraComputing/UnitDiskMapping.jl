@@ -8,8 +8,10 @@ struct WeightedCell{RT} <: AbstractCell
     weight::RT
 end
 
-struct WeightedGadget{GT} <: Pattern
+struct WeightedGadget{GT, WT} <: Pattern
     gadget::GT
+    source_weights::Vector{WT}
+    mapped_weights::Vector{WT}
 end
 const WeightedGadgetTypes = Union{WeightedGadget, RotatedGadget{<:WeightedGadget}, ReflectedGadget{<:WeightedGadget}}
 
@@ -75,8 +77,10 @@ _weight_type(::CopyLine{Weighted}) = WeightedNode{Int,Int}
 _weighted(::CopyLine{Weighted}, i, j, w) = WeightedNode(i, j, w)
 _cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
 
-weighted(c::Pattern) = WeightedGadget(c)
+weighted(c::Pattern, source_weights, mapped_weights) = WeightedGadget(c, source_weights, mapped_weights)
 unweighted(w::WeightedGadget) = w.gadget
+weighted(r::RotatedGadget, source_weights, mapped_weights) = RotatedGadget(weighted(r.gadget, source_weights, mapped_weights), r.n)
+weighted(r::ReflectedGadget, source_weights, mapped_weights) = ReflectedGadget(weighted(r.gadget, source_weights, mapped_weights), r.mirror)
 weighted(r::RotatedGadget) = RotatedGadget(weighted(r.gadget), r.n)
 weighted(r::ReflectedGadget) = ReflectedGadget(weighted(r.gadget), r.mirror)
 unweighted(r::RotatedGadget) = RotatedGadget(unweighted(r.gadget), r.n)
@@ -86,12 +90,12 @@ mis_overhead(w::WeightedGadget) = mis_overhead(w.gadget) * 2
 function source_graph(r::WeightedGadget)
     raw = unweighted(r)
     locs, g, pins = source_graph(raw)
-    return map(loc->_mul_weight(loc, getxy(loc) ∈ source_centers(r) ? 1 : 2), locs), g, pins
+    return [_mul_weight(loc, r.source_weights[i]) for (i, loc) in enumerate(locs)], g, pins
 end
 function mapped_graph(r::WeightedGadget)
     raw = unweighted(r)
     locs, g, pins = mapped_graph(raw)
-    return map(loc->_mul_weight(loc, getxy(loc) ∈ mapped_centers(r) ? 1 : 2), locs), g, pins
+    return [_mul_weight(loc, r.mapped_weights[i]) for (i, loc) in enumerate(locs)], g, pins
 end
 _mul_weight(node::SimpleNode, factor) = WeightedNode(node..., factor)
 
@@ -118,9 +122,6 @@ cross_location(r::WeightedGadget) = cross_location(unweighted(r))
 iscon(r::WeightedGadget) = iscon(unweighted(r))
 connected_nodes(r::WeightedGadget) = connected_nodes(unweighted(r))
 vertex_overhead(r::WeightedGadget) = vertex_overhead(unweighted(r))
-
-const crossing_ruleset_weighted = weighted.(crossing_ruleset)
-get_ruleset(::Weighted) = crossing_ruleset_weighted
 
 export get_weights
 get_weights(ug::UGrid) = [ug.content[ci...].weight for ci in coordinates(ug)]
@@ -161,3 +162,25 @@ function map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVec
     end
     return res
 end
+
+# simple rules for crossing gadgets
+for (GT, s1, m1, s3, m3) in [(:(Cross{true}), [], [], [], []), (:(Cross{false}), [], [], [], []),
+        (:(WTurn), [], [], [], []), (:(BranchFix), [], [], [], []), (:(Turn), [], [], [], []),
+        (:(TrivialTurn), [1, 2], [1, 2], [], []), (:(BranchFixB), [1], [1], [], []),
+        (:(EndTurn), [3], [1], [], []), (:(TCon), [2], [2], [], []),
+        (:(Branch), [], [], [4], [2]),
+        ]
+    @eval function weighted(g::$GT)
+        slocs, sg, spins = source_graph(g)
+        mlocs, mg, mpins = mapped_graph(g)
+        sw, mw = fill(2, length(slocs)), fill(2, length(mlocs))
+        sw[$(s1)] .= 1
+        sw[$(s3)] .= 3
+        mw[$(m1)] .= 1
+        mw[$(m3)] .= 3
+        return weighted(g, sw, mw)
+    end
+end
+
+const crossing_ruleset_weighted = weighted.(crossing_ruleset)
+get_ruleset(::Weighted) = crossing_ruleset_weighted

@@ -262,7 +262,7 @@ function copyline_locations(tc::CopyLine; padding::Int)
     if tc.vstart < tc.hslot
         nline += 1
     end
-    for i=start:I             # even number of nodes up
+    for i=I:-1:start             # even number of nodes up
         push!(locations, _weighted(tc, i, J, 1+(i!=start)))   # half weight on last node
     end
     # grow down
@@ -354,9 +354,20 @@ end
 export mis_overhead_copylines
 function mis_overhead_copylines(ug::UGrid{WC,W}) where {WC,W}
     sum(ug.lines) do line
-        locs = copyline_locations(line; padding=ug.padding)
+        mis_overhead_copyline(line)
+    end
+end
+
+function mis_overhead_copyline(line::CopyLine{W}) where {W}
+    if W === Weighted
+        s = 4
+        return (line.hslot - line.vstart) * s +
+            (line.vstop - line.hslot) * s +
+            max((line.hstop - line.vslot) * s - 2, 0)
+    else
+        locs = copyline_locations(line; padding=2)
         @assert length(locs) % 2 == 1
-        W === Weighted ? length(locs)-1 : length(locs) ÷ 2
+        return length(locs) ÷ 2
     end
 end
 

@@ -383,20 +383,23 @@ end
 """
     map_graph([mode=Weighted(),] g::SimpleGraph; vertex_order=Branching(), ruleset=[...])
 
-Map a graph to a unit disk grid graph that being "equivalent" to the original graph.
+Map a graph to a unit disk grid graph that being "equivalent" to the original graph, and return a `MappingResult` instance.
 Here "equivalent" means a maximum independent set in the grid graph can be mapped back to
 a maximum independent set of the original graph in polynomial time.
 
+Positional Arguments
+-------------------------------------
+* `mode` is optional, it can be `Weighted()` (default) or `UnWeighted()`.
+* `g` is a graph instance, check the documentation of [`Graphs`](https://juliagraphs.org/Graphs.jl/dev/) for details.
 
-* `mode` is optional, it can be `Weighted()` (default) or `UnWeighted`.
+Keyword Arguments
+-------------------------------------
 * `vertex_order` specifies the order finding algorithm for vertices.
 Different vertex orders have different path width, i.e. different depth of mapped grid graph.
 It can be a vector or one of the following inputs
     * `Greedy()` fast but not optimal.
     * `Branching()` slow but optimal.
 * `ruleset` specifies and extra set of optimization patterns (not the crossing patterns).
-
-Returns a `MappingResult` instance.
 """
 function map_graph(g::SimpleGraph; vertex_order=Branching(), ruleset=default_simplifier_ruleset(UnWeighted()))
     map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
@@ -411,7 +414,23 @@ function map_graph(mode, g::SimpleGraph; vertex_order=Branching(), ruleset=defau
     return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
 end
 
-map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+"""
+    map_configs_back(res::MappingResult, configs::AbstractVector)
+
+Map MIS solutions for the mapped graph to a solution for the source graph.
+"""
+function map_configs_back(res::MappingResult, configs::AbstractVector)
+    cs = map(configs) do cfg
+        c = zeros(Int, size(res.grid_graph.content))
+        for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
+            c[loc] = cfg[i]
+        end
+        c
+    end
+    return _map_configs_back(res, cs)
+end
+_map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector{<:AbstractMatrix}) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
 default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))
 

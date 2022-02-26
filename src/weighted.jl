@@ -123,8 +123,22 @@ iscon(r::WeightedGadget) = iscon(unweighted(r))
 connected_nodes(r::WeightedGadget) = connected_nodes(unweighted(r))
 vertex_overhead(r::WeightedGadget) = vertex_overhead(unweighted(r))
 
-export get_weights
-get_weights(ug::UGrid) = [ug.content[ci...].weight for ci in coordinates(ug)]
+export map_weights
+"""
+    map_weights(r::MappingResult{<:WeightedCell}, source_weights)
+
+Map the weights in the source graph to weights in the mapped graph, returns a vector.
+"""
+function map_weights(r::MappingResult{<:WeightedCell}, source_weights)
+    if !all(w -> 0 <= w <= 1, source_weights)
+        error("all weights must be in range [0, 1], got: $(source_weights)")
+    end
+    weights = eltype(source_weights)[r.grid_graph.content[ci...].weight for ci in coordinates(r.grid_graph)]
+    locs = coordinates(r.grid_graph)
+    center_indices = map(loc->findfirst(==(loc), locs), trace_centers(r))
+    weights[center_indices] .+= source_weights
+    return weights
+end
 
 # mapping configurations back
 export trace_centers
@@ -152,7 +166,7 @@ function trace_centers(ug::UGrid, tape)
     return center_locations[sortperm(getfield.(ug.lines, :vertex))]
 end
 
-function map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
+function _map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
     center_locations = trace_centers(r)
     res = [zeros(Int, length(r.grid_graph.lines)) for i=1:length(configs)]
     for (ri, c) in zip(res, configs)

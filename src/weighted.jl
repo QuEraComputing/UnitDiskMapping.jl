@@ -149,15 +149,15 @@ function trace_centers(ug::UGrid, tape)
             end
         end
     end
-    return center_locations
+    return center_locations[sortperm(getfield.(ug.lines, :vertex))]
 end
 
 function map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
     center_locations = trace_centers(r)
     res = [zeros(Int, length(r.grid_graph.lines)) for i=1:length(configs)]
     for (ri, c) in zip(res, configs)
-        for (line, loc) in zip(r.grid_graph.lines, center_locations)
-            ri[line.vertex] = c[loc...]
+        for (i, loc) in enumerate(center_locations)
+            ri[i] = c[loc...]
         end
     end
     return res

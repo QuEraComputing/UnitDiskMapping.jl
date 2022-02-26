@@ -83,8 +83,7 @@ end
             c[loc] = misconfig.data[i]
         end
         indices = CartesianIndex.(center_locations)
-        sc = zeros(Int, nv(g))
-        sc[getfield.(ug3.lines, :vertex)] = c[indices]
+        sc = c[indices]
         @test count(isone, sc) == missize.n * 2
         @test is_independent_set(g, sc)
     end
@@ -104,7 +103,7 @@ end
 
     locs = coordinates(res.grid_graph)
     center_indices = map(loc->findfirst(==(loc), locs), center_locations)
-    weights[center_indices[getfield.(res.grid_graph.lines, :vertex)]] .+= ws
+    weights[center_indices] .+= ws
 
     gp = IndependentSet(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy(), weights=weights)
     missize_map = solve(gp, SizeMax())[].n

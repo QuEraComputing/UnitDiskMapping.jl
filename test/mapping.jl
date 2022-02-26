@@ -21,7 +21,7 @@ using UnitDiskMapping: is_independent_set
         @show s
         @test sum(match.(Ref(s), Ref(ug.content), (0:size(ug.content, 1))', 0:size(ug.content,2))) == c
     end
-    mug, tape = apply_crossing_gadgets!(UnWeighted(), copy(ug))
+    mug, tape = apply_crossing_gadgets!(UnitDiskMapping.UnWeighted(), copy(ug))
     for s in gadgets
         @test sum(match.(Ref(s), Ref(mug.content), (0:size(mug.content, 1))', 0:size(mug.content,2))) == 0
     end
@@ -36,7 +36,7 @@ end
         g = smallgraph(graphname)
         ug = embed_graph(g)
         mis_overhead0 = mis_overhead_copylines(ug)
-        ug2, tape = apply_crossing_gadgets!(UnWeighted(), copy(ug))
+        ug2, tape = apply_crossing_gadgets!(UnitDiskMapping.UnWeighted(), copy(ug))
         ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[RotatedGadget(UnitDiskMapping.DanglingLeg(), n) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)

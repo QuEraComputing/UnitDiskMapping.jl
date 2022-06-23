@@ -154,7 +154,7 @@ end
 
 trace_centers(r::MappingResult) = trace_centers(r.grid_graph, r.mapping_history)
 function trace_centers(ug::UGrid, tape)
-    center_locations = map(x->center_location(nodetype(ug), x; padding=ug.padding) .+ (0, 1), ug.lines)
+    center_locations = map(x->center_location(x; padding=ug.padding) .+ (0, 1), ug.lines)
     for (gadget, i, j) in tape
         m, n = size(gadget)
         for (k, centerloc) in enumerate(center_locations)

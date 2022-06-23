@@ -1,5 +1,5 @@
 using UnitDiskMapping, Test
-using GraphTensorNetworks
+using GenericTensorNetworks
 
 @testset "map results back" begin
     for s in [UnitDiskMapping.crossing_ruleset..., UnitDiskMapping.simplifier_ruleset...]

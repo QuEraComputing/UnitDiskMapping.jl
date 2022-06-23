@@ -1,6 +1,6 @@
 using UnitDiskMapping, Test
-using GraphTensorNetworks
-using GraphTensorNetworks: content
+using GenericTensorNetworks
+using GenericTensorNetworks: content
 using Graphs
 
 @testset "gadgets" begin

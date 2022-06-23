@@ -8,7 +8,7 @@ struct Weighted end
 #      |-------   ← hslot
 #      |      ↑   ← vstop
 #            hstop
-struct CopyLine{W}
+struct CopyLine
     vertex::Int
     vslot::Int
     hslot::Int
@@ -45,8 +45,8 @@ function Base.show(io::IO, x::Cell)
 end
 Base.show(io::IO, ::MIME"text/plain", cl::Cell) = Base.show(io, cl)
 
-struct UGrid{CT<:AbstractCell, W}
-    lines::Vector{CopyLine{W}}
+struct UGrid{CT<:AbstractCell}
+    lines::Vector{CopyLine}
     padding::Int
     content::Matrix{CT}
 end
@@ -177,7 +177,7 @@ end
 function map_config_copyback!(ug::UGrid, c::AbstractMatrix)
     res = zeros(Int, length(ug.lines))
     for line in ug.lines
-        locs = copyline_locations(line; padding=ug.padding)
+        locs = copyline_locations(nodetype(ug), line; padding=ug.padding)
         count = 0
         for (iloc, loc) in enumerate(locs)
             gi, ci = ug.content[loc...], c[loc...]
@@ -219,7 +219,7 @@ function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     return addremove
 end
 
-function create_copylines(::WT, g::SimpleGraph, ordered_vertices::AbstractVector{Int}) where WT
+function create_copylines(g::SimpleGraph, ordered_vertices::AbstractVector{Int})
     slots = zeros(Int, nv(g))
     hslots = zeros(Int, nv(g))
     rmorder = remove_order(g, ordered_vertices)
@@ -243,27 +243,29 @@ function create_copylines(::WT, g::SimpleGraph, ordered_vertices::AbstractVector
         vstops[i] = maximum(relevant_hslots)
         hstops[i] = maximum(relevant_vslots)
     end
-    return [CopyLine{WT}(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
+    return [CopyLine(ordered_vertices[i], i, hslots[i], vstarts[i], vstops[i], hstops[i]) for i=1:nv(g)]
 end
 
-function center_location(tc::CopyLine; padding::Int)
+function center_location(::Type{NT}, tc::CopyLine; padding::Int) where NT
     s = 4
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1
     return I, J
 end
-function copyline_locations(tc::CopyLine; padding::Int)
+
+# NT is node type
+function copyline_locations(::Type{NT}, tc::CopyLine; padding::Int) where NT
     s = 4
     nline = 0
-    I, J = center_location(tc; padding=padding)
-    locations = _weight_type(tc)[]
+    I, J = center_location(NT, tc; padding=padding)
+    locations = NT[]
     # grow up
     start = I+s*(tc.vstart-tc.hslot)+1
     if tc.vstart < tc.hslot
         nline += 1
     end
     for i=I:-1:start             # even number of nodes up
-        push!(locations, _weighted(tc, i, J, 1+(i!=start)))   # half weight on last node
+        push!(locations, node(NT, i, J, 1+(i!=start)))   # half weight on last node
     end
     # grow down
     stop = I+s*(tc.vstop-tc.hslot)-1
@@ -272,9 +274,9 @@ function copyline_locations(tc::CopyLine; padding::Int)
     end
     for i=I:stop              # even number of nodes down
         if i == I
-            push!(locations, _weighted(tc, i+1, J+1, 2))
+            push!(locations, node(NT, i+1, J+1, 2))
         else
-            push!(locations, _weighted(tc, i, J, 1+(i!=stop)))
+            push!(locations, node(NT, i, J, 1+(i!=stop)))
         end
     end
     # grow right
@@ -283,13 +285,14 @@ function copyline_locations(tc::CopyLine; padding::Int)
         nline += 1
     end
     for j=J+2:stop            # even number of nodes right
-        push!(locations, _weighted(tc, I, j, 1 + (j!=stop)))   # half weight on last node
+        push!(locations, node(NT, I, j, 1 + (j!=stop)))   # half weight on last node
     end
-    push!(locations, _weighted(tc, I, J+1, nline))                     # center node
+    push!(locations, node(NT, I, J+1, nline))                     # center node
     return locations
 end
-_weight_type(::CopyLine{UnWeighted}) = SimpleNode{Int}
-_weighted(::CopyLine{UnWeighted}, i, j, w) = SimpleNode(i, j)
+nodetype(::UGrid{Cell}) = SimpleNode{Int}
+nodetype(::UnWeighted) = SimpleNode{Int}
+node(::Type{<:SimpleNode}, i, j, w) = SimpleNode(i, j)
 
 export ugrid
 function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
@@ -302,9 +305,9 @@ function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=
     u = fill(empty(mode isa Weighted ? WeightedCell{Int} : Cell), M, N)
 
     # add T-copies
-    copylines = create_copylines(mode, g, vertex_order)
+    copylines = create_copylines(g, vertex_order)
     for tc in copylines
-        for loc in copyline_locations(tc; padding=padding)
+        for loc in copyline_locations(nodetype(mode), tc; padding=padding)
             add_cell!(u, loc)
         end
     end
@@ -352,20 +355,20 @@ function embed_graph(mode, g::SimpleGraph; vertex_order=Branching())
 end
 
 export mis_overhead_copylines
-function mis_overhead_copylines(ug::UGrid{WC,W}) where {WC,W}
+function mis_overhead_copylines(ug::UGrid{WC}) where {WC}
     sum(ug.lines) do line
-        mis_overhead_copyline(line)
+        mis_overhead_copyline(WC <: WeightedCell ? Weighted() : UnWeighted(), line)
     end
 end
 
-function mis_overhead_copyline(line::CopyLine{W}) where {W}
+function mis_overhead_copyline(w::W, line::CopyLine) where W
     if W === Weighted
         s = 4
         return (line.hslot - line.vstart) * s +
             (line.vstop - line.hslot) * s +
             max((line.hstop - line.vslot) * s - 2, 0)
     else
-        locs = copyline_locations(line; padding=2)
+        locs = copyline_locations(nodetype(w), line; padding=2)
         @assert length(locs) % 2 == 1
         return length(locs) ÷ 2
     end
@@ -374,8 +377,8 @@ end
 ##### Interfaces ######
 export MappingResult, map_graph, map_configs_back
 
-struct MappingResult{CT,WT}
-    grid_graph::UGrid{CT,WT}
+struct MappingResult{CT}
+    grid_graph::UGrid{CT}
     mapping_history::Vector{Tuple{Pattern,Int,Int}}
     mis_overhead::Int
 end

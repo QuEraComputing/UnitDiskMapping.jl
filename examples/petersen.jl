@@ -14,7 +14,7 @@ ug = embed_graph(g)
 G, tape = apply_gadgets!(copy(ug))
 locs = coordinates(G)
 
-using GraphTensorNetworks
+using GenericTensorNetworks
 s1 = solve(IndependentSet(g), SizeMax())
 s2 = solve(IndependentSet(SimpleGraph(G)), SizeMax())
 mis_overhead0 = 2 * nv(g) * (nv(g)-1) + nv(g)

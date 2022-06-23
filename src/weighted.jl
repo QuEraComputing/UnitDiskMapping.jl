@@ -73,9 +73,10 @@ function connect_cell!(m::AbstractMatrix{<:WeightedCell}, i::Int, j::Int)
     end
     m[i, j] = WeightedCell(true, false, true, m[i,j].weight)
 end
-_weight_type(::CopyLine{Weighted}) = WeightedNode{Int,Int}
-_weighted(::CopyLine{Weighted}, i, j, w) = WeightedNode(i, j, w)
-_cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
+nodetype(::UGrid{<:WeightedCell}) = WeightedNode{Int,Int}
+nodetype(::Weighted) = WeightedNode{Int, Int}
+node(::Type{<:WeightedNode}, i, j, w) = WeightedNode(i, j, w)
+cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
 
 weighted(c::Pattern, source_weights, mapped_weights) = WeightedGadget(c, source_weights, mapped_weights)
 unweighted(w::WeightedGadget) = w.gadget
@@ -153,7 +154,7 @@ end
 
 trace_centers(r::MappingResult) = trace_centers(r.grid_graph, r.mapping_history)
 function trace_centers(ug::UGrid, tape)
-    center_locations = map(x->center_location(x; padding=ug.padding) .+ (0, 1), ug.lines)
+    center_locations = map(x->center_location(nodetype(ug), x; padding=ug.padding) .+ (0, 1), ug.lines)
     for (gadget, i, j) in tape
         m, n = size(gadget)
         for (k, centerloc) in enumerate(center_locations)

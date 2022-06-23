@@ -80,11 +80,11 @@ julia> println(res.grid_graph)
 ```
 
 #### Step 2: solve the MIS problem on grid graph with any method you like
-In the following, we show how to solve this maximal independent set problem on grid graph with the open source package [`GraphTensorNetworks`](https://github.com/Happy-Diode/GraphTensorNetworks.jl) and map the configurations back.
+In the following, we show how to solve this maximal independent set problem on grid graph with the open source package [`GenericTensorNetworks`](https://github.com/Happy-Diode/GenericTensorNetworks.jl) and map the configurations back.
 The generic tensor network approach for solving MIS works best for graphs with small tree width, it can solve this grid graph `G(V,E)` in sub-exponential time `t~2^{sqrt(|V|)}`.
 
 ```julia
-julia> using GraphTensorNetworks
+julia> using GenericTensorNetworks
 
 julia> gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy());
 

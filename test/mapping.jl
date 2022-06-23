@@ -1,5 +1,5 @@
 using UnitDiskMapping, Test
-using Graphs, GraphTensorNetworks
+using Graphs, GenericTensorNetworks
 using UnitDiskMapping: is_independent_set
 
 @testset "crossing connect count" begin

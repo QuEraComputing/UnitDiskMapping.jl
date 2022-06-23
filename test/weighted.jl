@@ -1,5 +1,5 @@
-using Test, UnitDiskMapping, Graphs, GraphTensorNetworks
-using GraphTensorNetworks: TropicalF64, content
+using Test, UnitDiskMapping, Graphs, GenericTensorNetworks
+using GenericTensorNetworks: TropicalF64, content
 using Random
 using UnitDiskMapping: is_independent_set
 
@@ -33,8 +33,8 @@ end
     for (vstart, vstop, hstop) in [
             (3, 7, 8), (3, 5, 8), (5, 9, 8), (5, 5, 8),
             (1, 7, 5), (5, 8, 5),  (1, 5, 5), (5, 5, 5)]
-        tc = UnitDiskMapping.CopyLine{Weighted}(1, 5, 5, vstart, vstop, hstop)
-        locs = UnitDiskMapping.copyline_locations(tc; padding=2)
+        tc = UnitDiskMapping.CopyLine(1, 5, 5, vstart, vstop, hstop)
+        locs = UnitDiskMapping.copyline_locations(UnitDiskMapping.WeightedNode, tc; padding=2)
         g = SimpleGraph(length(locs))
         weights = getfield.(locs, :weight)
         for i=1:length(locs)-1
@@ -45,7 +45,7 @@ end
             end
         end
         gp = IndependentSet(g; weights=weights)
-        @test solve(gp, SizeMax())[].n == UnitDiskMapping.mis_overhead_copyline(tc)
+        @test solve(gp, SizeMax())[].n == UnitDiskMapping.mis_overhead_copyline(Weighted(), tc)
     end
 end
 
@@ -71,7 +71,7 @@ end
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize.n == missize_map.n
         @test missize.c == missize_map.c
 
-        T = GraphTensorNetworks.sampler_type(nv(mgraph), 2)
+        T = GenericTensorNetworks.sampler_type(nv(mgraph), 2)
         misconfig = solve(gp, SingleConfigMax())[].c
         c = zeros(Int, size(ug3.content))
         for (i, loc) in enumerate(findall(!isempty, ug3.content))
@@ -103,7 +103,7 @@ end
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
-    T = GraphTensorNetworks.sampler_type(nv(mgraph), 2)
+    T = GenericTensorNetworks.sampler_type(nv(mgraph), 2)
     misconfig = solve(gp, SingleConfigMax())[].c
     original_configs = map_configs_back(res, [collect(misconfig.data)])
     @test count(isone, original_configs[1]) == solve(IndependentSet(g), SizeMax())[].n

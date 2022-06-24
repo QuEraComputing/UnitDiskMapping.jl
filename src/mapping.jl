@@ -200,6 +200,13 @@ function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     return addremove
 end
 
+function center_location(tc::CopyLine; padding::Int) where NT
+    s = 4
+    I = s*(tc.hslot-1)+padding+2
+    J = s*(tc.vslot-1)+padding+1
+    return I, J
+end
+
 # NT is node type
 function copyline_locations(::Type{NT}, tc::CopyLine; padding::Int) where NT
     s = 4

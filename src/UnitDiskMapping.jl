@@ -13,6 +13,7 @@ export UNode, contract_graph, compress_graph
 include("utils.jl")
 include("pathdecomposition/pathdecomposition.jl")
 include("copyline.jl")
+include("multiplier.jl")
 include("gadgets.jl")
 include("mapping.jl")
 include("weighted.jl")

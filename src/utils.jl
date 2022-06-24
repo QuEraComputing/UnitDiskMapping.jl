@@ -69,3 +69,19 @@ function is_diff_by_const(t1::AbstractArray{T}, t2::AbstractArray{T}) where T <:
     end
     return true, x
 end
+
+"""
+    unit_disk_graph(locs::AbstractVector, unit::Real)
+
+Create a unit disk graph with locations specified by `locs` and unit distance `unit`.
+"""
+function unit_disk_graph(locs::AbstractVector, unit::Real)
+    n = length(locs)
+    g = SimpleGraph(n)
+    for i=1:n, j=i+1:n
+        if sum(abs2, locs[i] .- locs[j]) < unit ^ 2
+            add_edge!(g, i, j)
+        end
+    end
+    return g
+end

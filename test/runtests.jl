@@ -36,3 +36,7 @@ end
 @testset "weighted" begin
     include("weighted.jl")
 end
+
+@testset "qubo" begin
+    include("qubo.jl")
+end

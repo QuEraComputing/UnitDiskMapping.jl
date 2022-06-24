@@ -1,9 +1,3 @@
-export UnWeighted, Weighted
-struct UnWeighted end
-struct Weighted end
-
-export Cell, AbstractCell
-abstract type AbstractCell end
 struct Cell <: AbstractCell
     occupied::Bool
     doubled::Bool

@@ -1,6 +1,5 @@
 export WeightedCell, WeightedGadget, WeightedNode
-# TODO:
-# * add path decomposition
+
 struct WeightedCell{RT} <: AbstractCell
     occupied::Bool
     doubled::Bool

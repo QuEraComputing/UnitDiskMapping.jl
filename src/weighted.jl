@@ -49,14 +49,6 @@ function Base.show(io::IO, x::WeightedCell)
 end
 Base.show(io::IO, ::MIME"text/plain", cl::WeightedCell) = Base.show(io, cl)
 
-struct WeightedNode{T,WT} <: AbstractNode
-    x::T
-    y::T
-    weight::WT
-end
-getxy(wn::WeightedNode) = (wn.x, wn.y)
-chxy(wn::WeightedNode, xy) = WeightedNode(xy..., wn.weight)
-
 function add_cell!(m::AbstractMatrix{<:WeightedCell}, node::WeightedNode)
     i, j = node
     if isempty(m[i,j])
@@ -72,7 +64,7 @@ function connect_cell!(m::AbstractMatrix{<:WeightedCell}, i::Int, j::Int)
     end
     m[i, j] = WeightedCell(true, false, true, m[i,j].weight)
 end
-nodetype(::UGrid{<:WeightedCell}) = WeightedNode{Int,Int}
+nodetype(::MappingGrid{<:WeightedCell}) = WeightedNode{Int,Int}
 nodetype(::Weighted) = WeightedNode{Int, Int}
 node(::Type{<:WeightedNode}, i, j, w) = WeightedNode(i, j, w)
 cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
@@ -152,7 +144,7 @@ function move_center(w::WeightedGadgetTypes, nodexy, offset)
 end
 
 trace_centers(r::MappingResult) = trace_centers(r.grid_graph, r.mapping_history)
-function trace_centers(ug::UGrid, tape)
+function trace_centers(ug::MappingGrid, tape)
     center_locations = map(x->center_location(x; padding=ug.padding) .+ (0, 1), ug.lines)
     for (gadget, i, j) in tape
         m, n = size(gadget)

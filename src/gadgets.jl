@@ -19,21 +19,6 @@ abstract type Pattern end
 """
 abstract type CrossPattern <: Pattern end
 
-abstract type AbstractNode end
-struct SimpleNode{T} <: AbstractNode
-    x::T
-    y::T
-end
-SimpleNode(xy::Tuple{Int,Int}) = SimpleNode(xy...)
-SimpleNode(xy::Vector{Int}) = SimpleNode(xy...)
-getxy(p::SimpleNode) = (p.x, p.y)
-chxy(p::SimpleNode, loc) = SimpleNode(loc...)
-Base.iterate(p::AbstractNode, i) = Base.iterate((p.x, p.y), i)
-Base.iterate(p::AbstractNode) = Base.iterate((p.x, p.y))
-Base.length(p::AbstractNode) = 2
-Base.getindex(p::AbstractNode, i::Int) = i==1 ? p.x : (@assert i==2; p.y)
-offset(p::AbstractNode, xy) = chxy(p, getxy(p) .+ xy)
-
 export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     m, n = size(p)
@@ -92,10 +77,10 @@ end
 
 Base.show(io::IO, ::MIME"text/plain", p::Pattern) = Base.show(io, p)
 function Base.show(io::IO, p::Pattern)
-    print_ugrid(io, source_matrix(p))
+    print_grid(io, source_matrix(p))
     println(io)
     println(io, " "^(size(p)[2]-1) * "↓")
-    print_ugrid(io, mapped_matrix(p))
+    print_grid(io, mapped_matrix(p))
 end
 
 function apply_gadget!(p::Pattern, matrix, i, j)

@@ -69,10 +69,23 @@ E(z) = \\sum_{i<j} J_{ij} z_i z_j + \\sum_i H_i z_i
 
 A QUBO gadget is
 
-⋅ ⋅ ● ⋅ 
-● ● ● ⋅ 
-⋅ ● ● ●
+```
+⋅ ⋅ ● ⋅
+● A B ⋅
+⋅ C D ●
 ⋅ ● ⋅ ⋅
+```
+
+where `A`, `B`, `C` and `D` are weights of nodes that defined as
+
+```math
+\\begin{align}
+A = -J_{ij} + H_i - H_j + 4\\\\
+B = -J_{ij} - H_i + H_j + 4\\\\
+C = J_{ij} + H_i + H_j + 4\\\\
+D = J_{ij} - H_i - H_j + 4
+\\end{align}
+```
 """
 function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
     T = promote_type(T1, T2)

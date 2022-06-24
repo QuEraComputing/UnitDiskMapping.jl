@@ -28,7 +28,3 @@ end
 @testset "weighted" begin
     include("weighted.jl")
 end
-
-@testset "tikz" begin
-    include("tikz/tikz.jl")
-end

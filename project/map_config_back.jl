@@ -1,6 +1,6 @@
 using UnitDiskMapping, UnitDiskMapping.TikzGraph
 using UnitDiskMapping: safe_get
-using GraphTensorNetworks, Graphs
+using GenericTensorNetworks, Graphs
 
 function all_configurations(p::Pattern)
     mlocs, mg, mpins = mapped_graph(p)

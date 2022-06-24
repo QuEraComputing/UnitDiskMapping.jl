@@ -11,12 +11,12 @@ export mapped_entry_to_compact, source_entry_to_configs, map_config_back, mis_ov
 export UNode, contract_graph, compress_graph
 
 include("utils.jl")
+include("pathdecomposition/pathdecomposition.jl")
+include("copyline.jl")
 include("gadgets.jl")
 include("mapping.jl")
 include("weighted.jl")
 include("simplifiers.jl")
 include("extracting_results.jl")
-include("pathdecomposition/pathdecomposition.jl")
-include("tikz/tikz.jl")
 
 end

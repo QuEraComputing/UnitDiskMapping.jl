@@ -1,4 +1,4 @@
-using UnitDiskMapping, GraphTensorNetworks, Graphs
+using UnitDiskMapping, GenericTensorNetworks, Graphs
 
 function mapped_entry_to_compact(s::Pattern)
     locs, g, pins = mapped_graph(s)
@@ -41,7 +41,7 @@ function compute_mis_overhead(s)
     m1 = mis_compactify!(solve(IndependentSet(g1, openvertices=pins1), SizeMax()))
     m2 = mis_compactify!(solve(IndependentSet(g2, openvertices=pins2), SizeMax()))
     @assert nv(g1) == length(locs1) && nv(g2) == length(locs2)
-    sig, diff = UnitDiskMapping.is_diff_by_const(GraphTensorNetworks.content.(m1), GraphTensorNetworks.content.(m2))
+    sig, diff = UnitDiskMapping.is_diff_by_const(GenericTensorNetworks.content.(m1), GenericTensorNetworks.content.(m2))
     @assert sig
     return diff
 end

@@ -1,20 +1,3 @@
-struct SimpleCell{RT} <: AbstractCell
-    occupied::Bool
-    weight::RT
-end
-function Base.show(io::IO, x::SimpleCell)
-    if x.occupied
-        print(io, "●")
-    else
-        print(io, "⋅")
-    end
-end
-Base.show(io::IO, ::MIME"text/plain", cl::SimpleCell) = Base.show(io, cl)
-Base.isempty(sc::SimpleCell) = !sc.occupied
-Base.zero(::Type{SimpleCell{T}}) where T = SimpleCell(false, zero(T))
-SimpleCell(x::Real) = SimpleCell(true, x)
-SimpleCell{T}(x::Real) where T = SimpleCell(true, T(x))
-
 function dragondrop(f, d::CrossingLattice)
     grid = map(zip(CartesianIndices(d), d)) do (ci, block)
         #println(block)
@@ -46,7 +29,7 @@ function glue(grid::AbstractMatrix{<:AbstractMatrix{T}}) where T
     @assert size(grid, 1) > 0 && size(grid, 2) > 0
     nrow = sum(x->size(x, 1), grid[:,1])
     ncol = sum(x->size(x, 2), grid[1,:])
-    res = zeros(T, nrow, ncol)
+    res = fill(empty(T), nrow, ncol)
     ioffset = 0
     for i=1:size(grid, 1)
         joffset = 0
@@ -86,29 +69,35 @@ C = J_{ij} + H_i + H_j + 4\\\\
 D = J_{ij} - H_i - H_j + 4
 \\end{align}
 ```
+
+The rest nodes: `●` have weights 2 (boundary nodes have weights 1).
 """
 function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
     T = promote_type(T1, T2)
     n = length(H)
     @assert size(J) == (n, n) "The size of coupling matrix `J`: $(size(J)) not consistent with size of onsite term `H`: $(size(H))"
     d = crossing_lattice(complete_graph(n), 1:n)
-    z = zero(SimpleCell{T})
-    e = SimpleCell(one(T))
+    z = empty(SimpleCell{T})
+    one = SimpleCell(T(1))
+    two = SimpleCell(T(2))
     res = dragondrop(d) do ci, block
         if block.bottom != -1 && block.left != -1
-            # NOTE: right and top can be empty, because we can overshoot the line.
-            return [z  z  e  z;
-            e  SimpleCell{T}(-J[ci]+H[ci.I[1]]-H[ci.I[2]]+4)  SimpleCell{T}(-J[ci]-H[ci.I[1]]+H[ci.I[2]]+4)  z;
-            z  SimpleCell{T}(J[ci]+H[ci.I[1]]+H[ci.I[2]]+4)  SimpleCell{T}(J[ci]-H[ci.I[1]]-H[ci.I[2]]+4)  e;
-            z  e  z  z]
+            # NOTE: when right or top is empty, we use a weight 1 node.
+            return [z  z  (block.top == -1 ? one : two)  z;
+            two  SimpleCell{T}(-J[ci]+H[ci.I[1]]-H[ci.I[2]]+4)  SimpleCell{T}(-J[ci]-H[ci.I[1]]+H[ci.I[2]]+4)  z;
+            z  SimpleCell{T}(J[ci]+H[ci.I[1]]+H[ci.I[2]]+4)  SimpleCell{T}(J[ci]-H[ci.I[1]]-H[ci.I[2]]+4)  (block.right == -1 ? one : two);
+            z  two  z  z]
         elseif block.top != -1 && block.right != -1
             m = fill(z, 4, 4)
-            m[1, 3] = m[3, 4] = e
+            m[1, 3] = m[3, 4] = two
             return m
         else
             # do nothing
             return fill(z, 4, 4)
         end
     end
-    return res[1:end-4, 5:end]
+    mat = res[1:end-4, 5:end]
+    # generate GridGraph from matrix
+    locs = [Node(ci.I, mat[ci].weight) for ci in findall(x->x.occupied, mat)]
+    return GridGraph(size(mat), locs)
 end

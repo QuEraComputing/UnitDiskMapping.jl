@@ -1,11 +1,14 @@
-struct Cell <: AbstractCell
-    occupied::Bool
-    doubled::Bool
-    connected::Bool
+Base.@kwdef struct MCell{WT} <: AbstractCell{WT}
+    occupied::Bool = true
+    doubled::Bool = false
+    connected::Bool = false
+    weight::WT = ONE()
 end
-Base.isempty(cell::Cell) = !cell.occupied
-Base.empty(::Type{Cell}) = Cell(false, false, false)
-function Base.show(io::IO, x::Cell)
+const UnWeightedMCell = MCell{ONE}
+const WeightedMCell{T<:Real} = MCell{T}
+Base.isempty(cell::MCell) = !cell.occupied
+Base.empty(::Type{MCell{WT}}) where WT = MCell(occupied=false, weight=one(WT))
+function print_cell(io::IO, x::UnWeightedMCell; show_weight=false)
     if x.occupied
         if x.doubled
             print(io, "◉")
@@ -18,7 +21,37 @@ function Base.show(io::IO, x::Cell)
         print(io, "⋅")
     end
 end
-Base.show(io::IO, ::MIME"text/plain", cl::Cell) = Base.show(io, cl)
+function print_cell(io::IO, x::WeightedMCell; show_weight=false)
+    if x.occupied
+        if x.doubled
+            if x.weight == 2
+                print(io, "◉")
+            else
+                print(io, "?")
+            end
+        elseif x.connected
+            if x.weight == 1
+                print(io, "◇")
+            elseif x.weight == 2
+                print(io, "◆")
+            else
+                print(io, "?")
+            end
+        elseif x.weight >= 3
+            print(io, show_weight ? "$(x.weight)" : "▴")
+        elseif x.weight == 2
+            print(io, "●")
+        elseif x.weight == 1
+            print(io, "○")
+        elseif x.weight == 0
+            print(io, "∅")
+        else
+            print(io, "?")
+        end
+    else
+        print(io, "⋅")
+    end
+end
 
 struct MappingGrid{CT<:AbstractCell}
     lines::Vector{CopyLine}
@@ -30,20 +63,20 @@ export coordinates
 Base.:(==)(ug::MappingGrid{CT}, ug2::MappingGrid{CT}) where CT = ug.lines == ug2.lines && ug.content == ug2.content
 padding(ug::MappingGrid) = ug.padding
 coordinates(ug::MappingGrid) = [ci.I for ci in findall(!isempty, ug.content)]
-function add_cell!(m::AbstractMatrix{<:Cell}, node::SimpleNode)
+function add_cell!(m::AbstractMatrix{<:MCell}, node::UnWeightedNode)
     i, j = node
     if isempty(m[i,j])
-        m[i, j] = Cell(true, false, false)
+        m[i, j] = MCell()
     else
         @assert !(m[i, j].doubled) && !(m[i, j].connected)
-        m[i, j] = Cell(true, true, false)
+        m[i, j] = MCell(doubled=true)
     end
 end
-function connect_cell!(m::AbstractMatrix{<:Cell}, i::Int, j::Int)
-    if m[i, j] !== Cell(true, false, false)
+function connect_cell!(m::AbstractMatrix{<:MCell}, i::Int, j::Int)
+    if m[i, j] !== MCell()
         error("can not connect at [$i,$j] of type $(m[i,j])")
     end
-    m[i, j] = Cell(true, false, true)
+    m[i, j] = MCell(connected=true)
 end
 
 function Graphs.SimpleGraph(ug::MappingGrid)
@@ -227,9 +260,11 @@ function copyline_locations(::Type{NT}, tc::CopyLine; padding::Int) where NT
     push!(locations, node(NT, I, J+1, nline))                     # center node
     return locations
 end
-nodetype(::MappingGrid{Cell}) = SimpleNode{Int}
-nodetype(::UnWeighted) = SimpleNode{Int}
-node(::Type{<:SimpleNode}, i, j, w) = SimpleNode(i, j)
+nodetype(::MappingGrid{MCell{WT}}) where WT = Node{WT}
+cell_type(::Type{Node{WT}}) where WT = MCell{WT}
+
+nodetype(::UnWeighted) = UnWeightedNode
+node(::Type{<:UnWeightedNode}, i, j, w) = Node(i, j)
 
 export ugrid
 function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
@@ -239,7 +274,7 @@ function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=
     s = 4
     N = (n-1)*s+1+2*padding
     M = nrow*s+1+2*padding
-    u = fill(empty(mode isa Weighted ? WeightedCell{Int} : Cell), M, N)
+    u = fill(empty(mode isa Weighted ? MCell{Int} : MCell{ONE}), M, N)
 
     # add T-copies
     copylines = create_copylines(g, vertex_order)
@@ -294,7 +329,7 @@ end
 export mis_overhead_copylines
 function mis_overhead_copylines(ug::MappingGrid{WC}) where {WC}
     sum(ug.lines) do line
-        mis_overhead_copyline(WC <: WeightedCell ? Weighted() : UnWeighted(), line)
+        mis_overhead_copyline(WC <: WeightedMCell ? Weighted() : UnWeighted(), line)
     end
 end
 
@@ -369,7 +404,7 @@ function map_configs_back(res::MappingResult, configs::AbstractVector)
     end
     return _map_configs_back(res, cs)
 end
-_map_configs_back(r::MappingResult{<:Cell}, configs::AbstractVector{<:AbstractMatrix}) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+_map_configs_back(r::MappingResult{<:UnWeightedMCell}, configs::AbstractVector{<:AbstractMatrix}) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
 
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
 default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))

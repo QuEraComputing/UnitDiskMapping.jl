@@ -11,6 +11,7 @@ export mapped_entry_to_compact, source_entry_to_configs, map_config_back, mis_ov
 export UNode, contract_graph, compress_graph
 export UnWeighted, Weighted
 export Cell, AbstractCell
+export WeightedCell, WeightedGadget, WeightedNode
 
 include("utils.jl")
 include("Core.jl")

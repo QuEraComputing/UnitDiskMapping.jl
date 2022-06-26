@@ -1,12 +1,3 @@
-export WeightedCell, WeightedGadget, WeightedNode
-
-struct WeightedCell{RT} <: AbstractCell
-    occupied::Bool
-    doubled::Bool
-    connected::Bool
-    weight::RT
-end
-
 struct WeightedGadget{GT, WT} <: Pattern
     gadget::GT
     source_weights::Vector{WT}
@@ -14,60 +5,23 @@ struct WeightedGadget{GT, WT} <: Pattern
 end
 const WeightedGadgetTypes = Union{WeightedGadget, RotatedGadget{<:WeightedGadget}, ReflectedGadget{<:WeightedGadget}}
 
-Base.isempty(cell::WeightedCell) = !cell.occupied
-Base.empty(::Type{WeightedCell{RT}}) where RT = WeightedCell(false, false, false,0)
-function Base.show(io::IO, x::WeightedCell)
-    if x.occupied
-        if x.doubled
-            if x.weight == 2
-                print(io, "◉")
-            else
-                print(io, "?")
-            end
-        elseif x.connected
-            if x.weight == 1
-                print(io, "◇")
-            elseif x.weight == 2
-                print(io, "◆")
-            else
-                print(io, "?")
-            end
-        elseif x.weight == 3
-            print(io, "▴")
-        elseif x.weight == 2
-            print(io, "●")
-        elseif x.weight == 1
-            print(io, "○")
-        elseif x.weight == 0
-            print(io, "∅")
-        else
-            print(io, "?")
-        end
-    else
-        print(io, "⋅")
-    end
-end
-Base.show(io::IO, ::MIME"text/plain", cl::WeightedCell) = Base.show(io, cl)
-
-function add_cell!(m::AbstractMatrix{<:WeightedCell}, node::WeightedNode)
+function add_cell!(m::AbstractMatrix{<:WeightedMCell}, node::WeightedNode)
     i, j = node
     if isempty(m[i,j])
-        m[i, j] = WeightedCell(true, false, false, node.weight)
+        m[i, j] = MCell(weight=node.weight)
     else
         @assert !(m[i, j].doubled) && !(m[i, j].connected) && m[i,j].weight == node.weight
-        m[i, j] = WeightedCell(true, true, false, node.weight)
+        m[i, j] = MCell(doubled=true, weight=node.weight)
     end
 end
-function connect_cell!(m::AbstractMatrix{<:WeightedCell}, i::Int, j::Int)
+function connect_cell!(m::AbstractMatrix{<:WeightedMCell}, i::Int, j::Int)
     if !m[i, j].occupied || m[i,j].doubled || m[i,j].connected
         error("can not connect at [$i,$j] of type $(m[i,j])")
     end
-    m[i, j] = WeightedCell(true, false, true, m[i,j].weight)
+    m[i, j] = MCell(connected=true, weight=m[i,j].weight)
 end
-nodetype(::MappingGrid{<:WeightedCell}) = WeightedNode{Int,Int}
-nodetype(::Weighted) = WeightedNode{Int, Int}
-node(::Type{<:WeightedNode}, i, j, w) = WeightedNode(i, j, w)
-cell_type(::Type{<:WeightedNode}) = WeightedCell{Int}
+nodetype(::Weighted) = WeightedNode{Int}
+node(::Type{<:WeightedNode}, i, j, w) = Node(i, j, w)
 
 weighted(c::Pattern, source_weights, mapped_weights) = WeightedGadget(c, source_weights, mapped_weights)
 unweighted(w::WeightedGadget) = w.gadget
@@ -89,7 +43,7 @@ function mapped_graph(r::WeightedGadget)
     locs, g, pins = mapped_graph(raw)
     return [_mul_weight(loc, r.mapped_weights[i]) for (i, loc) in enumerate(locs)], g, pins
 end
-_mul_weight(node::SimpleNode, factor) = WeightedNode(node..., factor)
+_mul_weight(node::UnWeightedNode, factor) = Node(node..., factor)
 
 for (T, centerloc) in [(:Turn, (2, 3)), (:Branch, (2, 3)), (:BranchFix, (3, 2)), (:BranchFixB, (3, 2)), (:WTurn, (3, 3)), (:EndTurn, (1, 2))]
     @eval source_centers(::WeightedGadget{<:$T}) = [cross_location($T()) .+ (0, 1)]
@@ -117,11 +71,11 @@ vertex_overhead(r::WeightedGadget) = vertex_overhead(unweighted(r))
 
 export map_weights
 """
-    map_weights(r::MappingResult{<:WeightedCell}, source_weights)
+    map_weights(r::MappingResult{<:WeightedMCell}, source_weights)
 
 Map the weights in the source graph to weights in the mapped graph, returns a vector.
 """
-function map_weights(r::MappingResult{<:WeightedCell}, source_weights)
+function map_weights(r::MappingResult{<:WeightedMCell}, source_weights)
     if !all(w -> 0 <= w <= 1, source_weights)
         error("all weights must be in range [0, 1], got: $(source_weights)")
     end
@@ -158,7 +112,7 @@ function trace_centers(ug::MappingGrid, tape)
     return center_locations[sortperm(getfield.(ug.lines, :vertex))]
 end
 
-function _map_configs_back(r::MappingResult{<:WeightedCell}, configs::AbstractVector)
+function _map_configs_back(r::MappingResult{<:WeightedMCell}, configs::AbstractVector)
     center_locations = trace_centers(r)
     res = [zeros(Int, length(r.grid_graph.lines)) for i=1:length(configs)]
     for (ri, c) in zip(res, configs)

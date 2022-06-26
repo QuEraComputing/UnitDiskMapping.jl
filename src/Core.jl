@@ -1,42 +1,74 @@
-# Cell does not have coordinates
-abstract type AbstractCell end
-
+const SHOW_WEIGHT = Ref(false)
 # UnWeighted mode
 struct UnWeighted end
 # Weighted mode
 struct Weighted end
+# The static one for unweighted cells
+struct ONE end
+Base.one(::Type{ONE}) = ONE()
+Base.show(io::IO, ::ONE) = print(io, "1")
+Base.show(io::IO, ::MIME"text/plain", ::ONE) = print(io, "1")
 
-# SimpleNode and WeightedNode (elements in a grid graph)
-abstract type AbstractNode end
+############################ Cell ############################
+# Cell does not have coordinates
+abstract type AbstractCell{WT} end
+Base.show(io::IO, x::AbstractCell) = print_cell(io, x; show_weight=SHOW_WEIGHT[])
+Base.show(io::IO, ::MIME"text/plain", cl::AbstractCell) = Base.show(io, cl)
 
-# The node used in unweighted graph
-struct SimpleNode{T} <: AbstractNode
-    x::T
-    y::T
+# SimpleCell
+struct SimpleCell{WT} <: AbstractCell{WT}
+    occupied::Bool
+    weight::WT
+    SimpleCell(; occupied=true) = new{ONE}(occupied, ONE())
+    SimpleCell(x::Real; occupied=true) = new{typeof(x)}(occupied, x)
+    SimpleCell{T}(x::Real; occupied=true) where T = new{T}(occupied, T(x))
 end
-SimpleNode(xy::Tuple{Int,Int}) = SimpleNode(xy...)
-SimpleNode(xy::Vector{Int}) = SimpleNode(xy...)
-getxy(p::SimpleNode) = (p.x, p.y)
-chxy(::SimpleNode, loc) = SimpleNode(loc...)
-Base.iterate(p::AbstractNode, i) = Base.iterate((p.x, p.y), i)
-Base.iterate(p::AbstractNode) = Base.iterate((p.x, p.y))
-Base.length(p::AbstractNode) = 2
-Base.getindex(p::AbstractNode, i::Int) = i==1 ? p.x : (@assert i==2; p.y)
-offset(p::AbstractNode, xy) = chxy(p, getxy(p) .+ xy)
+get_weight(sc::SimpleCell) = sc.weight
+Base.empty(::Type{SimpleCell{WT}}) where WT = SimpleCell(one(WT); occupied=false)
+Base.isempty(sc::SimpleCell) = !sc.occupied
+function print_cell(io::IO, x::AbstractCell; show_weight=false)
+    if x.occupied
+        print(io, show_weight ? "$(get_weight(x))" : "●")
+    else
+        print(io, "⋅")
+    end
+end
+WeightedSimpleCell{T<:Real} = SimpleCell{T}
+UnWeightedSimpleCell = SimpleCell{ONE}
 
-# The node used in weighted graph
-struct WeightedNode{T,WT} <: AbstractNode
-    x::T
-    y::T
+############################ Node ############################
+# The node used in unweighted graph
+struct Node{WT}
+    loc::Tuple{Int,Int}
     weight::WT
 end
-getxy(wn::WeightedNode) = (wn.x, wn.y)
-chxy(wn::WeightedNode, xy) = WeightedNode(xy..., wn.weight)
+Node(x::Real, y::Real) = Node((Int(x), Int(y)), ONE())
+Node(x::Real, y::Real, w::Real) = Node((Int(x), Int(y)), w)
+Node(xy::Vector{Int}) = Node(xy...)
+Node(xy::Tuple{Int,Int}) = Node(xy, ONE())
+getxy(p::Node) = p.loc
+chxy(n::Node, loc) = Node(loc, n.weight)
+Base.iterate(p::Node, i) = Base.iterate(p.loc, i)
+Base.iterate(p::Node) = Base.iterate(p.loc)
+Base.length(p::Node) = 2
+Base.getindex(p::Node, i::Int) = p.loc[i]
+offset(p::Node, xy) = chxy(p, getxy(p) .+ xy)
+const WeightedNode{T<:Real} = Node{T}
+const UnWeightedNode = Node{ONE}
 
+############################ GridGraph ############################
 # GridGraph
-struct GridGraph{NT<:AbstractNode}
+struct GridGraph{NT<:Node}
     size::Tuple{Int,Int}
     nodes::Vector{NT}
+end
+Base.show(io::IO, grid::GridGraph) = print_grid(io, grid; show_weight=SHOW_WEIGHT[])
+function print_grid(io::IO, grid::GridGraph{Node{WT}}; show_weight=false) where WT
+    mat = fill(empty(SimpleCell{WT}), grid.size)
+    for node in grid.nodes
+        mat[node.loc...] = SimpleCell(node.weight)
+    end
+    print_grid(io, mat; show_weight)
 end
 
 function gridgraphfromstring(mode::Union{Weighted, UnWeighted}, str::String)
@@ -68,11 +100,12 @@ function gridgraphfromstring(mode::Union{Weighted, UnWeighted}, str::String)
     end
     @assert all(==(length(item_array[1])), length.(item_array))
     mat = permutedims(hcat(item_array...), (2,1))
+    # generate GridGraph from matrix
     locs = [_to_node(mode, ci.I, mat[ci][2]) for ci in findall(first, mat)]
     return GridGraph(size(mat), locs)
 end
-_to_node(::UnWeighted, loc::Tuple{Int,Int}, w::Int) = SimpleNode(loc...)
-_to_node(::Weighted, loc::Tuple{Int,Int}, w::Int) = WeightedNode(loc..., w)
+_to_node(::UnWeighted, loc::Tuple{Int,Int}, w::Int) = Node(loc)
+_to_node(::Weighted, loc::Tuple{Int,Int}, w::Int) = Node(loc, w)
 
 function gg_func(mode, expr)
     @assert expr.head == :(=)
@@ -97,10 +130,10 @@ macro gg(expr)
 end
 
 # printing function for Grid graphs
-function print_grid(io::IO, content::AbstractMatrix)
+function print_grid(io::IO, content::AbstractMatrix; show_weight=false)
     for i=1:size(content, 1)
         for j=1:size(content, 2)
-            print(io, content[i,j])
+            print_cell(io, content[i,j]; show_weight)
             print(io, " ")
         end
         if i!=size(content, 1)

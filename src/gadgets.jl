@@ -38,14 +38,13 @@ function mapped_matrix(p::Pattern)
     locs2matrix(m, n, locs)
 end
 
-function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: AbstractNode
+function locs2matrix(m, n, locs::AbstractVector{NT}) where NT <: Node
     a = fill(empty(cell_type(NT)), m, n)
     for loc in locs
         add_cell!(a, loc)
     end
     return a
 end
-cell_type(::Type{<:SimpleNode}) = Cell
 
 function Base.match(p::Pattern, matrix, i, j)
     a = source_matrix(p)
@@ -107,7 +106,7 @@ iscon(::Cross{CON}) where {CON} = CON
 # ◆ ◉ ●
 # ⋅ ◆ ⋅
 function source_graph(::Cross{true})
-    locs = SimpleNode.([(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)])
+    locs = Node.([(2,1), (2,2), (2,3), (1,2), (2,2), (3,2)])
     g = simplegraph([(1,2), (2,3), (4,5), (5,6), (1,6)])
     return locs, g, [1,4,6,3]
 end
@@ -116,7 +115,7 @@ end
 # ● ● ●
 # ⋅ ● ⋅
 function mapped_graph(::Cross{true})
-    locs = SimpleNode.([(2,1), (2,2), (2,3), (1,2), (3,2)])
+    locs = Node.([(2,1), (2,2), (2,3), (1,2), (3,2)])
     locs, unitdisk_graph(locs, 1.5), [1,4,5,3]
 end
 Base.size(::Cross{true}) = (3, 3)
@@ -128,7 +127,7 @@ connected_nodes(::Cross{true}) = [1, 6]
 # ⋅ ⋅ ● ⋅ ⋅
 # ⋅ ⋅ ● ⋅ ⋅
 function source_graph(::Cross{false})
-    locs = SimpleNode.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)])
+    locs = Node.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (2,3), (3,3), (4,3)])
     g = simplegraph([(1,2), (2,3), (3,4), (4,5), (6,7), (7,8), (8,9)])
     return locs, g, [1,6,9,5]
 end
@@ -138,7 +137,7 @@ end
 # ⋅ ● ● ● ⋅
 # ⋅ ⋅ ● ⋅ ⋅
 function mapped_graph(::Cross{false})
-    locs = SimpleNode.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (3,3), (4,3), (3, 2), (3,4)])
+    locs = Node.([(2,1), (2,2), (2,3), (2,4), (2,5), (1,3), (3,3), (4,3), (3, 2), (3,4)])
     locs, unitdisk_graph(locs, 1.5), [1,6,8,5]
 end
 Base.size(::Cross{false}) = (4, 5)
@@ -151,7 +150,7 @@ iscon(::Turn) = false
 # ⋅ ● ● ●
 # ⋅ ⋅ ⋅ ⋅
 function source_graph(::Turn)
-    locs = SimpleNode.([(1,2), (2,2), (3,2), (3,3), (3,4)])
+    locs = Node.([(1,2), (2,2), (3,2), (3,3), (3,4)])
     g = simplegraph([(1,2), (2,3), (3,4), (4,5)])
     return locs, g, [1,5]
 end
@@ -161,7 +160,7 @@ end
 # ⋅ ⋅ ⋅ ●
 # ⋅ ⋅ ⋅ ⋅
 function mapped_graph(::Turn)
-    locs = SimpleNode.([(1,2), (2,3), (3,4)])
+    locs = Node.([(1,2), (2,3), (3,4)])
     locs, unitdisk_graph(locs, 1.5), [1,3]
 end
 Base.size(::Turn) = (4, 4)
@@ -176,7 +175,7 @@ struct Branch <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::Branch)
-    locs = SimpleNode.([(1,2), (2,2), (3,2),(3,3),(3,4),(4,3),(4,2),(5,2)])
+    locs = Node.([(1,2), (2,2), (3,2),(3,3),(3,4),(4,3),(4,2),(5,2)])
     g = simplegraph([(1,2), (2,3), (3, 4), (4,5), (4,6), (6,7), (7,8)])
     return locs, g, [1, 5, 8]
 end
@@ -186,7 +185,7 @@ end
 # ⋅ ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::Branch)
-    locs = SimpleNode.([(1,2), (2,3), (3,2),(3,4),(4,3),(5,2)])
+    locs = Node.([(1,2), (2,3), (3,2),(3,4),(4,3),(5,2)])
     return locs, unitdisk_graph(locs, 1.5), [1,4,6]
 end
 Base.size(::Branch) = (5, 4)
@@ -199,7 +198,7 @@ struct BranchFix <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFix)
-    locs = SimpleNode.([(1,2), (2,2), (2,3),(3,3),(3,2),(4,2)])
+    locs = Node.([(1,2), (2,2), (2,3),(3,3),(3,2),(4,2)])
     g = simplegraph([(1,2), (2,3), (3,4),(4,5), (5,6)])
     return locs, g, [1, 6]
 end
@@ -208,7 +207,7 @@ end
 # ⋅ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::BranchFix)
-    locs = SimpleNode.([(1,2),(2,2),(3,2),(4,2)])
+    locs = Node.([(1,2),(2,2),(3,2),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 4]
 end
 Base.size(::BranchFix) = (4, 4)
@@ -221,7 +220,7 @@ struct WTurn <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::WTurn)
-    locs = SimpleNode.([(2,3), (2,4), (3,2),(3,3),(4,2)])
+    locs = Node.([(2,3), (2,4), (3,2),(3,3),(4,2)])
     g = simplegraph([(1,2), (1,4), (3,4),(3,5)])
     return locs, g, [2, 5]
 end
@@ -230,7 +229,7 @@ end
 # ⋅ ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::WTurn)
-    locs = SimpleNode.([(2,4),(3,3),(4,2)])
+    locs = Node.([(2,4),(3,3),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 3]
 end
 Base.size(::WTurn) = (4, 4)
@@ -243,7 +242,7 @@ struct BranchFixB <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::BranchFixB)
-    locs = SimpleNode.([(2,3),(3,2),(3,3),(4,2)])
+    locs = Node.([(2,3),(3,2),(3,3),(4,2)])
     g = simplegraph([(1,3), (2,3), (2,4)])
     return locs, g, [1, 4]
 end
@@ -252,7 +251,7 @@ end
 # ⋅ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::BranchFixB)
-    locs = SimpleNode.([(3,2),(4,2)])
+    locs = Node.([(3,2),(4,2)])
     return locs, unitdisk_graph(locs, 1.5), [1, 2]
 end
 Base.size(::BranchFixB) = (4, 4)
@@ -265,7 +264,7 @@ struct TCon <: CrossPattern end
 # ◆ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅
 function source_graph(::TCon)
-    locs = SimpleNode.([(1,2), (2,1), (2,2),(3,2)])
+    locs = Node.([(1,2), (2,1), (2,2),(3,2)])
     g = simplegraph([(1,2), (1,3), (3,4)])
     return locs, g, [1,2,4]
 end
@@ -275,7 +274,7 @@ connected_nodes(::TCon) = [1, 2]
 # ● ⋅ ● ⋅
 # ⋅ ● ⋅ ⋅
 function mapped_graph(::TCon)
-    locs = SimpleNode.([(1,2),(2,1),(2,3),(3,2)])
+    locs = Node.([(1,2),(2,1),(2,3),(3,2)])
     return locs, unitdisk_graph(locs, 1.5), [1,2,4]
 end
 Base.size(::TCon) = (3,4)
@@ -286,14 +285,14 @@ struct TrivialTurn <: CrossPattern end
 # ⋅ ◆
 # ◆ ⋅
 function source_graph(::TrivialTurn)
-    locs = SimpleNode.([(1,2), (2,1)])
+    locs = Node.([(1,2), (2,1)])
     g = simplegraph([(1,2)])
     return locs, g, [1,2]
 end
 # ⋅ ●
 # ● ⋅
 function mapped_graph(::TrivialTurn)
-    locs = SimpleNode.([(1,2),(2,1)])
+    locs = Node.([(1,2),(2,1)])
     return locs, unitdisk_graph(locs, 1.5), [1,2]
 end
 Base.size(::TrivialTurn) = (2,2)
@@ -306,7 +305,7 @@ struct EndTurn <: CrossPattern end
 # ⋅ ● ● ⋅
 # ⋅ ⋅ ⋅ ⋅
 function source_graph(::EndTurn)
-    locs = SimpleNode.([(1,2), (2,2), (2,3)])
+    locs = Node.([(1,2), (2,2), (2,3)])
     g = simplegraph([(1,2), (2,3)])
     return locs, g, [1]
 end
@@ -314,7 +313,7 @@ end
 # ⋅ ⋅ ⋅ ⋅
 # ⋅ ⋅ ⋅ ⋅
 function mapped_graph(::EndTurn)
-    locs = SimpleNode.([(1,2)])
+    locs = Node.([(1,2)])
     return locs, unitdisk_graph(locs, 1.5), [1]
 end
 Base.size(::EndTurn) = (3,4)
@@ -356,7 +355,7 @@ for T in [:RotatedGadget, :ReflectedGadget]
     @eval cross_location(r::$T) = cross_location(r.gadget) .+ _get_offset(r)
     @eval function _get_offset(r::$T)
         m, n = size(r.gadget)
-        a, b = _apply_transform.(Ref(r), SimpleNode.([(1,1), (m,n)]), Ref(cross_location(r.gadget)))
+        a, b = _apply_transform.(Ref(r), Node.([(1,1), (m,n)]), Ref(cross_location(r.gadget)))
         return 1-min(a[1], b[1]), 1-min(a[2], b[2])
     end
     @eval iscon(r::$T) = iscon(r.gadget)
@@ -372,7 +371,7 @@ for T in [:RotatedGadget, :ReflectedGadget]
 end
 
 for T in [:RotatedGadget, :ReflectedGadget]
-    @eval _apply_transform(r::$T, node::AbstractNode, center) = chxy(node, _apply_transform(r, getxy(node), center))
+    @eval _apply_transform(r::$T, node::Node, center) = chxy(node, _apply_transform(r, getxy(node), center))
 end
 function _apply_transform(r::RotatedGadget, loc::Tuple{Int,Int}, center)
     for _=1:r.n

@@ -27,6 +27,65 @@ function vertices_on_boundary(locs, m, n)
 end
 vertices_on_boundary(gg::GridGraph) = vertices_on_boundary(gg.nodes, gg.size...)
 
+#################### Macros ###############################3
+function gridgraphfromstring(mode::Union{Weighted, UnWeighted}, str::String; radius)
+    item_array = Vector{Tuple{Bool,Int}}[]
+    for line in split(str, "\n")
+        items = [item for item in split(line, " ") if !isempty(item)]
+        list = if mode isa Weighted   # TODO: the weighted version need to be tested! Consider removing it!
+            @assert all(item->item ∈ (".", "⋅", "@", "●", "o", "◯") || (length(item)==1 && isdigit(item[1])), items)
+            map(items) do item
+                if item ∈ ("@", "●")
+                    true, 2
+                elseif item ∈ ("o", "◯")
+                    true, 1
+                elseif item ∈ (".", "⋅")
+                    false, 0
+                else
+                    true, parse(Int, item)
+                end
+            end
+        else
+            @assert all(item->item ∈ (".", "⋅", "@", "●"), items)
+            map(items) do item
+                item ∈ ("@", "●") ? (true, 1) : (false, 0)
+            end
+        end
+        if !isempty(list)
+            push!(item_array, list)
+        end
+    end
+    @assert all(==(length(item_array[1])), length.(item_array))
+    mat = permutedims(hcat(item_array...), (2,1))
+    # generate GridGraph from matrix
+    locs = [_to_node(mode, ci.I, mat[ci][2]) for ci in findall(first, mat)]
+    return GridGraph(size(mat), locs, radius)
+end
+_to_node(::UnWeighted, loc::Tuple{Int,Int}, w::Int) = Node(loc)
+_to_node(::Weighted, loc::Tuple{Int,Int}, w::Int) = Node(loc, w)
+
+function gg_func(mode, expr)
+    @assert expr.head == :(=)
+    name = expr.args[1]
+    pair = expr.args[2]
+    @assert pair.head == :(call) && pair.args[1] == :(=>)
+    g1 = gridgraphfromstring(mode, pair.args[2]; radius=1.5)
+    g2 = gridgraphfromstring(mode, pair.args[3]; radius=1.5)
+    @assert g1.size == g2.size
+    @assert g1.nodes[vertices_on_boundary(g1)] == g2.nodes[vertices_on_boundary(g2)]
+    return quote
+        struct $(esc(name)) <: SimplifyPattern end
+        Base.size(::$(esc(name))) = $(g1.size)
+        $UnitDiskMapping.source_locations(::$(esc(name))) = $(g1.nodes)
+        $UnitDiskMapping.mapped_locations(::$(esc(name))) = $(g2.nodes)
+        $(esc(name))
+    end
+end
+
+macro gg(expr)
+    gg_func(UnWeighted(), expr)
+end
+
 # # How to add a new simplification rule
 # 1. specify a gadget like the following. Use either `o` and `●` to specify a vertex,
 # either `.` or `⋅` to specify a placeholder.

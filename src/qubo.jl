@@ -82,22 +82,31 @@ function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
     two = SimpleCell(T(2))
     res = dragondrop(d) do ci, block
         if block.bottom != -1 && block.left != -1
-            # NOTE: when right or top is empty, we use a weight 1 node.
-            return [z  z  (block.top == -1 ? one : two)  z;
-            two  SimpleCell{T}(-J[ci]+H[ci.I[1]]-H[ci.I[2]]+4)  SimpleCell{T}(-J[ci]-H[ci.I[1]]+H[ci.I[2]]+4)  z;
-            z  SimpleCell{T}(J[ci]+H[ci.I[1]]+H[ci.I[2]]+4)  SimpleCell{T}(J[ci]-H[ci.I[1]]-H[ci.I[2]]+4)  (block.right == -1 ? one : two);
-            z  two  z  z]
+            # NOTE: for border vertices, we set them to weight 1.
+            return [z  z  two  z;
+            two  SimpleCell{T}(J[ci]+4)    SimpleCell{T}(-J[ci]+4)  z;
+            z    SimpleCell{T}(-J[ci]+4)   SimpleCell{T}(J[ci]+4)  (block.right == -1 ? one : two);
+            z  (ci.I[1] == n-1 ? one : two)  z  z]
         elseif block.top != -1 && block.right != -1
             m = fill(z, 4, 4)
-            m[1, 3] = m[3, 4] = two
+            m[1, 3] = m[2, 4] = two
             return m
         else
             # do nothing
             return fill(z, 4, 4)
         end
     end
-    mat = res[1:end-4, 5:end]
+
+    # the first vertex
+    res[2, 4] = SimpleCell{T}(1 + H[1])
+    res[2, 5] = SimpleCell{T}(1 - H[1])
+    # 2-
+    topbar = fill(z, 1, 4*n-3)
+    topbar[1, 3:4:end] .= SimpleCell{T}.(1 .+ H[2:end])
+    res[1, 7:4:end] .= SimpleCell{T}.(2 .- H[2:end])
+
+    mat = vcat(topbar, res[1:end-4, 4:end])
     # generate GridGraph from matrix
     locs = [Node(ci.I, mat[ci].weight) for ci in findall(x->x.occupied, mat)]
-    return GridGraph(size(mat), locs)
+    return GridGraph(size(mat), locs, 1.5)
 end

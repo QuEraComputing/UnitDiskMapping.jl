@@ -99,7 +99,7 @@ function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
 
     # the first vertex
     res[2, 4] = SimpleCell{T}(1 + H[1])
-    res[2, 5] = SimpleCell{T}(1 - H[1])
+    res[2, 5] = SimpleCell{T}(2 - H[1])
     # 2-
     topbar = fill(z, 1, 4*n-3)
     topbar[1, 3:4:end] .= SimpleCell{T}.(1 .+ H[2:end])

@@ -1,6 +1,6 @@
 using Test, UnitDiskMapping
 using GenericTensorNetworks, Graphs
-using LinearAlgebra: triu
+using GenericTensorNetworks.OMEinsum.LinearAlgebra: triu
 
 @testset "qubo" begin
     n = 6

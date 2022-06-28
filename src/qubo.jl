@@ -113,11 +113,13 @@ function map_qubo(J::AbstractMatrix{T1}, h::AbstractVector{T2}) where {T1, T2}
     for i=1:n-1
         push!(pins, findfirst(x->x.loc == (1, i*4-1), locs))
     end
-    return QUBOResult(gg, pins)
+    mis_overhead = (n - 1) * n * 4 + 2n - 4
+    return QUBOResult(gg, pins, mis_overhead)
 end
 struct QUBOResult{NT}
     grid_graph::GridGraph{NT}
     pins::Vector{Int}
+    mis_overhead::Int
 end
 
 function map_configs_back(res::QUBOResult, configs::AbstractVector)

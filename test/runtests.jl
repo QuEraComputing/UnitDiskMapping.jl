@@ -5,6 +5,14 @@ using Test
     include("utils.jl")
 end
 
+@testset "copyline" begin
+    include("copyline.jl")
+end
+
+@testset "multiplier" begin
+    include("multiplier.jl")
+end
+
 @testset "mapping" begin
     include("mapping.jl")
 end
@@ -27,4 +35,8 @@ end
 
 @testset "weighted" begin
     include("weighted.jl")
+end
+
+@testset "qubo" begin
+    include("qubo.jl")
 end

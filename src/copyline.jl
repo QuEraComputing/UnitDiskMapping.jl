@@ -54,6 +54,7 @@ struct Block
     bottom::Int
     left::Int
     right::Int
+    connected::Int # -1 for not exist, 0 for not, 1 for yes.
 end
 
 Base.show(io::IO, ::MIME"text/plain", block::Block) = Base.show(io, block)
@@ -65,7 +66,7 @@ function get_row_string(block::Block, i)
     if i == 1
         return " ⋅ $(_s(block.top)) ⋅"
     elseif i==2
-        return " $(_s(block.left)) ⋅ $(_s(block.right))"
+        return " $(_s(block.left)) $(block.connected == -1 ? '⋅' : (block.connected == 1 ? '●' : '○')) $(_s(block.right))"
     elseif i==3
         return " ⋅ $(_s(block.bottom)) ⋅"
     end
@@ -77,13 +78,14 @@ function crossing_lattice(g, ordered_vertices)
     ymax = maximum(l->l.vstop, lines)
     xmin = minimum(l->l.vslot, lines)
     xmax = maximum(l->l.hstop, lines)
-    return CrossingLattice(xmax-xmin+1, ymax-ymin+1, lines)
+    return CrossingLattice(xmax-xmin+1, ymax-ymin+1, lines, g)
 end
 
 struct CrossingLattice <: AbstractArray{Block, 2}
     width::Int
     height::Int
     lines::Vector{CopyLine}
+    graph::SimpleGraph{Int}
 end
 Base.size(lattice::CrossingLattice) = (lattice.height, lattice.width)
 
@@ -125,7 +127,9 @@ function Base.getindex(d::CrossingLattice, i::Int, j::Int)
             end
         end
     end
-    return Block(top, bottom, left, right)
+    h = left == -1 ? right : left
+    v = top == -1 ? bottom : top
+    return Block(top, bottom, left, right, (v == -1 || h == -1) ? -1 : has_edge(d.graph, h, v))
 end
 
 Base.show(io::IO, ::MIME"text/plain", d::CrossingLattice) = Base.show(io, d)

@@ -47,7 +47,7 @@ end
 QUBO problem that defined by the following Hamiltonian.
 
 ```math
-E(z) = \\sum_{i<j} J_{ij} z_i z_j + \\sum_i H_i z_i
+E(z) = -\\sum_{i<j} J_{ij} z_i z_j + \\sum_i h_i z_i
 ```
 
 A QUBO gadget is
@@ -63,19 +63,19 @@ where `A`, `B`, `C` and `D` are weights of nodes that defined as
 
 ```math
 \\begin{align}
-A = -J_{ij} + H_i - H_j + 4\\\\
-B = -J_{ij} - H_i + H_j + 4\\\\
-C = J_{ij} + H_i + H_j + 4\\\\
-D = J_{ij} - H_i - H_j + 4
+A = -J_{ij} + 4\\\\
+B = J_{ij} + 4\\\\
+C = J_{ij} + 4\\\\
+D = -J_{ij} + 4
 \\end{align}
 ```
 
-The rest nodes: `●` have weights 2 (boundary nodes have weights 1).
+The rest nodes: `●` have weights 2 (boundary nodes have weights ``1 - h_i``).
 """
-function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
+function map_qubo(J::AbstractMatrix{T1}, h::AbstractVector{T2}) where {T1, T2}
     T = promote_type(T1, T2)
-    n = length(H)
-    @assert size(J) == (n, n) "The size of coupling matrix `J`: $(size(J)) not consistent with size of onsite term `H`: $(size(H))"
+    n = length(h)
+    @assert size(J) == (n, n) "The size of coupling matrix `J`: $(size(J)) not consistent with size of onsite term `h`: $(size(h))"
     d = crossing_lattice(complete_graph(n), 1:n)
     z = empty(SimpleCell{T})
     one = SimpleCell(T(1))
@@ -84,8 +84,8 @@ function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
         if block.bottom != -1 && block.left != -1
             # NOTE: for border vertices, we set them to weight 1.
             return [z  z  two  z;
-            two  SimpleCell{T}(J[ci]+4)    SimpleCell{T}(-J[ci]+4)  z;
-            z    SimpleCell{T}(-J[ci]+4)   SimpleCell{T}(J[ci]+4)  (block.right == -1 ? one : two);
+            two  SimpleCell{T}(-J[ci]+4)    SimpleCell{T}(J[ci]+4)  z;
+            z    SimpleCell{T}(J[ci]+4)   SimpleCell{T}(-J[ci]+4)  (block.right == -1 ? one : two);
             z  (ci.I[1] == n-1 ? one : two)  z  z]
         elseif block.top != -1 && block.right != -1
             m = fill(z, 4, 4)
@@ -98,15 +98,31 @@ function map_qubo(J::AbstractMatrix{T1}, H::AbstractVector{T2}) where {T1, T2}
     end
 
     # the first vertex
-    res[2, 4] = SimpleCell{T}(1 + H[1])
-    res[2, 5] = SimpleCell{T}(2 - H[1])
+    res[2, 4] = SimpleCell{T}(1 - h[1])
+    res[2, 5] = SimpleCell{T}(2 + h[1])
     # 2-
     topbar = fill(z, 1, 4*n-3)
-    topbar[1, 3:4:end] .= SimpleCell{T}.(1 .+ H[2:end])
-    res[1, 7:4:end] .= SimpleCell{T}.(2 .- H[2:end])
+    topbar[1, 3:4:end] .= SimpleCell{T}.(1 .- h[2:end])
+    res[1, 7:4:end] .= SimpleCell{T}.(2 .+ h[2:end])
 
     mat = vcat(topbar, res[1:end-4, 4:end])
     # generate GridGraph from matrix
     locs = [Node(ci.I, mat[ci].weight) for ci in findall(x->x.occupied, mat)]
-    return GridGraph(size(mat), locs, 1.5)
+    gg = GridGraph(size(mat), locs, 1.5)
+    pins = [findfirst(x->x.loc == (3, 1), locs)]
+    for i=1:n-1
+        push!(pins, findfirst(x->x.loc == (1, i*4-1), locs))
+    end
+    return QUBOResult(gg, pins)
+end
+struct QUBOResult{NT}
+    grid_graph::GridGraph{NT}
+    pins::Vector{Int}
+end
+
+function map_configs_back(res::QUBOResult, configs::AbstractVector)
+    return map_qubo_config_back.(Ref(res), configs)
+end
+function map_qubo_config_back(res::QUBOResult, cfg)
+    return cfg[res.pins]
 end

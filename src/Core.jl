@@ -69,6 +69,8 @@ function Base.show(io::IO, grid::GridGraph)
     println(io, "$(typeof(grid)) (radius = $(grid.radius))")
     print_grid(io, grid; show_weight=SHOW_WEIGHT[])
 end
+Base.size(gg::GridGraph) = gg.size
+Base.size(gg::GridGraph, i::Int) = gg.size[i]
 function graph_and_weights(grid::GridGraph)
     return unit_disk_graph(getfield.(grid.nodes, :loc), grid.radius), getfield.(grid.nodes, :weight)
 end
@@ -76,11 +78,7 @@ coordinates(grid::GridGraph) = getfield.(grid.nodes, :loc)
 
 # printing function for Grid graphs
 function print_grid(io::IO, grid::GridGraph{Node{WT}}; show_weight=false) where WT
-    mat = fill(empty(SimpleCell{WT}), grid.size)
-    for node in grid.nodes
-        mat[node.loc...] = SimpleCell(node.weight)
-    end
-    print_grid(io, mat; show_weight)
+    print_grid(io, cell_matrix(grid); show_weight)
 end
 function print_grid(io::IO, content::AbstractMatrix; show_weight=false)
     for i=1:size(content, 1)
@@ -92,4 +90,23 @@ function print_grid(io::IO, content::AbstractMatrix; show_weight=false)
             println(io)
         end
     end
+end
+function cell_matrix(gg::GridGraph{Node{WT}}) where WT
+    mat = fill(empty(SimpleCell{WT}), gg.size)
+    for node in gg.nodes
+        mat[node.loc...] = SimpleCell(node.weight)
+    end
+    return mat
+end
+
+function GridGraph(m::AbstractMatrix{SimpleCell{WT}}, radius::Real) where WT
+    nodes = Node{WT}[]
+    for j=1:size(m, 2)
+        for i=1:size(m, 1)
+            if !isempty(m[i, j])
+                push!(nodes, Node((i,j), m[i,j].weight))
+            end
+        end
+    end
+    return GridGraph(size(m), nodes, radius)
 end

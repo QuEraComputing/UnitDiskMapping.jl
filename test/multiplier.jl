@@ -4,10 +4,8 @@ using Test, UnitDiskMapping, Graphs
 
 @testset "multiplier" begin
     m, pins = UnitDiskMapping.multiplier()
-    g = UnitDiskMapping.get_graph(m)
-    #colormap = ["#FFFFFF", "#AAAAAA", "#444444", "#000000"]
-    #LuxorGraphPlot.show_graph(g; locs=m.locs, vertex_colors=getindex.(Ref(colormap), m.weights)) |> display
-    configs = solve(IndependentSet(g; m.weights), ConfigsMax())[].c
+    g, ws = UnitDiskMapping.graph_and_weights(m)
+    configs = solve(IndependentSet(g; weights=ws), ConfigsMax())[].c
 
     # completeness
     inputs = Int[]
@@ -25,4 +23,19 @@ using Test, UnitDiskMapping, Graphs
         @test ci[3] == ci[8]
         @test ci[1] + ci[2]*ci[3] + ci[4] == ci[5] + 2 * ci[7]
     end
+end
+
+@testset "factoring" begin
+    mres = UnitDiskMapping.map_factoring(2, 2)
+    @test show_pins(mres) !== nothing
+    res = UnitDiskMapping.solve_factoring(mres, 6) do g, ws
+        collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+    end
+    @test res == (2, 3) || res == (3, 2)
+
+    mres = UnitDiskMapping.map_factoring(2, 3)
+    res = UnitDiskMapping.solve_factoring(mres, 15) do g, ws
+        collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+    end
+    @test res == (5, 3) || res == (3, 5)
 end

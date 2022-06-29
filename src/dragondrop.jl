@@ -1,43 +1,16 @@
-function dragondrop(f, d::CrossingLattice)
-    grid = map(zip(CartesianIndices(d), d)) do (ci, block)
-        #println(block)
-        f(ci, block)
-    end
-    return glue(grid)
-end
-
-function glue2(grid::AbstractMatrix{<:AbstractMatrix{T}}) where T
+function glue(grid::AbstractMatrix{<:AbstractMatrix{SimpleCell{T}}}, DI::Int, DJ::Int) where T
     @assert size(grid, 1) > 0 && size(grid, 2) > 0
-    nrow = sum(x->size(x, 1)-1, grid) + 1
-    ncol = sum(x->size(x, 2)-1, grid) + 1
-    res = zeros(T, nrow, ncol)
+    nrow = sum(x->size(x, 1)-DI, grid[:,1]) + DI
+    ncol = sum(x->size(x, 2)-DJ, grid[1,:]) + DJ
+    res = zeros(SimpleCell{T}, nrow, ncol)
     ioffset = 0
     for i=1:size(grid, 1)
         joffset = 0
         for j=1:size(grid, 2)
             chunk = grid[i, j]
             res[ioffset+1:ioffset+size(chunk, 1), joffset+1:joffset+size(chunk, 2)] .+= chunk
-            joffset += size(chunk, 2) - 1
-            j == size(grid, 2) && (ioffset += size(chunk, 1)-1)
-        end
-    end
-    return res
-end
-
-function glue(grid::AbstractMatrix{<:AbstractMatrix{T}}) where T
-    #display(grid)
-    @assert size(grid, 1) > 0 && size(grid, 2) > 0
-    nrow = sum(x->size(x, 1), grid[:,1])
-    ncol = sum(x->size(x, 2), grid[1,:])
-    res = fill(empty(T), nrow, ncol)
-    ioffset = 0
-    for i=1:size(grid, 1)
-        joffset = 0
-        for j=1:size(grid, 2)
-            chunk = grid[i, j]
-            res[ioffset+1:ioffset+size(chunk, 1), joffset+1:joffset+size(chunk, 2)] .= chunk
-            joffset += size(chunk, 2)
-            j == size(grid, 2) && (ioffset += size(chunk, 1))
+            joffset += size(chunk, 2) - DJ
+            j == size(grid, 2) && (ioffset += size(chunk, 1)-DI)
         end
     end
     return res
@@ -86,7 +59,7 @@ function map_qubo(J::AbstractMatrix{T1}, h::AbstractVector{T2}) where {T1, T2}
             chunks[i, j][2:3, 2:3] .+= SimpleCell.([-a a; a -a])
         end
     end
-    grid = glue(chunks)
+    grid = glue(chunks, 0, 0)
     # add one extra row
     # make the grid larger by one unit
     gg, pins = post_process_grid(grid, h, -h)
@@ -100,7 +73,7 @@ function map_simple_wmis(graph::SimpleGraph, weights::AbstractVector{T}) where {
     d = crossing_lattice(complete_graph(n), 1:n)
     d = CrossingLattice(d.width, d.height, d.lines, graph)
     chunks = render_grid(T, d)
-    grid = glue(chunks)
+    grid = glue(chunks, 0, 0)
     # add one extra row
     # make the grid larger by one unit
     gg, pins = post_process_grid(grid, weights, zeros(T, length(weights)))

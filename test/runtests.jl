@@ -37,6 +37,6 @@ end
     include("weighted.jl")
 end
 
-@testset "qubo" begin
-    include("qubo.jl")
+@testset "drag and drop" begin
+    include("dragondrop.jl")
 end

@@ -42,12 +42,6 @@ const multiplier_locs_and_weights = [
     ((8, 18), 1),   # x5
 ]
 
-struct SimpleGridGraph{WT}
-    locs::Vector{Tuple{Int,Int}}
-    weights::WT
-    unit::Float64  # unit distance
-end
-
 """
     multiplier()
 
@@ -59,10 +53,80 @@ The logic gate constraints on `pins` are
 * x3 == x8
 """
 function multiplier()
-    locs = map(x->(x[1][1], -x[1][2]), multiplier_locs_and_weights)
-    weights = getindex.(multiplier_locs_and_weights, 2)
+    xmin = minimum(x->x[1][1], multiplier_locs_and_weights)
+    xmax = maximum(x->x[1][1], multiplier_locs_and_weights)
+    ymin = minimum(x->x[1][2], multiplier_locs_and_weights)
+    ymax = maximum(x->x[1][2], multiplier_locs_and_weights)
+
+    nodes = [Node(loc[2]-ymin+1, loc[1]-xmin+1, w) for (loc, w) in multiplier_locs_and_weights]
     pins = [1,3,10,23,38,41,22,6]
-    return SimpleGridGraph(locs, weights, 2*sqrt(2)*1.01), pins
+    return GridGraph((ymax-ymin+1, xmax-xmin+1), nodes, 2*sqrt(2)*1.01), pins
 end
 
-get_graph(g::SimpleGridGraph) = unit_disk_graph(g.locs, g.unit)
+function map_factoring(M::Int, N::Int)
+    block, pin = multiplier()
+    m, n = size(block) .- (4, 1)
+    G = glue(fill(cell_matrix(block), (M,N)), 4, 1)
+    WIDTH = 3
+    leftside = zeros(eltype(G), size(G,1), WIDTH)
+    for i=1:M-1
+        for (a, b) in [(12, WIDTH), (14,1), (16,1), (18, 2), (14,1), (16,1), (18, 2), (19,WIDTH)]
+            leftside[(i-1)*m+a, b] += SimpleCell(1)
+        end
+    end
+    G = glue(reshape([leftside, G], 1, 2), 0, 1)
+    gg = GridGraph(G, block.radius)
+    locs = getfield.(gg.nodes, :loc)
+    coo(i, j) = ((i-1)*m, (j-1)*n+WIDTH-1)
+    pinloc(i, j, index) = findfirst(==(block.nodes[pin[index]].loc .+ coo(i, j)), locs)
+    pp = [pinloc(1, j, 2) for j=N:-1:1]
+    pq = [pinloc(i, N, 3) for i=1:M]
+    pm = [
+        [pinloc(i, N, 5) for i=1:M]...,
+        [pinloc(M, j, 5) for j=N-1:-1:1]...,
+    ]
+    p0 = [
+        [pinloc(1, j, 1) for j=1:N]...,
+        [pinloc(i, N, 4) for i=1:M]...,
+    ]
+    return FactoringResult(gg, pp, pq, pm, p0)
+end
+
+struct FactoringResult{NT}
+    grid_graph::GridGraph{NT}
+    pins_input1::Vector{Int}
+    pins_input2::Vector{Int}
+    pins_output::Vector{Int}
+    pins_zeros::Vector{Int}
+end
+
+function map_configs_back(res::FactoringResult, configs::AbstractVector)
+    return map(cfg->(asint(cfg[res.pins_input1]), asint(cfg[res.pins_input2])), configs)
+end
+
+# convert vector to integer
+asint(v::AbstractVector) = sum(i->v[i]<<(i-1), 1:length(v))
+
+function solve_factoring(missolver, mres::FactoringResult, target::Int)
+    g, ws = graph_and_weights(mres.grid_graph)
+    mg, vmap = set_target(g, [mres.pins_zeros..., mres.pins_output...], target << length(mres.pins_zeros))
+    res = missolver(mg, ws[vmap])
+    cfg = zeros(Int, nv(g))
+    cfg[vmap] .= res
+    return map_configs_back(mres, [cfg])[]
+end
+
+function set_target(g::SimpleGraph, pins::AbstractVector, target::Int)
+    vs = collect(vertices(g))
+    for (i, p) in enumerate(pins)
+        bitval = (target >> (i-1)) & 1
+        if bitval == 1
+            # remove pin and its neighbor
+            vs = setdiff(vs, neighbors(g, p) ∪ [p])
+        else
+            # remove pin
+            vs = setdiff(vs, [p])
+        end
+    end
+    return induced_subgraph(g, vs)
+end

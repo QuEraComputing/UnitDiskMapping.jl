@@ -7,6 +7,7 @@ using GenericTensorNetworks.OMEinsum.LinearAlgebra: triu
     H = randn(n) * 0.001
     J = triu(randn(n, n) * 0.001, 1); J += J'
     qubo = UnitDiskMapping.map_qubo(J, H)
+    @test show_pins(qubo) !== nothing
     println(qubo)
     graph, weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
     r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
@@ -26,6 +27,7 @@ end
         n = nv(g0)
         w0 = ones(n) * 0.01
         wmis = UnitDiskMapping.map_simple_wmis(g0, w0)
+        @test show_pins(wmis) !== nothing
         graph, weights = UnitDiskMapping.graph_and_weights(wmis.grid_graph)
         r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
         r2 = solve(IndependentSet(g0; weights=w0), SingleConfigMax())[]

@@ -101,8 +101,8 @@ end
     # checking mapping back
     misconfig = solve(gp, SingleConfigMax())[].c
     original_configs = map_config_back(res, collect(misconfig.data))
-    @test count(isone, original_configs[1]) == missize
-    @test is_independent_set(g, original_configs[1])
+    @test count(isone, original_configs) == missize
+    @test is_independent_set(g, original_configs)
     @test println(res.grid_graph) === nothing
 
     c = zeros(Int, size(res.grid_graph))

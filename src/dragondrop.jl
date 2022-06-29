@@ -1,3 +1,5 @@
+# Glue multiple blocks into a whole
+# `DI` and `DJ` are the overlap in row and columns between two adjacent blocks.
 function glue(grid::AbstractMatrix{<:AbstractMatrix{SimpleCell{T}}}, DI::Int, DJ::Int) where T
     @assert size(grid, 1) > 0 && size(grid, 2) > 0
     nrow = sum(x->size(x, 1)-DI, grid[:,1]) + DI
@@ -17,11 +19,17 @@ function glue(grid::AbstractMatrix{<:AbstractMatrix{SimpleCell{T}}}, DI::Int, DJ
 end
 
 """
-QUBO problem that defined by the following Hamiltonian.
+    map_qubo(J::AbstractMatrix, h::AbstractVector) -> QUBOResult
+
+Map a QUBO problem to a weighted MIS problem on a defected King's graph, where a QUBO problem is defined by the following Hamiltonian
 
 ```math
 E(z) = -\\sum_{i<j} J_{ij} z_i z_j + \\sum_i h_i z_i
 ```
+
+!!! note
+
+    The input coupling strength and onsite energies must be << 1.
 
 A QUBO gadget is
 
@@ -67,6 +75,16 @@ function map_qubo(J::AbstractMatrix{T1}, h::AbstractVector{T2}) where {T1, T2}
     return QUBOResult(gg, pins, mis_overhead)
 end
 
+"""
+    map_simple_wmis(graph::SimpleGraph, weights::AbstractVector) -> WMISResult
+
+Map a weighted MIS problem to a weighted MIS problem on a defected King's graph.
+
+!!! note
+
+    The input coupling strength and onsite energies must be << 1.
+    This method does not provide path decomposition based optimization, check [`map_graph`](@ref) for the path decomposition optimized version.
+"""
 function map_simple_wmis(graph::SimpleGraph, weights::AbstractVector{T}) where {T}
     n = length(weights)
     @assert nv(graph) == n
@@ -82,7 +100,6 @@ function map_simple_wmis(graph::SimpleGraph, weights::AbstractVector{T}) where {
 end
 
 function render_grid(::Type{T}, cl::CrossingLattice) where T
-    adjm = adjacency_matrix(cl.graph)
     n = nv(cl.graph)
     z = empty(SimpleCell{T})
     one = SimpleCell(T(1))
@@ -167,8 +184,8 @@ struct QUBOResult{NT}
     pins::Vector{Int}
     mis_overhead::Int
 end
-function map_configs_back(res::QUBOResult, configs::AbstractVector)
-    return map(cfg->cfg[res.pins], configs)
+function map_config_back(res::QUBOResult, cfg)
+    return cfg[res.pins]
 end
 
 struct WMISResult{NT}
@@ -176,6 +193,6 @@ struct WMISResult{NT}
     pins::Vector{Int}
     mis_overhead::Int
 end
-function map_configs_back(res::WMISResult, configs::AbstractVector)
-    return map(cfg->1 .- cfg[res.pins], configs)
+function map_config_back(res::WMISResult, cfg)
+    return 1 .- cfg[res.pins]
 end

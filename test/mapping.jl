@@ -35,7 +35,7 @@ end
         @show graphname
         g = smallgraph(graphname)
         ug = embed_graph(g)
-        mis_overhead0 = mis_overhead_copylines(ug)
+        mis_overhead0 = UnitDiskMapping.mis_overhead_copylines(ug)
         ug2, tape = apply_crossing_gadgets!(UnitDiskMapping.UnWeighted(), copy(ug))
         ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[RotatedGadget(UnitDiskMapping.DanglingLeg(), n) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
@@ -82,9 +82,9 @@ end
 
     # checking mapping back
     misconfig = solve(gp, SingleConfigMax())[].c
-    original_configs = map_configs_back(res, [collect(Bool, misconfig.data)])
-    @test count(isone, original_configs[1]) == missize
-    @test is_independent_set(g, original_configs[1])
+    original_configs = map_config_back(res, collect(Bool, misconfig.data))
+    @test count(isone, original_configs) == missize
+    @test is_independent_set(g, original_configs)
 end
 
 
@@ -100,7 +100,7 @@ end
 
     # checking mapping back
     misconfig = solve(gp, SingleConfigMax())[].c
-    original_configs = map_configs_back(res, [collect(misconfig.data)])
+    original_configs = map_config_back(res, collect(misconfig.data))
     @test count(isone, original_configs[1]) == missize
     @test is_independent_set(g, original_configs[1])
     @test println(res.grid_graph) === nothing

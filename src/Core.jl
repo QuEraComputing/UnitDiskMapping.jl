@@ -1,8 +1,4 @@
 const SHOW_WEIGHT = Ref(false)
-# UnWeighted mode
-struct UnWeighted end
-# Weighted mode
-struct Weighted end
 # The static one for unweighted cells
 struct ONE end
 Base.one(::Type{ONE}) = ONE()

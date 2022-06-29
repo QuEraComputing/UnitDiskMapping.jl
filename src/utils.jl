@@ -1,5 +1,3 @@
-export is_independent_set, unitdisk_graph
-
 function simplegraph(edgelist::AbstractVector{Tuple{Int,Int}})
     nv = maximum(x->max(x...), edgelist)
     g = SimpleGraph(nv)

@@ -63,6 +63,13 @@ function multiplier()
     return GridGraph((ymax-ymin+1, xmax-xmin+1), nodes, 2*sqrt(2)*1.01), pins
 end
 
+"""
+    map_factoring(M::Int, N::Int)
+
+Setup a factoring circuit with M-bit `q` register (second input) and N-bit `p` register (first input).
+The `m` register size is (M+N-1), which stores the output.
+Call [`solve_factoring`](@ref) to solve a factoring problem with the mapping result.
+"""
 function map_factoring(M::Int, N::Int)
     block, pin = multiplier()
     m, n = size(block) .- (4, 1)
@@ -100,20 +107,27 @@ struct FactoringResult{NT}
     pins_zeros::Vector{Int}
 end
 
-function map_configs_back(res::FactoringResult, configs::AbstractVector)
-    return map(cfg->(asint(cfg[res.pins_input1]), asint(cfg[res.pins_input2])), configs)
+function map_config_back(res::FactoringResult, cfg)
+    return asint(cfg[res.pins_input1]), asint(cfg[res.pins_input2])
 end
 
 # convert vector to integer
 asint(v::AbstractVector) = sum(i->v[i]<<(i-1), 1:length(v))
 
+"""
+    solve_factoring(missolver, mres::FactoringResult, x::Int) -> (Int, Int)
+
+Solve a factoring problem by solving the mapped weighted MIS problem on a defected King's graph.
+It returns (a, b) such that ``a  b = x`` holds.
+`missolver(graph, weights)` should return a vector of integers as the solution.
+"""
 function solve_factoring(missolver, mres::FactoringResult, target::Int)
     g, ws = graph_and_weights(mres.grid_graph)
     mg, vmap = set_target(g, [mres.pins_zeros..., mres.pins_output...], target << length(mres.pins_zeros))
     res = missolver(mg, ws[vmap])
     cfg = zeros(Int, nv(g))
     cfg[vmap] .= res
-    return map_configs_back(mres, [cfg])[]
+    return map_config_back(mres, cfg)
 end
 
 function set_target(g::SimpleGraph, pins::AbstractVector, target::Int)

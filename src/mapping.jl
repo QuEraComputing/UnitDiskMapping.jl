@@ -1,3 +1,8 @@
+# UnWeighted mode
+struct UnWeighted end
+# Weighted mode
+struct Weighted end
+
 Base.@kwdef struct MCell{WT} <: AbstractCell{WT}
     occupied::Bool = true
     doubled::Bool = false
@@ -60,7 +65,6 @@ struct MappingGrid{CT<:AbstractCell}
     content::Matrix{CT}
 end
 
-export coordinates
 Base.:(==)(ug::MappingGrid{CT}, ug2::MappingGrid{CT}) where CT = ug.lines == ug2.lines && ug.content == ug2.content
 Base.size(ug::MappingGrid, args...) = size(ug.content, args...)
 padding(ug::MappingGrid) = ug.padding
@@ -274,7 +278,6 @@ cell_type(::Type{Node{WT}}) where WT = MCell{WT}
 nodetype(::UnWeighted) = UnWeightedNode
 node(::Type{<:UnWeightedNode}, i, j, w) = Node(i, j)
 
-export ugrid
 function ugrid(mode, g::SimpleGraph, vertex_order::AbstractVector{Int}; padding=2, nrow=nv(g))
     @assert padding >= 2
     # create an empty canvas
@@ -334,7 +337,6 @@ function embed_graph(mode, g::SimpleGraph; vertex_order=Branching())
     return ug
 end
 
-export mis_overhead_copylines
 function mis_overhead_copylines(ug::MappingGrid{WC}) where {WC}
     sum(ug.lines) do line
         mis_overhead_copyline(WC <: WeightedMCell ? Weighted() : UnWeighted(), line)
@@ -355,8 +357,6 @@ function mis_overhead_copyline(w::W, line::CopyLine) where W
 end
 
 ##### Interfaces ######
-export MappingResult, map_graph, map_configs_back
-
 struct MappingResult{NT}
     grid_graph::GridGraph{NT}
     lines::Vector{CopyLine}
@@ -414,6 +414,15 @@ function map_configs_back(res::MappingResult, configs::AbstractVector)
     end
     return _map_configs_back(res, cs)
 end
+
+"""
+    map_config_back(map_result, config)
+
+Map a solution `config` for the mapped MIS problem to a solution for the source problem.
+"""
+function map_config_back(res::MappingResult, cfg)
+    return map_configs_back(res, [cfg])[]
+end
 function _map_configs_back(r::MappingResult{UnWeightedNode}, configs::AbstractVector{<:AbstractMatrix})
     cm = cell_matrix(r.grid_graph)
     ug = MappingGrid(r.lines, r.padding, MCell.(cm))
@@ -423,7 +432,6 @@ end
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
 default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))
 
-export print_config
 print_config(mr::MappingResult, config::AbstractMatrix) = print_config(stdout, mr, config)
 function print_config(io::IO, mr::MappingResult, config::AbstractMatrix)
     content = cell_matrix(mr.grid_graph)

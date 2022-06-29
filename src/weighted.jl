@@ -69,7 +69,6 @@ iscon(r::WeightedGadget) = iscon(unweighted(r))
 connected_nodes(r::WeightedGadget) = connected_nodes(unweighted(r))
 vertex_overhead(r::WeightedGadget) = vertex_overhead(unweighted(r))
 
-export map_weights
 """
     map_weights(r::MappingResult{WeightedNode}, source_weights)
 
@@ -87,7 +86,6 @@ function map_weights(r::MappingResult{<:WeightedNode{T1}}, source_weights::Abstr
 end
 
 # mapping configurations back
-export trace_centers
 function move_center(w::WeightedGadgetTypes, nodexy, offset)
     for (sc, mc) in zip(source_centers(w), mapped_centers(w))
         if offset == sc

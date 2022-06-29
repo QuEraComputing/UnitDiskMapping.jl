@@ -110,4 +110,3 @@ include("branching.jl")
 end
 
 using .PathDecomposition
-export pathwidth, PathDecompositionMethod, Branching, Greedy

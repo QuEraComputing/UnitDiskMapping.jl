@@ -55,7 +55,7 @@ end
         @show graphname
         g = smallgraph(graphname)
         ug = embed_graph(Weighted(), g)
-        mis_overhead0 = mis_overhead_copylines(ug)
+        mis_overhead0 = UnitDiskMapping.mis_overhead_copylines(ug)
         ug2, tape = apply_crossing_gadgets!(Weighted(), copy(ug))
         ug3, tape2 = apply_simplifier_gadgets!(copy(ug2); ruleset=[UnitDiskMapping.weighted(RotatedGadget(UnitDiskMapping.DanglingLeg(), n)) for n=0:3])
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
@@ -64,7 +64,8 @@ end
         # trace back configurations
         mgraph = SimpleGraph(ug3)
         weights = fill(0.5, nv(g))
-        mapped_weights = UnitDiskMapping.map_weights(UnitDiskMapping.MappingResult(ug3, [tape..., tape2...], mis_overhead0+mis_overhead1+mis_overhead2), weights)
+        r = UnitDiskMapping.MappingResult(GridGraph(ug3), ug3.lines, ug3.padding, [tape..., tape2...], mis_overhead0+mis_overhead1+mis_overhead2)
+        mapped_weights = UnitDiskMapping.map_weights(r, weights)
         gp = IndependentSet(mgraph; optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy(), weights=mapped_weights)
         missize_map = solve(gp, CountingMax())[]
         missize = solve(IndependentSet(g; weights=weights), CountingMax())[]
@@ -73,12 +74,12 @@ end
 
         T = GenericTensorNetworks.sampler_type(nv(mgraph), 2)
         misconfig = solve(gp, SingleConfigMax())[].c
-        c = zeros(Int, size(ug3.content))
-        for (i, loc) in enumerate(findall(!isempty, ug3.content))
-            c[loc] = misconfig.data[i]
+        c = zeros(Int, size(ug3))
+        for (i, n) in enumerate(r.grid_graph.nodes)
+            c[n.loc...] = misconfig.data[i]
         end
 
-        center_locations = trace_centers(ug3, [tape..., tape2...])
+        center_locations = trace_centers(r)
         indices = CartesianIndex.(center_locations)
         sc = c[indices]
         @test count(isone, sc) == missize.n * 2
@@ -93,7 +94,7 @@ end
     res = map_graph(Weighted(), g)
 
     # checking size
-    mgraph = SimpleGraph(res.grid_graph)
+    mgraph, _ = graph_and_weights(res.grid_graph)
     ws = rand(nv(g))
     weights = UnitDiskMapping.map_weights(res, ws)
 
@@ -105,7 +106,7 @@ end
     # checking mapping back
     T = GenericTensorNetworks.sampler_type(nv(mgraph), 2)
     misconfig = solve(gp, SingleConfigMax())[].c
-    original_configs = map_configs_back(res, [collect(misconfig.data)])
-    @test count(isone, original_configs[1]) == solve(IndependentSet(g), SizeMax())[].n
-    @test is_independent_set(g, original_configs[1])
+    original_configs = map_config_back(res, collect(misconfig.data))
+    @test count(isone, original_configs) == solve(IndependentSet(g), SizeMax())[].n
+    @test is_independent_set(g, original_configs)
 end

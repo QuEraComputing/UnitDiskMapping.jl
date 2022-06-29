@@ -69,25 +69,23 @@ iscon(r::WeightedGadget) = iscon(unweighted(r))
 connected_nodes(r::WeightedGadget) = connected_nodes(unweighted(r))
 vertex_overhead(r::WeightedGadget) = vertex_overhead(unweighted(r))
 
-export map_weights
 """
-    map_weights(r::MappingResult{<:WeightedMCell}, source_weights)
+    map_weights(r::MappingResult{WeightedNode}, source_weights)
 
 Map the weights in the source graph to weights in the mapped graph, returns a vector.
 """
-function map_weights(r::MappingResult{<:WeightedMCell}, source_weights)
+function map_weights(r::MappingResult{<:WeightedNode{T1}}, source_weights::AbstractVector{T}) where {T1,T}
     if !all(w -> 0 <= w <= 1, source_weights)
         error("all weights must be in range [0, 1], got: $(source_weights)")
     end
-    weights = eltype(source_weights)[r.grid_graph.content[ci...].weight for ci in coordinates(r.grid_graph)]
-    locs = coordinates(r.grid_graph)
+    weights = promote_type(T1,T).(getfield.(r.grid_graph.nodes, :weight))
+    locs = getfield.(r.grid_graph.nodes, :loc)
     center_indices = map(loc->findfirst(==(loc), locs), trace_centers(r))
     weights[center_indices] .+= source_weights
     return weights
 end
 
 # mapping configurations back
-export trace_centers
 function move_center(w::WeightedGadgetTypes, nodexy, offset)
     for (sc, mc) in zip(source_centers(w), mapped_centers(w))
         if offset == sc
@@ -97,9 +95,9 @@ function move_center(w::WeightedGadgetTypes, nodexy, offset)
     error("center not found, source center = $(source_centers(w)), while offset = $(offset)")
 end
 
-trace_centers(r::MappingResult) = trace_centers(r.grid_graph, r.mapping_history)
-function trace_centers(ug::MappingGrid, tape)
-    center_locations = map(x->center_location(x; padding=ug.padding) .+ (0, 1), ug.lines)
+trace_centers(r::MappingResult) = trace_centers(r.lines, r.padding, r.mapping_history)
+function trace_centers(lines, padding, tape)
+    center_locations = map(x->center_location(x; padding) .+ (0, 1), lines)
     for (gadget, i, j) in tape
         m, n = size(gadget)
         for (k, centerloc) in enumerate(center_locations)
@@ -109,12 +107,12 @@ function trace_centers(ug::MappingGrid, tape)
             end
         end
     end
-    return center_locations[sortperm(getfield.(ug.lines, :vertex))]
+    return center_locations[sortperm(getfield.(lines, :vertex))]
 end
 
-function _map_configs_back(r::MappingResult{<:WeightedMCell}, configs::AbstractVector)
+function _map_configs_back(r::MappingResult{<:WeightedNode}, configs::AbstractVector)
     center_locations = trace_centers(r)
-    res = [zeros(Int, length(r.grid_graph.lines)) for i=1:length(configs)]
+    res = [zeros(Int, length(r.lines)) for i=1:length(configs)]
     for (ri, c) in zip(res, configs)
         for (i, loc) in enumerate(center_locations)
             ri[i] = c[loc...]

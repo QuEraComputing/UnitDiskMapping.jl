@@ -19,7 +19,6 @@ abstract type Pattern end
 """
 abstract type CrossPattern <: Pattern end
 
-export source_matrix, mapped_matrix
 function source_matrix(p::Pattern)
     m, n = size(p)
     locs, _, _ = source_graph(p)
@@ -167,7 +166,6 @@ Base.size(::Turn) = (4, 4)
 cross_location(::Turn) = (3,2)
 
 
-export Branch, TrivialTurn, BranchFix, WTurn, TCon, BranchFixB
 struct Branch <: CrossPattern end
 # ⋅ ● ⋅ ⋅
 # ⋅ ● ⋅ ⋅
@@ -321,7 +319,6 @@ cross_location(::EndTurn) = (2,2)
 iscon(::EndTurn) = false
 
 ############## Rotation and Flip ###############
-export RotatedGadget, ReflectedGadget
 struct RotatedGadget{GT} <: Pattern
     gadget::GT
     n::Int
@@ -395,12 +392,10 @@ function _apply_transform(r::ReflectedGadget, loc::Tuple{Int,Int}, center)
     return loc
 end
 
-export vertex_overhead
 function vertex_overhead(p::Pattern)
     nv(mapped_graph(p)[2]) - nv(source_graph(p)[1])
 end
 
-export mapped_boundary_config, source_boundary_config
 function mapped_boundary_config(p::Pattern, config)
     _boundary_config(mapped_graph(p)[3], config)
 end
@@ -415,7 +410,6 @@ function _boundary_config(pins, config)
     return res
 end
 
-export rotated_and_reflected
 function rotated_and_reflected(p::Pattern)
     patterns = Pattern[p]
     source_matrices = [source_matrix(p)]

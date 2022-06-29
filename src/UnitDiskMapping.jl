@@ -3,26 +3,49 @@
 module UnitDiskMapping
 
 using Graphs
+using LuxorGraphPlot
+using LuxorGraphPlot.Luxor.Colors
 
-export MappingGrid, apply_crossing_gadgets!, apply_simplifier_gadgets!, apply_gadget!, embed_graph
-export unapply_gadgets!, unmatch
-export Pattern, Corner, Turn, Cross, source_graph, mapped_graph, TruncatedTurn, EndTurn
-export mapped_entry_to_compact, source_entry_to_configs, map_config_back, mis_overhead
-export UNode, contract_graph, compress_graph
+# Basic types
 export UnWeighted, Weighted
-export Cell, AbstractCell
-export WeightedCell, WeightedGadget, WeightedNode
+export Cell, AbstractCell, SimpleCell
+export Node, WeightedNode, UnWeightedNode
+export graph_and_weights, GridGraph, coordinates
+
+# dragon drop methods
+export map_factoring, map_qubo, map_simple_wmis, solve_factoring, multiplier
+
+# plotting methods
+export show_grayscale, show_pins, show_config
+
+# path-width optimized mapping
+export MappingResult, map_graph, map_config_back, map_weights, trace_centers, print_config
+export MappingGrid, embed_graph, apply_crossing_gadgets!, apply_simplifier_gadgets!, unapply_gadgets!
+
+# gadgets
+export Pattern, Corner, Turn, Cross, TruncatedTurn, EndTurn,
+    Branch, TrivialTurn, BranchFix, WTurn, TCon, BranchFixB,
+    RotatedGadget, ReflectedGadget, rotated_and_reflected, WeightedGadget
+export vertex_overhead, source_graph, mapped_graph, mis_overhead
+export @gg
+
+# utils
+export is_independent_set, unitdisk_graph
+
+# path decomposition
+export pathwidth, PathDecompositionMethod, Branching, Greedy
 
 include("utils.jl")
 include("Core.jl")
 include("pathdecomposition/pathdecomposition.jl")
 include("copyline.jl")
-include("qubo.jl")
+include("dragondrop.jl")
 include("multiplier.jl")
 include("gadgets.jl")
 include("mapping.jl")
 include("weighted.jl")
 include("simplifiers.jl")
 include("extracting_results.jl")
+include("visualize.jl")
 
 end

@@ -1,4 +1,3 @@
-export @gg
 """
 ### Properties
 * size

@@ -4,6 +4,7 @@ Base.@kwdef struct MCell{WT} <: AbstractCell{WT}
     connected::Bool = false
     weight::WT = ONE()
 end
+MCell(x::SimpleCell) = MCell(; occupied=x.occupied, weight=x.weight)
 const UnWeightedMCell = MCell{ONE}
 const WeightedMCell{T<:Real} = MCell{T}
 Base.isempty(cell::MCell) = !cell.occupied
@@ -61,6 +62,7 @@ end
 
 export coordinates
 Base.:(==)(ug::MappingGrid{CT}, ug2::MappingGrid{CT}) where CT = ug.lines == ug2.lines && ug.content == ug2.content
+Base.size(ug::MappingGrid, args...) = size(ug.content, args...)
 padding(ug::MappingGrid) = ug.padding
 coordinates(ug::MappingGrid) = [ci.I for ci in findall(!isempty, ug.content)]
 function add_cell!(m::AbstractMatrix{<:MCell}, node::UnWeightedNode)
@@ -80,10 +82,16 @@ function connect_cell!(m::AbstractMatrix{<:MCell}, i::Int, j::Int)
 end
 
 function Graphs.SimpleGraph(ug::MappingGrid)
-    if any(x->x.doubled, ug.content)
+    if any(x->x.doubled || x.connected, ug.content)
         error("This mapping is not done yet!")
     end
-    return unitdisk_graph(coordinates(ug), 1.6)
+    return unitdisk_graph(coordinates(ug), 1.5)
+end
+function GridGraph(ug::MappingGrid)
+    if any(x->x.doubled || x.connected, ug.content)
+        error("This mapping is not done yet!")
+    end
+    return GridGraph(size(ug), [Node((i,j), ug.content[i,j].weight) for (i, j) in coordinates(ug)], 1.5)
 end
 
 Base.show(io::IO, ug::MappingGrid) = print_grid(io, ug.content)
@@ -120,8 +128,8 @@ end
 function apply_simplifier_gadgets!(ug::MappingGrid; ruleset, nrepeat::Int=10)
     tape = Tuple{Pattern,Int,Int}[]
     for _ in 1:nrepeat, pattern in ruleset
-        for j=0:size(ug.content, 2)  # start from 0 because there can be one empty padding column/row.
-            for i=0:size(ug.content, 1)
+        for j=0:size(ug, 2)  # start from 0 because there can be one empty padding column/row.
+            for i=0:size(ug, 1)
                 if match(pattern, ug.content, i, j)
                     apply_gadget!(pattern, ug.content, i, j)
                     push!(tape, (pattern, i, j))
@@ -349,8 +357,10 @@ end
 ##### Interfaces ######
 export MappingResult, map_graph, map_configs_back
 
-struct MappingResult{CT}
-    grid_graph::MappingGrid{CT}
+struct MappingResult{NT}
+    grid_graph::GridGraph{NT}
+    lines::Vector{CopyLine}
+    padding::Int
     mapping_history::Vector{Tuple{Pattern,Int,Int}}
     mis_overhead::Int
 end
@@ -386,7 +396,7 @@ function map_graph(mode, g::SimpleGraph; vertex_order=Branching(), ruleset=defau
     ug, tape2 = apply_simplifier_gadgets!(ug; ruleset=ruleset)
     mis_overhead1 = isempty(tape) ? 0 : sum(x->mis_overhead(x[1]), tape)
     mis_overhead2 = isempty(tape2) ? 0 : sum(x->mis_overhead(x[1]), tape2)
-    return MappingResult(ug, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
+    return MappingResult(GridGraph(ug), ug.lines, ug.padding, vcat(tape, tape2) , mis_overhead0 + mis_overhead1 + mis_overhead2)
 end
 
 """
@@ -396,15 +406,19 @@ Map MIS solutions for the mapped graph to a solution for the source graph.
 """
 function map_configs_back(res::MappingResult, configs::AbstractVector)
     cs = map(configs) do cfg
-        c = zeros(Int, size(res.grid_graph.content))
-        for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
-            c[loc] = cfg[i]
+        c = zeros(Int, size(res.grid_graph))
+        for (i, n) in enumerate(res.grid_graph.nodes)
+            c[n.loc...] = cfg[i]
         end
         c
     end
     return _map_configs_back(res, cs)
 end
-_map_configs_back(r::MappingResult{<:UnWeightedMCell}, configs::AbstractVector{<:AbstractMatrix}) = unapply_gadgets!(copy(r.grid_graph), r.mapping_history, copy.(configs))[2]
+function _map_configs_back(r::MappingResult{UnWeightedNode}, configs::AbstractVector{<:AbstractMatrix})
+    cm = cell_matrix(r.grid_graph)
+    ug = MappingGrid(r.lines, r.padding, MCell.(cm))
+    unapply_gadgets!(ug, r.mapping_history, copy.(configs))[2]
+end
 
 default_simplifier_ruleset(::UnWeighted) = vcat([rotated_and_reflected(rule) for rule in simplifier_ruleset]...)
 default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(UnWeighted()))
@@ -412,12 +426,11 @@ default_simplifier_ruleset(::Weighted) = weighted.(default_simplifier_ruleset(Un
 export print_config
 print_config(mr::MappingResult, config::AbstractMatrix) = print_config(stdout, mr, config)
 function print_config(io::IO, mr::MappingResult, config::AbstractMatrix)
-    content = mr.grid_graph.content
+    content = cell_matrix(mr.grid_graph)
     @assert size(content) == size(config)
     for i=1:size(content, 1)
         for j=1:size(content, 2)
             cell = content[i, j]
-            @assert !(cell.connected || cell.doubled)
             if !isempty(cell)
                 if !iszero(config[i,j])
                     print(io, "●")

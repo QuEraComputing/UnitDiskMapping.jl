@@ -20,7 +20,7 @@ struct SimpleCell{WT} <: AbstractCell{WT}
     occupied::Bool
     weight::WT
     SimpleCell(; occupied=true) = new{ONE}(occupied, ONE())
-    SimpleCell(x::Real; occupied=true) = new{typeof(x)}(occupied, x)
+    SimpleCell(x::Union{Real,ONE}; occupied=true) = new{typeof(x)}(occupied, x)
     SimpleCell{T}(x::Real; occupied=true) where T = new{T}(occupied, T(x))
 end
 get_weight(sc::SimpleCell) = sc.weight
@@ -73,6 +73,9 @@ Base.size(gg::GridGraph) = gg.size
 Base.size(gg::GridGraph, i::Int) = gg.size[i]
 function graph_and_weights(grid::GridGraph)
     return unit_disk_graph(getfield.(grid.nodes, :loc), grid.radius), getfield.(grid.nodes, :weight)
+end
+function Graphs.SimpleGraph(grid::GridGraph{Node{ONE}})
+    return unit_disk_graph(getfield.(grid.nodes, :loc), grid.radius)
 end
 coordinates(grid::GridGraph) = getfield.(grid.nodes, :loc)
 

@@ -105,9 +105,9 @@ end
     @test is_independent_set(g, original_configs[1])
     @test println(res.grid_graph) === nothing
 
-    c = zeros(Int, size(res.grid_graph.content))
-    for (i, loc) in enumerate(findall(!isempty, res.grid_graph.content))
-        c[loc] = misconfig.data[i]
+    c = zeros(Int, size(res.grid_graph))
+    for (i, n) in enumerate(res.grid_graph.nodes)
+        c[n.loc...] = misconfig.data[i]
     end
     @test print_config(res, c) === nothing
 end

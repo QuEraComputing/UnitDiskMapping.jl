@@ -1,4 +1,10 @@
 # normalized to minimum weight and maximum weight
+function LuxorGraphPlot.show_graph(gg::GridGraph; vertex_size=0.35, fontsize=24, kwargs...)
+	locs = [(j,i) for (i,j) in coordinates(gg)]
+    g, ws = graph_and_weights(gg)
+    show_graph(g; locs, vertex_size, fontsize, kwargs...)
+end
+
 function show_grayscale(gg::GridGraph; vertex_size=0.35, fontsize=24, kwargs...)
 	locs = [(j,i) for (i,j) in coordinates(gg)]
     g, ws = graph_and_weights(gg)
@@ -11,16 +17,15 @@ function show_grayscale(gg::GridGraph; vertex_size=0.35, fontsize=24, kwargs...)
     show_graph(g; locs, vertex_size, fontsize, vertex_colors, kwargs...)
 end
 
-function show_pins(gg::GridGraph, color_pins::AbstractDict; vertex_size=0.35, fontsize=24, kwargs...)
+function show_pins(gg::GridGraph, color_pins::AbstractDict; kwargs...)
     vertex_colors=String[]
     texts=String[]
-    g, ws = UnitDiskMapping.graph_and_weights(gg)
-    for i=1:nv(g)
+    for i=1:length(gg.nodes)
         c, t = haskey(color_pins, i) ? color_pins[i] : ("white", "")
         push!(vertex_colors, c)
         push!(texts, t)
     end
-    show_graph(g; locs=[(n.loc[2], n.loc[1]) for n in gg.nodes], vertex_size, fontsize, vertex_colors, texts, kwargs...)
+    show_graph(gg; vertex_colors, texts, kwargs...)
 end
 
 function show_pins(mres::FactoringResult; kwargs...)
@@ -56,8 +61,7 @@ function show_pins(mres::WMISResult; kwargs...)
     show_pins(mres.grid_graph, color_pins; kwargs...)
 end
 
-function show_config(gg::GridGraph, config; vertex_size=0.35, fontsize=24, kwargs...)
-    g, ws = UnitDiskMapping.graph_and_weights(gg)
+function show_config(gg::GridGraph, config; kwargs...)
     vertex_colors=[iszero(c) ? "white" : "red" for c in config]
-    show_graph(g; locs=[(n.loc[2], n.loc[1]) for n in gg.nodes], vertex_size, fontsize, vertex_colors, kwargs...)
+    show_graph(gg; vertex_colors, kwargs...)
 end

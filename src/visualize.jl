@@ -65,3 +65,13 @@ function show_config(gg::GridGraph, config; kwargs...)
     vertex_colors=[iszero(c) ? "white" : "red" for c in config]
     show_graph(gg; vertex_colors, kwargs...)
 end
+
+function show_pins(mres::MappingResult; kwargs...)
+    locs = getfield.(mres.grid_graph.nodes, :loc)
+    center_indices = map(loc->findfirst(==(loc), locs), trace_centers(mres))
+    color_pins = Dict{Int,Tuple{String,String}}()
+    for (i, pin) in enumerate(center_indices)
+        color_pins[pin] = ("red", "v$i")
+    end
+    show_pins(mres.grid_graph, color_pins; kwargs...)
+end

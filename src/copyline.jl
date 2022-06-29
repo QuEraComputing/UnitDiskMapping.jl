@@ -14,7 +14,7 @@ struct CopyLine
     hstop::Int  # there is no hstart
 end
 function Base.show(io::IO, cl::CopyLine)
-    print(io, "$(typeof(cl)): vslot → [$(cl.vstart):$(cl.vstop),$(cl.vslot)], hslot → [$(cl.hslot),$(cl.vslot):$(cl.hstop)]")
+    print(io, "$(typeof(cl)) $(cl.vertex): vslot → [$(cl.vstart):$(cl.vstop),$(cl.vslot)], hslot → [$(cl.hslot),$(cl.vslot):$(cl.hstop)]")
 end
 Base.show(io::IO, ::MIME"text/plain", cl::CopyLine) = Base.show(io, cl)
 

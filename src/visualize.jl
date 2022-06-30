@@ -9,7 +9,7 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
         texts = nothing,
         format=:svg, filename=nothing,
         vertex_size=0.35,
-        fontsize=24,
+        fontsize=20,
         kwargs...)
     # transpose (i, j) to make them consistent with terminal output
 	locs = [(j,i) for (i,j) in coordinates(gg)]

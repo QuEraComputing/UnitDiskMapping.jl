@@ -13,25 +13,33 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
         vertex_size=0.35,
         fontsize=24,
         kwargs...)
+    # transpose (i, j) to make them consistent with terminal output
 	locs = [(j,i) for (i,j) in coordinates(gg)]
+    length(locs) == 0 && return _draw(()->nothing, 100, 100; format, filename)
     edges = [(e.src, e.dst) for e in Graphs.edges(graph_and_weights(gg)[1])]
-    length(locs) == 0 && return _draw(f, 100, 100; format, filename)
+
+    # configure canvas and plot
+    xmin, ymin, xmax, ymax = LuxorGraphPlot.get_bounding_box(locs)
+    config = LuxorGraphPlot.GraphDisplayConfig(; vertex_size, fontsize, kwargs...)
+    Dx, Dy = ((xmax-xmin)+2*config.xpad)*config.unit, ((ymax-ymin)+2*config.ypad)*config.unit
+    transform(loc) = loc[1]-ymin+xpad, loc[2]-ymin+ypad
+
+    # compute empty locations
     empty_locations = Tuple{Int,Int}[]
-    for i=1:size(gg, 1), j=1:size(gg, 2)
+    for i=xmin:xmax, j=ymin:ymax
         (j, i) ∉ locs && push!(empty_locations, (j, i))
     end
-    canvas = LuxorGraphPlot.config_canvas(locs, xpad, ypad)
-    config = LuxorGraphPlot.GraphDisplayConfig(; vertex_size, fontsize, canvas..., kwargs...)
-    Dx, Dy = (config.xspan+2*config.xpad)*config.unit, (config.yspan+2*config.ypad)*config.unit
+
+    # plot!
     LuxorGraphPlot._draw(Dx, Dy; format, filename) do
-        LuxorGraphPlot._show_graph(map(loc->(loc[1]+config.offsetx, loc[2]+config.offsety), locs), edges,
+        LuxorGraphPlot._show_graph(transform.(locs), edges,
         vertex_colors, vertex_stroke_colors, vertex_text_colors, vertex_sizes, vertex_shapes, edge_colors, texts, config)
 
         config2 = LuxorGraphPlot.GraphDisplayConfig(; vertex_size=config.vertex_size/10,
                                      vertex_fill_color="#333333",
                                      vertex_stroke_color="transparent",
-                                     canvas...)
-        LuxorGraphPlot._show_graph(map(loc->(loc[1]+config.offsetx, loc[2]+config.offsety), empty_locations), Tuple{Int,Int}[],
+                                     )
+        LuxorGraphPlot._show_graph(transform.(empty_locations), Tuple{Int,Int}[],
                 nothing, nothing, nothing, nothing, nothing, nothing, fill("", length(empty_locations)), config2)
     end
 end

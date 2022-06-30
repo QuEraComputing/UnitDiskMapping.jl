@@ -5,7 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 2f721887-6dee-4b53-ae33-2c0a4b79ff37
-using Pkg; Pkg.activate()
+using Pkg; Pkg.activate(".")
 
 # ╔═╡ 39bcea18-00b6-42ca-a1f2-53655f31fea7
 using Revise, UnitDiskMapping, Graphs, GenericTensorNetworks, PlutoUI, LinearAlgebra, Colors

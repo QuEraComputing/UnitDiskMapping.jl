@@ -13,7 +13,7 @@ begin
 end
 
 # ╔═╡ 39bcea18-00b6-42ca-a1f2-53655f31fea7
-using UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra
+using UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra, UnitDiskMapping.LuxorGraphPlot.Luxor
 
 # ╔═╡ eac6ceda-f5d4-11ec-23db-b7b4d00eaddf
 md"# Unit Disk Mapping"
@@ -31,7 +31,8 @@ md"Let the source graph be the Petersen graph."
 graph = smallgraph(:petersen)
 
 # ╔═╡ 0302be92-076a-4ebe-8d6d-4b352a77cfce
-show_graph(graph; format=:svg)
+# To make it dark mode friendly, we use white background color.
+show_graph(graph; background_color="white")
 
 # ╔═╡ 417b18f6-6a8f-45fb-b979-6ec9d12c6246
 md"We can use `map_graph` function to map the unweighted MIS problem on Petersen graph to one on a defected King's graph."
@@ -53,10 +54,11 @@ fieldnames(unweighted_res |> typeof)
 md"The field `grid_graph` is the mapped grid graph."
 
 # ╔═╡ 520fbc23-927c-4328-8dc6-5b98853fb90d
-show_graph(unweighted_res.grid_graph; unit=20, format=:svg)
+# `unit` is the number of pixels per unit distance
+show_graph(unweighted_res.grid_graph; unit=25, background_color="white")
 
 # ╔═╡ 96ca41c0-ac77-404c-ada3-0cdc4a426e44
-md"The field `lines` is a vector of copy gadgets are arranged in `⊢` shape. These copy gadgets form a crossing lattice.
+md"The field `lines` is a vector of copy gadgets are arranged in `⊢` shape. These copy gadgets form a *crossing lattice*,  in which two copy lines cross each other whenever the their corresponding vertices in the source graph are connected by an edge.
 ```
     vslot
       ↓
@@ -72,7 +74,7 @@ md"The field `lines` is a vector of copy gadgets are arranged in `⊢` shape. Th
 unweighted_res.lines
 
 # ╔═╡ a64c2094-9a51-4c45-b9d1-41693c89a212
-md"THe field `maping_history` is the mapping history, which contains the rewrite rules applied to the crossing lattice. They are important information for mapping a solution back."
+md"The field `maping_history` is the mapping history, which contains the rewrite rules applied to the crossing lattice. They are important information for mapping a solution back."
 
 # ╔═╡ 52b904ad-6fb5-4a7e-a3db-ae7aff32be51
 unweighted_res.mapping_history
@@ -93,7 +95,7 @@ res = solve(IndependentSet(SimpleGraph(unweighted_res.grid_graph)), SingleConfig
 md"You might want to read [the documentation page of `GenericTensorNetworks`](https://queracomputing.github.io/GenericTensorNetworks.jl/dev/) for a detailed explaination about this function. Here, we just visually check the solution configuration."
 
 # ╔═╡ 4abb86dd-67e2-46f4-ae6c-e97952b23fdc
-show_config(unweighted_res.grid_graph, res.c.data; unit=20, format=:svg)
+show_config(unweighted_res.grid_graph, res.c.data; unit=25, background_color="white")
 
 # ╔═╡ 5ec5e23a-6904-41cc-b2dc-659da9556d20
 md"By mapping the result back, we get a solution for the original Petersen graph. Its maximum independent set size is 4"
@@ -119,7 +121,7 @@ weighted_res = map_graph(Weighted(), graph; vertex_order=Branching());
 md"The return value is similar to that for the unweighted mapping, except each node in the mapped graph can have a weight 1, 2 or 3. Note here, we haven't add the weights in the original graph."
 
 # ╔═╡ b8879b2c-c6c2-47e2-a989-63a00c645676
-show_grayscale(weighted_res.grid_graph; unit=20, format=:svg)
+show_grayscale(weighted_res.grid_graph; unit=25, background_color="white")
 
 # ╔═╡ 1262569f-d091-40dc-a431-cbbe77b912ab
 md"""
@@ -127,7 +129,7 @@ The "pins" of the mapped graph has one to one correspondence to the vertices in 
 """
 
 # ╔═╡ d5a64013-b7cc-412b-825d-b9d8f0737248
-show_pins(weighted_res; unit=20, format=:svg)
+show_pins(weighted_res; unit=25, background_color="white")
 
 # ╔═╡ 3c46e050-0f93-42af-a6ff-1a83e7d0f6da
 md"The weights in the original graph can be added to the pins of this grid graph using the `map_weights` function. The added weights must be smaller than 1."
@@ -150,7 +152,7 @@ wmap_config = let
 end
 
 # ╔═╡ d0648123-65fc-4dd7-8c0b-149b67920d8b
-show_config(weighted_res.grid_graph, wmap_config; unit=20, format=:svg)
+show_config(weighted_res.grid_graph, wmap_config; unit=25, background_color="white")
 
 # ╔═╡ fdc0fd6f-369e-4f1b-b105-672ae4229f02
 md"By reading the configurations of the pins, we obtain a solution for the source graph."
@@ -198,13 +200,13 @@ md"The mapping result contains two fields, the `grid_graph` and the `pins`. Afte
 qubo_graph, qubo_weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
 
 # ╔═╡ 8467e950-7302-4930-8698-8e7b523556a6
-show_pins(qubo; unit=20, format=:svg)
+show_pins(qubo; unit=25, background_color="white")
 
 # ╔═╡ 6976c82f-90f0-4091-b13d-af463fe75c8b
 md"One can also check the weights using the gray scale plot."
 
 # ╔═╡ 95539e68-c1ea-4a6c-9406-2696d62b8461
-show_grayscale(qubo.grid_graph; unit=20, format=:svg)
+show_grayscale(qubo.grid_graph; unit=25, background_color="white")
 
 # ╔═╡ 5282ca54-aa98-4d51-aaf9-af20eae5cc81
 md"By solving this maximum independent set problem, we will get the following configuration."
@@ -213,7 +215,7 @@ md"By solving this maximum independent set problem, we will get the following co
 qubo_mapped_solution = collect(Int, solve(IndependentSet(qubo_graph; weights=qubo_weights), SingleConfigMax())[].c.data)
 
 # ╔═╡ 4ea4f26e-746d-488e-9968-9fc584c04bcf
-show_config(qubo.grid_graph, qubo_mapped_solution; unit=20, format=:svg)
+show_config(qubo.grid_graph, qubo_mapped_solution; unit=25, background_color="white")
 
 # ╔═╡ b64500b6-99b6-497b-9096-4bab4ddbec8d
 md"This solution can be mapped to a solution of the source graph by reading the configurations on pins."
@@ -240,7 +242,7 @@ let
 	graph, pins = UnitDiskMapping.multiplier()
 	texts = fill("", length(graph.nodes))
 	texts[pins] .= ["x$i" for i=1:length(pins)]
-	show_grayscale(graph; unit=20, texts, format=:svg)
+	show_grayscale(graph; unit=25, texts, background_color="white")
 end
 
 # ╔═╡ 025b38e1-d334-46b6-bf88-f7b426e8dc97
@@ -262,7 +264,7 @@ md"One can call `map_factoring(M, N)` to map a factoring problem to the array mu
 mres = UnitDiskMapping.map_factoring(2, 2);
 
 # ╔═╡ adbae5f0-6fe9-4a97-816b-004e47b15593
-show_pins(mres; unit=20, format=:svg)
+show_pins(mres; unit=25, background_color="white")
 
 # ╔═╡ 2e13cbad-8110-4cbc-8890-ecbefe1302dd
 md"To solve this factoring problem, one can use the following statement"
@@ -291,7 +293,7 @@ mapped_grid_graph, remaining_vertices = let
 end;
 
 # ╔═╡ 97cf8ee8-dba3-4b0b-b0ba-97002bc0f028
-show_graph(mapped_grid_graph; unit=20, format=:svg)
+show_graph(mapped_grid_graph; unit=25, background_color="white")
 
 # ╔═╡ 0a8cec9c-7b9d-445b-abe3-237f16fdd9ad
 md"2. Then we solve this new grid graph."
@@ -303,7 +305,7 @@ config_factoring6 = let
 end;
 
 # ╔═╡ 4c7d72f1-688a-4a70-8ce6-a4801127bb9a
-show_config(mapped_grid_graph, config_factoring6; unit=20, format=:svg)
+show_config(mapped_grid_graph, config_factoring6; unit=25, background_color="white")
 
 # ╔═╡ 77bf7e4a-1237-4b24-bb31-dc8a30756834
 md"3. It is straight forward to readout the results from the above configuration. The solution should be either (2, 3) or (3, 2)."

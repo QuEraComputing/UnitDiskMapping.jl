@@ -573,9 +573,9 @@ version = "3.3.0"
 
 [[deps.LuxorGraphPlot]]
 deps = ["Graphs", "Luxor"]
-git-tree-sha1 = "0fbe407cb7508e6432878991d7a1a3a16f86d8cf"
+git-tree-sha1 = "eaf1f5f6248614ce8145cdd170db9fe615628571"
 uuid = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
-version = "0.1.4"
+version = "0.1.5"
 
 [[deps.MIMEs]]
 git-tree-sha1 = "65f28ad4b594aebe22157d6fac869786a255b7eb"

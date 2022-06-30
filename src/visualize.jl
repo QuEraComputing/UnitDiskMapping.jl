@@ -7,7 +7,7 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
         vertex_text_colors=nothing,
         edge_colors=nothing,
         texts = nothing,
-        format=:png, filename=nothing,
+        format=:svg, filename=nothing,
         vertex_size=0.35,
         fontsize=24,
         kwargs...)
@@ -30,6 +30,7 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
 
     # plot!
     LuxorGraphPlot._draw(Dx, Dy; format, filename) do
+        LuxorGraphPlot.background(config.background_color)
         LuxorGraphPlot._show_graph(transform.(locs), edges,
         vertex_colors, vertex_stroke_colors, vertex_text_colors, vertex_sizes, vertex_shapes, edge_colors, texts, config)
 

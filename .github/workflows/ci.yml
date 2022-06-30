@@ -55,6 +55,34 @@ jobs:
           flag-name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
           parallel: true
           path-to-lcov: lcov.info
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1'
+
+      - name: Run Pluto notebooks
+        run: julia -e 'using Pkg;
+            Pkg.add("PlutoUI");
+            Pkg.activate("notebooks");
+            Pkg.instantiate();
+            Pkg.develop(path=".");
+            using PlutoSliderServer;
+            for file in readdir("notebooks")
+              endswith(file, ".jl") && PlutoSliderServer.export_notebook(joinpath("notebooks", file))
+            end
+            '
+      - name: Deploy to gh-pages
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            BRANCH: gh-pages
+            FOLDER: .
+
   finish:
       name: Coveralls Finished
       needs: test

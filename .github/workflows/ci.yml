@@ -70,6 +70,7 @@ jobs:
             Pkg.add("PlutoUI");
             Pkg.activate("notebooks");
             Pkg.instantiate();
+            Pkg.develop(".");
             using PlutoSliderServer;
             for file in readdir("notebooks")
               endswith(file, ".jl") && PlutoSliderServer.export_notebook(joinpath("notebooks", file))

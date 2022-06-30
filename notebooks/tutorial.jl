@@ -6,19 +6,19 @@ using InteractiveUtils
 
 # ╔═╡ 2f721887-6dee-4b53-ae33-2c0a4b79ff37
 # ╠═╡ show_logs = false
-using Pkg; Pkg.activate(".")
+begin
+	using Pkg; Pkg.activate(".")
+	using PlutoUI; PlutoUI.TableOfContents()
+end
 
 # ╔═╡ 39bcea18-00b6-42ca-a1f2-53655f31fea7
-using Revise, UnitDiskMapping, Graphs, GenericTensorNetworks, PlutoUI, LinearAlgebra
+using Revise, UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra
 
 # ╔═╡ 6a837c94-73e9-4093-988d-33a3633185f5
 using GenericTensorNetworks.LuxorGraphPlot.Luxor
 
 # ╔═╡ eac6ceda-f5d4-11ec-23db-b7b4d00eaddf
 md"# Unit Disk Mapping"
-
-# ╔═╡ b44f7ece-c031-487f-a44b-326cc6c279ea
-PlutoUI.TableOfContents()
 
 # ╔═╡ bbe26162-1ab7-4224-8870-9504b7c3aecf
 md"## Generic Unweighted Mapping
@@ -322,7 +322,6 @@ end
 # ╟─eac6ceda-f5d4-11ec-23db-b7b4d00eaddf
 # ╟─2f721887-6dee-4b53-ae33-2c0a4b79ff37
 # ╠═39bcea18-00b6-42ca-a1f2-53655f31fea7
-# ╠═b44f7ece-c031-487f-a44b-326cc6c279ea
 # ╟─bbe26162-1ab7-4224-8870-9504b7c3aecf
 # ╠═6a837c94-73e9-4093-988d-33a3633185f5
 # ╟─b23f0215-8751-4105-aa7e-2c26e629e909

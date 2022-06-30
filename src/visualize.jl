@@ -8,8 +8,6 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
         edge_colors=nothing,
         texts = nothing,
         format=:png, filename=nothing,
-        xpad=1.0,
-        ypad=1.0,
         vertex_size=0.35,
         fontsize=24,
         kwargs...)
@@ -22,12 +20,12 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
     xmin, ymin, xmax, ymax = LuxorGraphPlot.get_bounding_box(locs)
     config = LuxorGraphPlot.GraphDisplayConfig(; vertex_size, fontsize, kwargs...)
     Dx, Dy = ((xmax-xmin)+2*config.xpad)*config.unit, ((ymax-ymin)+2*config.ypad)*config.unit
-    transform(loc) = loc[1]-ymin+xpad, loc[2]-ymin+ypad
+    transform(loc) = loc[1]-xmin+config.xpad, loc[2]-ymin+config.ypad
 
     # compute empty locations
     empty_locations = Tuple{Int,Int}[]
     for i=xmin:xmax, j=ymin:ymax
-        (j, i) ∉ locs && push!(empty_locations, (j, i))
+        (i, j) ∉ locs && push!(empty_locations, (i, j))
     end
 
     # plot!
@@ -38,6 +36,7 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
         config2 = LuxorGraphPlot.GraphDisplayConfig(; vertex_size=config.vertex_size/10,
                                      vertex_fill_color="#333333",
                                      vertex_stroke_color="transparent",
+                                     kwargs...,
                                      )
         LuxorGraphPlot._show_graph(transform.(empty_locations), Tuple{Int,Int}[],
                 nothing, nothing, nothing, nothing, nothing, nothing, fill("", length(empty_locations)), config2)

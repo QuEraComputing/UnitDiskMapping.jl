@@ -1,5 +1,5 @@
 /.vscode/
-/Manifest.toml
+Manifest.toml
 .DS_Store
 _local/
 *.aux

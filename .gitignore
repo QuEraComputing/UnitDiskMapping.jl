@@ -1,0 +1,8 @@
+/.vscode/
+Manifest.toml
+.DS_Store
+_local/
+*.aux
+*.fls
+*.log
+*.fdb_latexmk

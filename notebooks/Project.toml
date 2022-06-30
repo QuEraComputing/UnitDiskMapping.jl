@@ -1,0 +1,6 @@
+[deps]
+GenericTensorNetworks = "3521c873-ad32-4bb4-b63d-f4f178f42b49"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+PlutoSliderServer = "2fc8631c-6f24-4c5b-bca7-cbb509c42db4"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"

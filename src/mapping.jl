@@ -216,12 +216,14 @@ function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     adjm = adjacency_matrix(g)
     counts = zeros(Int, nv(g))
     totalcounts = sum(adjm; dims=1)
+    removed = Int[]
     for (i, v) in enumerate(vertex_order)
         counts .+= adjm[:,v]
         for j=1:nv(g)
-            if !iszero(adjm[j,v]) && counts[j] == totalcounts[j]
-                # ensure remove after add!
+            # to avoid repeated remove!
+            if j ∉ removed && counts[j] == totalcounts[j]
                 push!(addremove[max(i, findfirst(==(j), vertex_order))], j)
+                push!(removed, j)
             end
         end
     end

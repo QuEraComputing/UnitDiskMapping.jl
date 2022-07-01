@@ -62,29 +62,30 @@ end
 end
 
 
-@testset "interface_K23" begin
-    g = SimpleGraph(5)
+@testset "interface K23, empty and path" begin
+    K23 = SimpleGraph(5)
+    add_edge!(K23, 1, 5)
+    add_edge!(K23, 4, 5)
+    add_edge!(K23, 4, 3)
+    add_edge!(K23, 3, 2)
+    add_edge!(K23, 5, 2)
+    add_edge!(K23, 1, 3)
 
-    add_edge!(g, 1, 5)
-    add_edge!(g, 4, 5)
-    add_edge!(g, 4, 3)
-    add_edge!(g, 3, 2)
-    add_edge!(g, 5, 2)
-    add_edge!(g, 1, 3)
+    for g in [K23, SimpleGraph(5), path_graph(5)]
+        res = map_graph(g)
 
-    res = map_graph(g)
+        # checking size
+        gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+        missize_map = solve(gp, SizeMax())[].n
+        missize = solve(IndependentSet(g), SizeMax())[].n
+        @test res.mis_overhead + missize == missize_map
 
-    # checking size
-    gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
-    missize_map = solve(gp, SizeMax())[].n
-    missize = solve(IndependentSet(g), SizeMax())[].n
-    @test res.mis_overhead + missize == missize_map
-
-    # checking mapping back
-    misconfig = solve(gp, SingleConfigMax())[].c
-    original_configs = map_config_back(res, collect(Bool, misconfig.data))
-    @test count(isone, original_configs) == missize
-    @test is_independent_set(g, original_configs)
+        # checking mapping back
+        misconfig = solve(gp, SingleConfigMax())[].c
+        original_configs = map_config_back(res, collect(Bool, misconfig.data))
+        @test count(isone, original_configs) == missize
+        @test is_independent_set(g, original_configs)
+    end
 end
 
 

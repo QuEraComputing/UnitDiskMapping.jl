@@ -30,6 +30,8 @@ function print_cell(io::IO, x::AbstractCell; show_weight=false)
     end
 end
 Base.:+(a::SimpleCell{T}, b::SimpleCell{T}) where T<:Real = a.occupied ? (b.occupied ? SimpleCell(a.weight + b.weight) : a) : b
+Base.:-(a::SimpleCell{T}, b::SimpleCell{T}) where T<:Real = a.occupied ? (b.occupied ? SimpleCell(a.weight - b.weight) : a) : -b
+Base.:-(b::SimpleCell{T}) where T<:Real = b.occupied ? SimpleCell(-b.weight) : b
 Base.zero(::Type{SimpleCell{T}}) where T = SimpleCell(one(T); occupied=false)
 WeightedSimpleCell{T<:Real} = SimpleCell{T}
 UnWeightedSimpleCell = SimpleCell{ONE}

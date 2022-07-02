@@ -71,7 +71,7 @@ function map_qubo(J::AbstractMatrix{T1}, h::AbstractVector{T2}) where {T1, T2}
     # add one extra row
     # make the grid larger by one unit
     gg, pins = post_process_grid(grid, h, -h)
-    mis_overhead = (n - 1) * n * 4 + 2n - 4
+    mis_overhead = (n - 1) * n * 4 + n - 4
     return QUBOResult(gg, pins, mis_overhead)
 end
 
@@ -95,7 +95,7 @@ function map_simple_wmis(graph::SimpleGraph, weights::AbstractVector{T}) where {
     # add one extra row
     # make the grid larger by one unit
     gg, pins = post_process_grid(grid, weights, zeros(T, length(weights)))
-    mis_overhead = (n - 1) * n * 4 + 2n - 4 - 2*ne(graph)
+    mis_overhead = (n - 1) * n * 4 + n - 4 - 2*ne(graph)
     return WMISResult(gg, pins, mis_overhead)
 end
 
@@ -123,22 +123,18 @@ function render_grid(::Type{T}, cl::CrossingLattice) where T
             # NOTE: for border vertices, we set them to weight 1.
             if has_edge(cl.graph, ci.I...)
                 [z  (block.top == -1 ? one : two)  z  z;
-                (block.left == -1 ? one : two)  two   two  z;
+                (ci.I[2]==2 ? one : two)  two   two  z;
                 z    two   z  (block.right == -1 ? one : two);
                 z  (ci.I[1] == n-1 ? one : two)  z  z]
             else
                 [z  z  (block.top == -1 ? one : two)  z;
-                (block.left == -1 ? one : two)  four   four  z;
+                (ci.I[2]==2 ? one : two)  four   four  z;
                 z    four   four  (block.right == -1 ? one : two);
                 z  (ci.I[1] == n-1 ? one : two)  z  z]
             end
         elseif block.top != -1 && block.right != -1 # the L turn
             m = fill(z, 4, 4)
             m[1, 3] = m[2, 4] = two
-            m
-        elseif block.right != -1 # the left most site
-            m = fill(z, 4, 4)
-            m[3, 4] = one
             m
         else
             # do nothing
@@ -150,31 +146,28 @@ end
 # h0 and h1 are offset of energy for 0 state and 1 state.
 function post_process_grid(grid::Matrix{SimpleCell{T}}, h0, h1) where T
     n = length(h0)
-    # the first vertex
-    grid[3, 4] += SimpleCell{T}(h1[1])
-    grid[2, 5] += SimpleCell{T}(h0[1])
-    # 2-
-    topbar = zeros(SimpleCell{T}, 1, 4*n-3)
-    topbar[1, 3:4:end] .+= SimpleCell{T}.(1 .+ h1[2:end])
+    mat = grid[1:end-4, 5:end]
+    mat[2, 1] += SimpleCell{T}(h0[1])   # top left
+    mat[size(mat, 1),size(mat, 2)-2] += SimpleCell{T}(h1[end])  # bottom right
     for j=1:length(h0)-1
-        if grid[1, 3+j*4].occupied
-            grid[1, 3+j*4] += SimpleCell{T}(1 + h0[1+j])
-        else
-            @assert grid[1, 2+j*4].occupied
-            grid[1, 2+j*4] += SimpleCell{T}(1 + h0[1+j])
-        end
+        # top side
+        offset = mat[1, j*4-1].occupied ? 1 : 2
+        @assert mat[1, j*4-offset].occupied
+        mat[1, j*4-offset] += SimpleCell{T}(h0[1+j])
+        # right side
+        offset = mat[j*4-1,size(mat,2)].occupied ? 1 : 2
+        @assert mat[j*4-offset,size(mat,2)].occupied
+        mat[j*4-offset,size(mat, 2)] += SimpleCell{T}(h1[j])
     end
-
-    mat = vcat(topbar, grid[1:end-4, 4:end])
 
     # generate GridGraph from matrix
     locs = [Node(ci.I, mat[ci].weight) for ci in findall(x->x.occupied, mat)]
     gg = GridGraph(size(mat), locs, 1.5)
 
     # find pins
-    pins = [findfirst(x->x.loc == (4, 1), locs)]
+    pins = [findfirst(x->x.loc == (2, 1), locs)]
     for i=1:n-1
-        push!(pins, findfirst(x->x.loc == (1, i*4-1), locs))
+        push!(pins, findfirst(x->x.loc == (1, i*4-1) || x.loc == (1,i*4-2), locs))
     end
     return gg, pins
 end
@@ -185,7 +178,7 @@ struct QUBOResult{NT}
     mis_overhead::Int
 end
 function map_config_back(res::QUBOResult, cfg)
-    return cfg[res.pins]
+    return 1 .- cfg[res.pins]
 end
 
 struct WMISResult{NT}
@@ -194,5 +187,5 @@ struct WMISResult{NT}
     mis_overhead::Int
 end
 function map_config_back(res::WMISResult, cfg)
-    return 1 .- cfg[res.pins]
+    return cfg[res.pins]
 end

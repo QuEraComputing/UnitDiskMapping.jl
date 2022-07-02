@@ -4,7 +4,7 @@ using GenericTensorNetworks.OMEinsum.LinearAlgebra: triu
 
 @testset "qubo" begin
     n = 7
-    H = randn(n) * 0.001
+    H = -randn(n) * 0.05
     J = triu(randn(n, n) * 0.001, 1); J += J'
     qubo = UnitDiskMapping.map_qubo(J, H)
     @test show_pins(qubo) !== nothing

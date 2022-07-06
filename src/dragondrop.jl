@@ -76,6 +76,127 @@ function map_qubo(J::AbstractMatrix{T1}, h::AbstractVector{T2}) where {T1, T2}
 end
 
 """
+    map_qubo_restricted(coupling::AbstractVector) -> RestrictedQUBOResult
+
+Map a nearest-neighbor restricted QUBO problem to a weighted MIS problem on a grid graph,
+where the QUBO problem can be specified by a vector of `(i, j, i', j', J)`.
+
+```math
+E(z) = -\\sum_{(i,j)\\in E} J_{ij} z_i z_j
+```
+
+A FM gadget is
+
+```
+- ⋅ + ⋅ ⋅ ⋅ + ⋅ -
+⋅ ⋅ ⋅ ⋅ 4 ⋅ ⋅ ⋅ ⋅ 
++ ⋅ - ⋅ ⋅ ⋅ - ⋅ +
+```
+
+where `+`, `-` and `4` are weights of nodes `+J`, `-J` and `4J`.
+
+```
+- ⋅ + ⋅ ⋅ ⋅ + ⋅ -
+⋅ ⋅ ⋅ 4 ⋅ 4 ⋅ ⋅ ⋅ 
++ ⋅ - ⋅ ⋅ ⋅ - ⋅ +
+```
+"""
+function map_qubo_restricted(coupling::AbstractVector{Tuple{Int,Int,Int,Int,T}}) where {T}
+    m, n = max(maximum(x->x[1], coupling), maximum(x->x[3], coupling)), max(maximum(x->x[2], coupling), maximum(x->x[4], coupling))
+    hchunks = [zeros(SimpleCell{T}, 3, 9) for i=1:m, j=1:n-1]
+    vchunks = [zeros(SimpleCell{T}, 9, 3) for i=1:m-1, j=1:n]
+    # add coupling
+    for (i, j, i2, j2, J) in coupling
+        @assert (i2, j2) == (i, j+1) || (i2, j2) == (i+1, j)
+        if (i2, j2) == (i, j+1)
+            hchunks[i, j] .+= cell_matrix(gadget_qubo_restricted(J))
+        else
+            vchunks[i, j] .+= rotr90(cell_matrix(gadget_qubo_restricted(J)))
+        end
+    end
+    grid = glue(hchunks, -3, 3) .+ glue(vchunks, 3, -3)
+    return RestrictedQUBOResult(GridGraph(grid, 2.01*sqrt(2)))
+end
+
+function gadget_qubo_restricted(J::T) where T
+    a = abs(J)
+    return GridGraph((3, 9),
+        [
+            Node((1,1), -a),
+            Node((3,1), -a),
+            Node((1,9), -a),
+            Node((3,9), -a),
+            Node((1,3), a),
+            Node((3,3), a),
+            Node((1,7), a),
+            Node((3,7), a),
+            (J > 0 ? [Node((2,5), 4a)] : [Node((2,4), 4a), Node((2,6), 4a)])...
+        ], 2.01*sqrt(2))
+end
+
+"""
+    map_qubo_square(coupling::AbstractVector) -> SquareQUBOResult
+
+Map a nearest-neighbor restricted QUBO problem to a weighted MIS problem on a grid graph,
+where the QUBO problem can be specified by a vector of `(i, j, i', j', J)`.
+
+```math
+E(z) = -\\sum_{(i,j)\\in E} J_{ij} z_i z_j + h_i z_i
+```
+"""
+function map_qubo_square(coupling::AbstractVector{Tuple{Int,Int,Int,Int,T}}) where {T}
+    m, n = max(maximum(x->x[1], coupling), maximum(x->x[3], coupling)), max(maximum(x->x[2], coupling), maximum(x->x[4], coupling))
+    hchunks = [zeros(SimpleCell{T}, 4, 9) for i=1:m, j=1:n-1]
+    vchunks = [zeros(SimpleCell{T}, 9, 4) for i=1:m-1, j=1:n]
+    # add coupling
+    for (i, j, i2, j2, J) in coupling
+        @assert (i2, j2) == (i, j+1) || (i2, j2) == (i+1, j)
+        if (i2, j2) == (i, j+1)
+            hchunks[i, j] .+= cell_matrix(gadget_qubo_square(T))
+            hchunks[i, j][4, 5] += SimpleCell(J)
+        else
+            vchunks[i, j] .+= rotr90(cell_matrix(gadget_qubo_square(T)))
+            vchunks[i, j][5, 1] += SimpleCell(J)
+        end
+    end
+    # right shift by 2
+    grid = glue(hchunks, -4, 1)
+    padl = zeros(SimpleCell{T}, size(grid, 1), 0)
+    grid = hglue([padl, grid], -2)
+    # down shift by 1
+    padu = reshape(padl, 0, size(grid, 1))
+    grid2 = glue(vchunks, 1, -4)
+    grid2 = vglue([padu, grid2], -1)
+    padd = zeros(SimpleCell{T}, 0, size(grid2, 2))
+    padr = zeros(SimpleCell{T}, size(grid, 1), 0)
+    grid = hglue([grid, padr], -1)
+    grid2 = vglue([grid2, padd], -2)
+    return RestrictedQUBOResult(GridGraph(grid .+ grid2, 2.3))
+end
+
+vglue(mats, i::Int) = glue(reshape(mats, :, 1), i, 0)
+hglue(mats, j::Int) = glue(reshape(mats, 1, :), 0, j)
+
+function gadget_qubo_square(::Type{T}) where T
+    DI = 1
+    DJ = 2
+    one = T(1)
+    two = T(2)
+    return GridGraph((4, 9),
+        [
+            Node((1+DI,1), one),
+            Node((1+DI,1+DJ), two),
+            Node((DI,3+DJ), two),
+            Node((1+DI,5+DJ), two),
+            Node((1+DI,5+2DJ), one),
+            Node((2+DI,2+DJ), two),
+            Node((2+DI,4+DJ), two),
+            Node((3+DI,3+DJ), one),
+        ], 2.3)
+end
+
+
+"""
     map_simple_wmis(graph::SimpleGraph, weights::AbstractVector) -> WMISResult
 
 Map a weighted MIS problem to a weighted MIS problem on a defected King's graph.
@@ -189,3 +310,10 @@ end
 function map_config_back(res::WMISResult, cfg)
     return cfg[res.pins]
 end
+
+struct RestrictedQUBOResult{NT}
+    grid_graph::GridGraph{NT}
+end
+function map_config_back(res::RestrictedQUBOResult, cfg)
+end
+

@@ -37,3 +37,24 @@ end
         @test sum(c1 .* w0) == r2.n
     end
 end
+
+@testset "restricted qubo" begin
+    n = 5
+    coupling = [
+        [(i,j,i,j+1,rand([-1,1])) for i=1:n, j=1:n-1]...,
+        [(i,j,i+1,j,rand([-1,1])) for i=1:n-1, j=1:n]...
+    ]
+    qubo = UnitDiskMapping.map_qubo_restricted(coupling)
+    graph, weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
+    r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
+
+
+    weights = Int[]
+    g2 = SimpleGraph(n*n)
+    for (i,j,i2,j2,J) in coupling
+        add_edge!(g2, (i-1)*n+j, (i2-1)*n+j2)
+        push!(weights, J)
+    end
+    r2 = solve(SpinGlass(g2; J=weights), SingleConfigMax())[]
+    @show r1, r2
+end

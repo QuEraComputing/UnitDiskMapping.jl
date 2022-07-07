@@ -170,6 +170,9 @@ collect(Int,
 # ╔═╡ cf7e88cb-432e-4e3a-ae8b-8fa12689e485
 md"## QUBO problem"
 
+# ╔═╡ d16a6f2e-1ae2-47f1-8496-db6963800fd2
+md"### Generic QUBO mapping"
+
 # ╔═╡ b5d95984-cf8d-4bce-a73a-8eb2a7c6b830
 md"""
 A QUBO problem can be specified as the following energy model
@@ -230,6 +233,85 @@ md"This solution is consistent with the exact solution:"
 # ╔═╡ 7dd900fc-9531-4bd6-8b6d-3aac3d5a2386
 # Directly solving the source graph
 collect(Int, solve(SpinGlass(J, h), SingleConfigMax())[].c.data)
+
+# ╔═╡ 13f952ce-642a-4396-b574-00ea6584008c
+md"### QUBO problem on a square lattice"
+
+# ╔═╡ fcc22a84-011f-48ed-bc0b-41f4058b92fd
+md"We defined some coupling strengths and onsite energies on a $n x $n square lattice."
+
+# ╔═╡ e7be21d1-971b-45fd-aa83-591d43262567
+square_coupling = [[(i,j,i,j+1,0.01*randn()) for i=1:n, j=1:n-1]...,
+	[(i,j,i+1,j,0.01*randn()) for i=1:n-1, j=1:n]...];
+
+# ╔═╡ 1702a65f-ad54-4520-b2d6-129c0576d708
+square_onsite = vec([(i, j, 0.01*randn()) for i=1:n, j=1:n]);
+
+# ╔═╡ 49ad22e7-e859-44d4-8179-e088e1159d04
+md"Then we use `map_qubo_square` to reduce the QUBO problem on a square lattice to the MIS problem on a grid graph."
+
+# ╔═╡ 32910090-9a42-475a-8e83-f9712f8fe551
+qubo_square = UnitDiskMapping.map_qubo_square(square_coupling, square_onsite);
+
+# ╔═╡ 7b5fcd3b-0f0a-44c3-9bf6-1dc042585322
+show_grayscale(qubo_square.grid_graph)
+
+# ╔═╡ 3ce74e3a-43f4-47a5-8dde-1d49e54e7eab
+md"You can see each coupling is replaced by the following `XOR` gadgets"
+
+# ╔═╡ 8edabda9-c49b-407e-bae8-1a71a1fe19b4
+show_grayscale(UnitDiskMapping.gadget_qubo_square(Int), texts=["x$('₀'+i)" for i=1:8])
+
+# ╔═╡ 3ec7c034-4cb6-4b9f-96fb-c6dc428475bb
+md"Where dark nodes have weight 2 and light nodes have weight 1. It corresponds to the boolean equation ``x_8 = \neg (x_1 \veebar x_5)``, hence we can add Ferromagnetic coupling as negative weights and Anti-Ferromagnetic coupling as possitive weights. On site terms are added directly to the pins."
+
+# ╔═╡ 494dfca2-af57-4dd9-9825-b28269641359
+show_pins(qubo_square)
+
+# ╔═╡ ca1d7917-58e2-4b7d-8671-ced548ccfe89
+md"Let us solve the independent set problem problem graph."
+
+# ╔═╡ 30c33553-3b4d-4eff-b34c-7ac0579650f7
+square_graph, square_weights = UnitDiskMapping.graph_and_weights(qubo_square.grid_graph);
+
+# ╔═╡ 5c25abb7-e3ee-4104-9a82-eb4aa4e773d2
+config_square = collect(Int, solve(IndependentSet(square_graph; weights=square_weights), SingleConfigMax())[].c.data);
+
+# ╔═╡ 4cec7232-8fbc-4ac1-96bb-6c7fea5fe117
+md"We will get the following configuration."
+
+# ╔═╡ 9bc9bd86-ffe3-48c1-81c0-c13f132e0dc1
+show_config(qubo_square.grid_graph, config_square)
+
+# ╔═╡ 9b0f051b-a107-41f2-b7b9-d6c673b7f93b
+md"By reading out the configurations at pins, we can get a solution of the source QUBO problem."
+
+# ╔═╡ d4c5240c-e70f-45f5-859f-1399c57511b0
+r1 = map_config_back(qubo_square, config_square)
+
+# ╔═╡ ffa9ad39-64e0-4655-b04e-23f57490d326
+md"It can be easily check by examining the exact result."
+
+# ╔═╡ dfd4418e-19f0-42f2-87c5-69eacf2024ac
+let
+	# solve spin glass directly
+	g2 = SimpleGraph(n*n)
+	Jd = Dict{Tuple{Int,Int}, Float64}()
+	for (i,j,i2,j2,J) in square_coupling
+		edg = (i+(j-1)*n, i2+(j2-1)*n)
+		Jd[edg] = J
+		add_edge!(g2, edg...)
+	end
+	
+	Js, hs = Float64[], zeros(Float64, nv(g2))
+	for e in edges(g2)
+		push!(Js, Jd[(e.src, e.dst)])
+	end
+	for (i,j,h) in square_onsite
+		hs[i+(j-1)*n] = h
+	end
+	collect(Int, solve(SpinGlass(g2; J=Js, h=hs), SingleConfigMax())[].c.data)
+end
 
 # ╔═╡ 9db831d6-7f10-47be-93d3-ebc892c4b3f2
 md"## Factoring"
@@ -363,6 +445,7 @@ end
 # ╠═317839b5-3c30-401f-970c-231c204331b5
 # ╠═beb7c0e5-6221-4f20-9166-2bd56902be1b
 # ╟─cf7e88cb-432e-4e3a-ae8b-8fa12689e485
+# ╟─d16a6f2e-1ae2-47f1-8496-db6963800fd2
 # ╟─b5d95984-cf8d-4bce-a73a-8eb2a7c6b830
 # ╠═2d1eb5cb-183d-4c4e-9a14-53fa08cbb156
 # ╠═5ce3e8c9-e78e-4444-b502-e91b4bda5678
@@ -381,6 +464,26 @@ end
 # ╠═cca6e2f8-69c5-4a3a-9f97-699b4868c4b9
 # ╟─80757735-8e73-4cae-88d0-9fe3d3e539c0
 # ╠═7dd900fc-9531-4bd6-8b6d-3aac3d5a2386
+# ╟─13f952ce-642a-4396-b574-00ea6584008c
+# ╟─fcc22a84-011f-48ed-bc0b-41f4058b92fd
+# ╠═e7be21d1-971b-45fd-aa83-591d43262567
+# ╠═1702a65f-ad54-4520-b2d6-129c0576d708
+# ╟─49ad22e7-e859-44d4-8179-e088e1159d04
+# ╠═32910090-9a42-475a-8e83-f9712f8fe551
+# ╠═7b5fcd3b-0f0a-44c3-9bf6-1dc042585322
+# ╟─3ce74e3a-43f4-47a5-8dde-1d49e54e7eab
+# ╠═8edabda9-c49b-407e-bae8-1a71a1fe19b4
+# ╟─3ec7c034-4cb6-4b9f-96fb-c6dc428475bb
+# ╠═494dfca2-af57-4dd9-9825-b28269641359
+# ╟─ca1d7917-58e2-4b7d-8671-ced548ccfe89
+# ╠═30c33553-3b4d-4eff-b34c-7ac0579650f7
+# ╠═5c25abb7-e3ee-4104-9a82-eb4aa4e773d2
+# ╟─4cec7232-8fbc-4ac1-96bb-6c7fea5fe117
+# ╠═9bc9bd86-ffe3-48c1-81c0-c13f132e0dc1
+# ╟─9b0f051b-a107-41f2-b7b9-d6c673b7f93b
+# ╠═d4c5240c-e70f-45f5-859f-1399c57511b0
+# ╟─ffa9ad39-64e0-4655-b04e-23f57490d326
+# ╠═dfd4418e-19f0-42f2-87c5-69eacf2024ac
 # ╟─9db831d6-7f10-47be-93d3-ebc892c4b3f2
 # ╟─e69056dd-0052-4d1e-aef1-30411d416c82
 # ╠═13e3525b-1b8e-4f65-8742-21d8ba4fdbe3

@@ -70,13 +70,13 @@ end
 function show_pins(mres::FactoringResult; kwargs...)
     color_pins = Dict{Int,Tuple{String,String}}()
     for (i, pin) in enumerate(mres.pins_input1)
-        color_pins[pin] = ("green", "p$i")
+        color_pins[pin] = ("green", "p$('₀'+i)")
     end
     for (i, pin) in enumerate(mres.pins_input2)
-        color_pins[pin] = ("blue", "p$i")
+        color_pins[pin] = ("blue", "q$('₀'+i)")
     end
     for (i, pin) in enumerate(mres.pins_output)
-        color_pins[pin] = ("red", "m$i")
+        color_pins[pin] = ("red", "m$('₀'+i)")
     end
     for (i, pin) in enumerate(mres.pins_zeros)
         color_pins[pin] = ("gray", "0")
@@ -84,20 +84,14 @@ function show_pins(mres::FactoringResult; kwargs...)
     show_pins(mres.grid_graph, color_pins; kwargs...)
 end
 
-function show_pins(mres::QUBOResult; kwargs...)
-    color_pins = Dict{Int,Tuple{String,String}}()
-    for (i, pin) in enumerate(mres.pins)
-        color_pins[pin] = ("red", "v$i")
+for TP in [:QUBOResult, :WMISResult, :SquareQUBOResult]
+    @eval function show_pins(mres::$TP; kwargs...)
+        color_pins = Dict{Int,Tuple{String,String}}()
+        for (i, pin) in enumerate(mres.pins)
+            color_pins[pin] = ("red", "v$('₀'+i)")
+        end
+        show_pins(mres.grid_graph, color_pins; kwargs...)
     end
-    show_pins(mres.grid_graph, color_pins; kwargs...)
-end
-
-function show_pins(mres::WMISResult; kwargs...)
-    color_pins = Dict{Int,Tuple{String,String}}()
-    for (i, pin) in enumerate(mres.pins)
-        color_pins[pin] = ("red", "v$i")
-    end
-    show_pins(mres.grid_graph, color_pins; kwargs...)
 end
 
 function show_config(gg::GridGraph, config; kwargs...)
@@ -110,7 +104,7 @@ function show_pins(mres::MappingResult; kwargs...)
     center_indices = map(loc->findfirst(==(loc), locs), trace_centers(mres))
     color_pins = Dict{Int,Tuple{String,String}}()
     for (i, pin) in enumerate(center_indices)
-        color_pins[pin] = ("red", "v$i")
+        color_pins[pin] = ("red", "v$('₀'+i)")
     end
     show_pins(mres.grid_graph, color_pins; kwargs...)
 end

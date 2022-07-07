@@ -13,7 +13,8 @@ export Node, WeightedNode, UnWeightedNode
 export graph_and_weights, GridGraph, coordinates
 
 # dragon drop methods
-export map_factoring, map_qubo, map_simple_wmis, solve_factoring, multiplier
+export map_factoring, map_qubo, map_qubo_square, map_simple_wmis, solve_factoring, multiplier
+export QUBOResult, WMISResult, SquareQUBOResult, FactoringResult
 
 # plotting methods
 export show_grayscale, show_pins, show_config

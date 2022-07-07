@@ -135,45 +135,87 @@ function gadget_qubo_restricted(J::T) where T
 end
 
 """
-    map_qubo_square(coupling::AbstractVector) -> SquareQUBOResult
+    map_qubo_square(coupling::AbstractVector, onsite::AbstractVector) -> SquareQUBOResult
 
-Map a nearest-neighbor restricted QUBO problem to a weighted MIS problem on a grid graph,
-where the QUBO problem can be specified by a vector of `(i, j, i', j', J)`.
+Map a QUBO problem on square lattice to a weighted MIS problem on a grid graph,
+where the QUBO problem can be specified by
+* a vector coupling of `(i, j, i', j', J)`, s.t. (i', j') == (i, j+1) or (i', j') = (i+1, j).
+* a vector of onsite term `(i, j, h)`.
 
 ```math
 E(z) = -\\sum_{(i,j)\\in E} J_{ij} z_i z_j + h_i z_i
 ```
+
+The gadget for suqare lattice QUBO problem is as follows
+```
+⋅ ⋅ ⋅ ⋅ ● ⋅ ⋅ ⋅ ⋅ 
+○ ⋅ ● ⋅ ⋅ ⋅ ● ⋅ ○ 
+⋅ ⋅ ⋅ ● ⋅ ● ⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ ⋅ ○ ⋅ ⋅ ⋅ ⋅ 
+```
+where white circles have weight 1 and black circles have weight 2. The unit distance is `2.3`.
 """
-function map_qubo_square(coupling::AbstractVector{Tuple{Int,Int,Int,Int,T}}) where {T}
+function map_qubo_square(coupling::AbstractVector{Tuple{Int,Int,Int,Int,T1}}, onsite::AbstractVector{Tuple{Int,Int,T2}}) where {T1,T2}
+    T = promote_type(T1, T2)
     m, n = max(maximum(x->x[1], coupling), maximum(x->x[3], coupling)), max(maximum(x->x[2], coupling), maximum(x->x[4], coupling))
     hchunks = [zeros(SimpleCell{T}, 4, 9) for i=1:m, j=1:n-1]
     vchunks = [zeros(SimpleCell{T}, 9, 4) for i=1:m-1, j=1:n]
     # add coupling
+    sumJ = zero(T)
     for (i, j, i2, j2, J) in coupling
         @assert (i2, j2) == (i, j+1) || (i2, j2) == (i+1, j)
         if (i2, j2) == (i, j+1)
             hchunks[i, j] .+= cell_matrix(gadget_qubo_square(T))
-            hchunks[i, j][4, 5] += SimpleCell(J)
+            hchunks[i, j][4, 5] -= SimpleCell(T(2J))
         else
             vchunks[i, j] .+= rotr90(cell_matrix(gadget_qubo_square(T)))
-            vchunks[i, j][5, 1] += SimpleCell(J)
+            vchunks[i, j][5, 1] -= SimpleCell(T(2J))
         end
+        sumJ += J
     end
     # right shift by 2
     grid = glue(hchunks, -4, 1)
-    padl = zeros(SimpleCell{T}, size(grid, 1), 0)
-    grid = hglue([padl, grid], -2)
+    grid = pad(grid; left=2, right=1)
     # down shift by 1
-    padu = reshape(padl, 0, size(grid, 1))
     grid2 = glue(vchunks, 1, -4)
-    grid2 = vglue([padu, grid2], -1)
-    padd = zeros(SimpleCell{T}, 0, size(grid2, 2))
-    padr = zeros(SimpleCell{T}, size(grid, 1), 0)
-    grid = hglue([grid, padr], -1)
-    grid2 = vglue([grid2, padd], -2)
-    return RestrictedQUBOResult(GridGraph(grid .+ grid2, 2.3))
+    grid2 = pad(grid2; top=1, bottom=2)
+    grid .+= grid2
+    
+    # add onsite terms
+    sumh = zero(T)
+    for (i, j, h) in onsite
+        grid[(i-1)*8+2, (j-1)*8+3] -= SimpleCell(T(2h))
+        sumh += h
+    end
+
+    overhead = 5 * length(coupling) - sumJ - sumh
+    gg = GridGraph(grid, 2.3)
+    pins = Int[]
+    for (i, j, h) in onsite
+        push!(pins, findfirst(n->n.loc == ((i-1)*8+2, (j-1)*8+3), gg.nodes))
+    end
+    return SquareQUBOResult(gg, pins, overhead)
 end
 
+function pad(m::AbstractMatrix{T}; top::Int=0, bottom::Int=0, left::Int=0, right::Int=0) where T
+    if top != 0
+        padt = zeros(T, 0, size(m, 2))
+        m = vglue([padt, m], -top)
+    end
+    if bottom != 0
+        padb = zeros(T, 0, size(m, 2))
+        m = vglue([m, padb], -bottom)
+    end
+    if left != 0
+        padl = zeros(T, size(m, 1), 0)
+        m = hglue([padl, m], -left)
+    end
+    if right != 0
+        padr = zeros(T, size(m, 1), 0)
+        m = hglue([m, padr], -right)
+    end
+    return m
+end
 vglue(mats, i::Int) = glue(reshape(mats, :, 1), i, 0)
 hglue(mats, j::Int) = glue(reshape(mats, 1, :), 0, j)
 
@@ -317,3 +359,11 @@ end
 function map_config_back(res::RestrictedQUBOResult, cfg)
 end
 
+struct SquareQUBOResult{NT}
+    grid_graph::GridGraph{NT}
+    pins::Vector{Int}
+    mis_overhead::Float64
+end
+function map_config_back(res::SquareQUBOResult, cfg)
+    return cfg[res.pins]
+end

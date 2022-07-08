@@ -16,6 +16,9 @@ export graph_and_weights, GridGraph, coordinates
 export map_factoring, map_qubo, map_qubo_square, map_simple_wmis, solve_factoring, multiplier
 export QUBOResult, WMISResult, SquareQUBOResult, FactoringResult
 
+# logic gates
+export Gate, gate_gadget
+
 # plotting methods
 export show_grayscale, show_pins, show_config
 
@@ -42,6 +45,7 @@ include("pathdecomposition/pathdecomposition.jl")
 include("copyline.jl")
 include("dragondrop.jl")
 include("multiplier.jl")
+include("logicgates.jl")
 include("gadgets.jl")
 include("mapping.jl")
 include("weighted.jl")

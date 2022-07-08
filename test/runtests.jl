@@ -13,6 +13,10 @@ end
     include("multiplier.jl")
 end
 
+@testset "logic gates" begin
+    include("logicgates.jl")
+end
+
 @testset "mapping" begin
     include("mapping.jl")
 end

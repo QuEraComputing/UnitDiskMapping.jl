@@ -108,3 +108,9 @@ function show_pins(mres::MappingResult; kwargs...)
     end
     show_pins(mres.grid_graph, color_pins; kwargs...)
 end
+
+function show_pins(gate::Gate; kwargs...)
+    grid_graph, inputs, outputs = gate_gadget(gate)
+    color_pins = Dict("red"=>inputs, "blue"=>outputs)
+    show_pins(grid_graph, color_pins; kwargs...)
+end

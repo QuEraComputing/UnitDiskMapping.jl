@@ -44,10 +44,11 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
     end
 end
 
-function show_grayscale(gg::GridGraph; kwargs...)
-	locs = [(j,i) for (i,j) in coordinates(gg)]
-    g, ws = graph_and_weights(gg)
-    wmax = maximum(abs, ws)
+function show_grayscale(gg::GridGraph; wmax=nothing, kwargs...)
+    _, ws = graph_and_weights(gg)
+    if wmax === nothing
+        wmax = maximum(abs, ws)
+    end
     cmap = Colors.colormap("RdBu", 200)
     # 0 -> 100
     # wmax -> 200
@@ -107,4 +108,16 @@ function show_pins(mres::MappingResult; kwargs...)
         color_pins[pin] = ("red", "v$('₀'+i)")
     end
     show_pins(mres.grid_graph, color_pins; kwargs...)
+end
+
+function show_pins(gate::Gate; kwargs...)
+    grid_graph, inputs, outputs = gate_gadget(gate)
+    color_pins = Dict{Int,Tuple{String,String}}()
+    for (i, pin) in enumerate(inputs)
+        color_pins[pin] = ("red", "x$('₀'+i)")
+    end
+    for (i, pin) in enumerate(outputs)
+        color_pins[pin] = ("blue", "y$('₀'+i)")
+    end
+    show_pins(grid_graph, color_pins; kwargs...)
 end

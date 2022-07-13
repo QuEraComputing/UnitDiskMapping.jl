@@ -33,6 +33,11 @@ end
     end
     @test res == (2, 3) || res == (3, 2)
 
+    res = UnitDiskMapping.solve_factoring(mres, 9) do g, ws
+        collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+    end
+    @test res == (3, 3)
+
     mres = UnitDiskMapping.map_factoring(2, 3)
     res = UnitDiskMapping.solve_factoring(mres, 15) do g, ws
         collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)

@@ -91,6 +91,7 @@ function map_factoring(M::Int, N::Int)
     pm = [
         [pinloc(i, N, 5) for i=1:M]...,
         [pinloc(M, j, 5) for j=N-1:-1:1]...,
+        pinloc(M,1,7)
     ]
     p0 = [
         [pinloc(1, j, 1) for j=1:N]...,

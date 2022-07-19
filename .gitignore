@@ -6,3 +6,4 @@ _local/
 *.fls
 *.log
 *.fdb_latexmk
+.vscode

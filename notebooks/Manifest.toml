@@ -77,9 +77,9 @@ version = "0.4.2"
 
 [[deps.CUDA]]
 deps = ["AbstractFFTs", "Adapt", "BFloat16s", "CEnum", "CompilerSupportLibraries_jll", "ExprTools", "GPUArrays", "GPUCompiler", "LLVM", "LazyArtifacts", "Libdl", "LinearAlgebra", "Logging", "Printf", "Random", "Random123", "RandomNumbers", "Reexport", "Requires", "SparseArrays", "SpecialFunctions", "TimerOutputs"]
-git-tree-sha1 = "e4e5ece72fa2f108fb20c3c5538a5fa9ef3d668a"
+git-tree-sha1 = "49549e2c28ffb9cc77b3689dc10e46e6271e9452"
 uuid = "052768ef-5323-5732-b1bb-66c8b64840ba"
-version = "3.11.0"
+version = "3.12.0"
 
 [[deps.Cairo]]
 deps = ["Cairo_jll", "Colors", "Glib_jll", "Graphics", "Libdl", "Pango_jll"]
@@ -95,15 +95,15 @@ version = "1.16.1+1"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "2dd813e5f2f7eec2d1268c57cf2373d3ee91fcea"
+git-tree-sha1 = "ff38036fb7edc903de4e79f32067d8497508616b"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.15.1"
+version = "1.15.2"
 
 [[deps.ChangesOfVariables]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
-git-tree-sha1 = "1e315e3f4b0b7ce40feded39c73049692126cf53"
+git-tree-sha1 = "38f7a08f19d8810338d4f5085211c7dfa5d5bdd8"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
-version = "0.1.3"
+version = "0.1.4"
 
 [[deps.CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
@@ -561,9 +561,9 @@ version = "2.2.2"
 
 [[deps.Luxor]]
 deps = ["Base64", "Cairo", "Colors", "Dates", "FFMPEG", "FileIO", "Juno", "LaTeXStrings", "Random", "Requires", "Rsvg"]
-git-tree-sha1 = "590db54191f99a5016274784480fabf92ae7a034"
+git-tree-sha1 = "b579f08ed67097b91be0673402b41a1a78ce82f6"
 uuid = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
-version = "3.3.0"
+version = "3.4.0"
 
 [[deps.LuxorGraphPlot]]
 deps = ["Graphs", "Luxor"]
@@ -594,9 +594,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[deps.MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
-git-tree-sha1 = "891d3b4e8f8415f53108b4918d0183e61e18015b"
+git-tree-sha1 = "9f4f5a42de3300439cb8300236925670f844a555"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "1.1.0"
+version = "1.1.1"
 
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -638,9 +638,10 @@ uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
 version = "1.0.4"
 
 [[deps.NaNMath]]
-git-tree-sha1 = "737a5957f387b17e74d4ad2f440eb330b39a62c5"
+deps = ["OpenLibm_jll"]
+git-tree-sha1 = "a7c3d1da1189a1c2fe843a3bfa04d18d20eb3211"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
-version = "1.0.0"
+version = "1.0.1"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -740,9 +741,9 @@ version = "0.3.11"
 
 [[deps.Polynomials]]
 deps = ["LinearAlgebra", "MutableArithmetics", "RecipesBase"]
-git-tree-sha1 = "5d389e6481b9d6c81d73ee9a74d1fd74f8b25abe"
+git-tree-sha1 = "d6de04fd2559ecab7e9a683c59dcbc7dbd20581a"
 uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
-version = "3.1.4"
+version = "3.1.5"
 
 [[deps.PrecompileSignatures]]
 git-tree-sha1 = "18ef344185f25ee9d51d80e179f8dad33dc48eb1"
@@ -833,9 +834,9 @@ version = "0.1.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
-git-tree-sha1 = "0b4b7f1393cff97c33891da2a0bf69c6ed241fda"
+git-tree-sha1 = "f94f779c94e58bf9ea243e77a37e16d9de9126bd"
 uuid = "6c6a2e73-6563-6170-7368-637461726353"
-version = "1.1.0"
+version = "1.1.1"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
@@ -892,9 +893,9 @@ version = "1.4.0"
 
 [[deps.StatsBase]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "LogExpFunctions", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics", "StatsAPI"]
-git-tree-sha1 = "48598584bacbebf7d30e20880438ed1d24b7c7d6"
+git-tree-sha1 = "472d044a1c8df2b062b23f222573ad6837a615ba"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.33.18"
+version = "0.33.19"
 
 [[deps.Suppressor]]
 git-tree-sha1 = "c6ed566db2fe3931292865b966d6d140b7ef32a9"
@@ -953,9 +954,9 @@ uuid = "9d95972d-f1c8-5527-a6e0-b4b365fa01f6"
 version = "1.3.0"
 
 [[deps.URIs]]
-git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
+git-tree-sha1 = "e59ecc5a41b000fa94423a578d29290c7266fc10"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.3.0"
+version = "1.4.0"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]

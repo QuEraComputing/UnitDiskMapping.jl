@@ -14,9 +14,8 @@ include("readgraphs.jl")
     end
 end
 
-@cast function sample(graphname::String; seed::Int=2)
+@cast function sample(graphname::String; seed::Int=2, nrepeat=100)
     folder=joinpath(@__DIR__, "data")
-    nrepeat = 100
     if !isdir(folder)
         mkpath(folder)
     end
@@ -36,7 +35,7 @@ end
             res = map_graph(g; vertex_order=Greedy(), ruleset=[])
             m = length(res.grid_graph.nodes)
             @info "size $n, i = $i, mapped graph size $m."
-            res_sizes, m)
+            res_sizes[j,i] = m
         end
     end
     filename = "$graphname-$seed.dat"

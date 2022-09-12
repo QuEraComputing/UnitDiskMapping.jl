@@ -43,3 +43,6 @@ Please check this [notebook](https://refactored-spork-2b31d0c0.pages.github.io/n
     * Generic QUBO mapping
     * QUBO problem on a square lattice
 * Factoring
+
+## Supporting and Citing
+Much of the software in this ecosystem was developed as part of academic research. If you would like to help support it, please star the repository as such metrics may help us secure funding in the future. If you use our software as part of your research, teaching, or other activities, we would be grateful if you could cite our work. The [CITATION.bib](CITATION.bib) file in the root of this repository lists the relevant papers.

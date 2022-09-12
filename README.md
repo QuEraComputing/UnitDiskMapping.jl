@@ -5,12 +5,12 @@
 
 ## Installation
 <p>
-UnitDiskMapping is a &nbsp;
+<code>UnitDiskMapping</code> is a &nbsp;
     <a href="https://julialang.org">
         <img src="https://raw.githubusercontent.com/JuliaLang/julia-logo-graphics/master/images/julia.ico" width="16em">
         Julia Language
     </a>
-    &nbsp; package. To install UnitDiskMapping,
+    &nbsp; package for reducing a <a href="https://en.wikipedia.org/wiki/Independent_set_(graph_theory)">generic (weighted) maximum independent set problem</a>, <a href="https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization">QUBO problem</a> or <a href="https://en.wikipedia.org/wiki/Integer_factorization">integer factoring problem</a> to a maximum independent set problem on a unit disk grid graph (or hardcore lattice gas in physics). To install <code>UnitDiskMapping</code>,
     please <a href="https://docs.julialang.org/en/v1/manual/getting-started/">open
     Julia's interactive session (known as REPL)</a> and press <kbd>]</kbd> key in the REPL to use the package mode, then type the following command
 </p>

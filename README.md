@@ -15,22 +15,16 @@
     Julia's interactive session (known as REPL)</a> and press <kbd>]</kbd> key in the REPL to use the package mode, then type the following command
 </p>
 
-First add the QuEra Julia registry via
+For installing the current master branch, please type
 
 ```julia
-pkg> registry add https://github.com/Happy-Diode/Miskatonic.git
+pkg> add https://github.com/QuEraComputing/UnitDiskMapping.jl.git
 ```
 
-For stable release
+For stable release (not yet ready)
 
 ```julia
 pkg> add UnitDiskMapping
-```
-
-For current master
-
-```julia
-pkg> add UnitDiskMapping#master
 ```
 
 ## Examples

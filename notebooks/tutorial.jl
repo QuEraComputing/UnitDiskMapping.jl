@@ -45,7 +45,7 @@ using UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra
 
 # ╔═╡ 98459516-4833-4e4a-916f-d5ea3e657ceb
 # Visualization setup.
-# To make the plots dark mode friendly, we use white background color.
+# To make the plots dark-mode friendly, we use white-background color.
 using UnitDiskMapping.LuxorGraphPlot.Luxor, LuxorGraphPlot; LuxorGraphPlot.DEFAULT_UNIT[] = 25; LuxorGraphPlot.DEFAULT_BACKGROUND_COLOR[]="white";
 
 # ╔═╡ eac6ceda-f5d4-11ec-23db-b7b4d00eaddf
@@ -73,7 +73,7 @@ md"We can use the `map_graph` function to map the unweighted MIS problem on the 
 unweighted_res = map_graph(graph; vertex_order=Branching());
 
 # ╔═╡ 3f605eac-f587-40b2-8fac-8223777d3fad
-md"Here, the key word argument `vertex_order` can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The `Branching()` method is an exact path decomposition solver, which is suited for small graphs (where number of vertices <= 50). The `Greedy()` method finds the vertex order much faster and works in all cases, but is not optimal.
+md"Here, the keyword argument `vertex_order` can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The `Branching()` method is an exact path decomposition solver, which is suited for small graphs (where number of vertices <= 50). The `Greedy()` method finds the vertex order much faster and works in all cases, but may not be optimal.
 A good vertex order can reduce the depth of the mapped graph."
 
 # ╔═╡ e5382b61-6387-49b5-bae8-0389fbc92153
@@ -90,7 +90,7 @@ md"The field `grid_graph` is the mapped grid graph."
 show_graph(unweighted_res.grid_graph)
 
 # ╔═╡ 96ca41c0-ac77-404c-ada3-0cdc4a426e44
-md"The field `lines` is a vector of copy gadgets arranged in `⊢` shape. These copy gadgets form a *crossing lattice*,  in which two copy lines cross each other whenever the their corresponding vertices in the source graph are connected by an edge.
+md"The field `lines` is a vector of copy gadgets arranged in a `⊢` shape. These copy gadgets form a *crossing lattice*,  in which two copy lines cross each other whenever their corresponding vertices in the source graph are connected by an edge.
 ```
     vslot
       ↓
@@ -106,7 +106,7 @@ md"The field `lines` is a vector of copy gadgets arranged in `⊢` shape. These 
 unweighted_res.lines
 
 # ╔═╡ a64c2094-9a51-4c45-b9d1-41693c89a212
-md"The field `mapping_history` contains the rewrite rules applied to the crossing lattice. They are important information for mapping a solution back."
+md"The field `mapping_history` contains the rewrite rules applied to the crossing lattice. They contain important information for mapping a solution back."
 
 # ╔═╡ 52b904ad-6fb5-4a7e-a3db-ae7aff32be51
 unweighted_res.mapping_history
@@ -124,20 +124,20 @@ md"We can solve the mapped graph with [`GenericTensorNetworks`](https://queracom
 res = solve(IndependentSet(SimpleGraph(unweighted_res.grid_graph)), SingleConfigMax())[]
 
 # ╔═╡ 86457b4e-b83e-4bf5-9d82-b5e14c055b4b
-md"You might want to read [the documentation page of `GenericTensorNetworks`](https://queracomputing.github.io/GenericTensorNetworks.jl/dev/) for a detailed explaination about this function. Here, we just visually check the solution configuration."
+md"You might want to read [the documentation page of `GenericTensorNetworks`](https://queracomputing.github.io/GenericTensorNetworks.jl/dev/) for a detailed explanation on this function. Here, we just visually check the solution configuration."
 
 # ╔═╡ 4abb86dd-67e2-46f4-ae6c-e97952b23fdc
 show_config(unweighted_res.grid_graph, res.c.data)
 
 # ╔═╡ 5ec5e23a-6904-41cc-b2dc-659da9556d20
-md"By mapping the result back, we get a solution for the original Petersen graph. Its maximum independent set size is 4"
+md"By mapping the result back, we get a solution for the original Petersen graph. Its maximum independent set size is 4."
 
 # ╔═╡ 773ce349-ba72-426c-849d-cfb511773756
 # The solution obtained by solving the mapped graph
 original_configs = map_config_back(unweighted_res, res.c.data)
 
 # ╔═╡ 7d921205-5133-40c0-bfa6-f76713dd4972
-# Confirm the solution from the mapped graph gives us
+# Confirm that the solution from the mapped graph gives us
 # a maximum independent set for the original graph
 UnitDiskMapping.is_independent_set(graph, original_configs)
 
@@ -145,13 +145,13 @@ UnitDiskMapping.is_independent_set(graph, original_configs)
 md"## Generic Weighted Mapping"
 
 # ╔═╡ 5e4500f5-beb6-4ef9-bd42-41dc13b60bce
-md"A Weighted Maximum Independent Set (WMIS) problem on a general graph can be mapped to one on the defected King's graph. The first step is do the same mapping as above but adding a new positional argument `Weighted()` as the first argument of `map_graph`. Let us still use the Petersen graph as an example."
+md"A Maximum Weight Independent Set (MWIS) problem on a general graph can be mapped to one on the defected King's graph. The first step is to do the same mapping as above but adding a new positional argument `Weighted()` as the first argument of `map_graph`. Let us still use the Petersen graph as an example."
 
 # ╔═╡ 2fa704ee-d5c1-4205-9a6a-34ba0195fecf
 weighted_res = map_graph(Weighted(), graph; vertex_order=Branching());
 
 # ╔═╡ 27acc8be-2db8-4322-85b4-230fdddac043
-md"The return value is similar to that for the unweighted mapping generated previously, except each node in the mapped graph can have a weight 1, 2 or 3. Note here, we haven't added the weights in the original graph."
+md"The return value is similar to that for the unweighted mapping generated above, except each node in the mapped graph can have a weight 1, 2 or 3. Note here, we haven't added the weights in the original graph."
 
 # ╔═╡ b8879b2c-c6c2-47e2-a989-63a00c645676
 show_grayscale(weighted_res.grid_graph)
@@ -174,7 +174,7 @@ source_weights = rand(10)
 mapped_weights = map_weights(weighted_res, source_weights)
 
 # ╔═╡ f77293c4-e5c3-4f14-95a2-ac9688fa3ba1
-md"Now that we have both graph and weights, let us solve the mapped problem!"
+md"Now that we have both the graph and the weights, let us solve the mapped problem!"
 
 # ╔═╡ cf910d3e-3e3c-42ef-acf3-d0990d6227ac
 wmap_config = let
@@ -208,7 +208,7 @@ md"### Generic QUBO mapping"
 
 # ╔═╡ b5d95984-cf8d-4bce-a73a-8eb2a7c6b830
 md"""
-A QUBO problem can be specified as the following energy model
+A QUBO problem can be specified as the following energy model:
 ```math
 E(z) = -\sum_{i<j} J_{ij} z_i z_j + \sum_i h_i z_i
 ```
@@ -239,7 +239,7 @@ qubo_graph, qubo_weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
 show_pins(qubo)
 
 # ╔═╡ 6976c82f-90f0-4091-b13d-af463fe75c8b
-md"One can also check the weights using the gray scale plot."
+md"One can also check the weights using the gray-scale plot."
 
 # ╔═╡ 95539e68-c1ea-4a6c-9406-2696d62b8461
 show_grayscale(qubo.grid_graph)
@@ -254,7 +254,7 @@ qubo_mapped_solution = collect(Int, solve(IndependentSet(qubo_graph; weights=qub
 show_config(qubo.grid_graph, qubo_mapped_solution)
 
 # ╔═╡ b64500b6-99b6-497b-9096-4bab4ddbec8d
-md"This solution can be mapped to a solution for the source graph by reading the configurations on pins."
+md"This solution can be mapped to a solution for the source graph by reading the configurations on the pins."
 
 # ╔═╡ cca6e2f8-69c5-4a3a-9f97-699b4868c4b9
 # The solution obtained by solving the mapped graph
@@ -271,7 +271,7 @@ collect(Int, solve(SpinGlass(J, h), SingleConfigMax())[].c.data)
 md"### QUBO problem on a square lattice"
 
 # ╔═╡ fcc22a84-011f-48ed-bc0b-41f4058b92fd
-md"We define some coupling strengths and onsite energies on a $n x $n square lattice."
+md"We define some coupling strengths and onsite energies on a $n \times n$ square lattice."
 
 # ╔═╡ e7be21d1-971b-45fd-aa83-591d43262567
 square_coupling = [[(i,j,i,j+1,0.01*randn()) for i=1:n, j=1:n-1]...,
@@ -296,13 +296,13 @@ md"You can see each coupling is replaced by the following `XOR` gadget"
 show_grayscale(UnitDiskMapping.gadget_qubo_square(Int), texts=["x$('₀'+i)" for i=1:8])
 
 # ╔═╡ 3ec7c034-4cb6-4b9f-96fb-c6dc428475bb
-md"Where dark nodes have weight 2 and light nodes have weight 1. It corresponds to the boolean equation ``x_8 = \neg (x_1 \veebar x_5)``, hence we can add Ferromagnetic couplings as negative weights and Anti-Ferromagnetic coupling as positive weights. On-site terms are added directly to the pins."
+md"Where dark nodes have weight 2 and light nodes have weight 1. It corresponds to the boolean equation ``x_8 = \neg (x_1 \veebar x_5)``; hence we can add ferromagnetic couplings as negative weights and anti-ferromagnetic couplings as positive weights. On-site terms are added directly to the pins."
 
 # ╔═╡ 494dfca2-af57-4dd9-9825-b28269641359
 show_pins(qubo_square)
 
 # ╔═╡ ca1d7917-58e2-4b7d-8671-ced548ccfe89
-md"Let us solve the independent set problem problem graph."
+md"Let us solve the independent set problem on the mapped graph."
 
 # ╔═╡ 30c33553-3b4d-4eff-b34c-7ac0579650f7
 square_graph, square_weights = UnitDiskMapping.graph_and_weights(qubo_square.grid_graph);
@@ -327,7 +327,7 @@ md"It can be easily checked by examining the exact result."
 
 # ╔═╡ dfd4418e-19f0-42f2-87c5-69eacf2024ac
 let
-	# solve spin glass directly
+	# solve QUBO directly
 	g2 = SimpleGraph(n*n)
 	Jd = Dict{Tuple{Int,Int}, Float64}()
 	for (i,j,i2,j2,J) in square_coupling
@@ -347,10 +347,10 @@ let
 end
 
 # ╔═╡ 9db831d6-7f10-47be-93d3-ebc892c4b3f2
-md"## Factoring"
+md"## Factorization problem"
 
 # ╔═╡ e69056dd-0052-4d1e-aef1-30411d416c82
-md"The building block of the array multiplier can be mapped to the following gadget"
+md"The building block of the array multiplier can be mapped to the following gadget:"
 
 # ╔═╡ 13e3525b-1b8e-4f65-8742-21d8ba4fdbe3
 let
@@ -382,7 +382,7 @@ mres = UnitDiskMapping.map_factoring(2, 2);
 show_pins(mres)
 
 # ╔═╡ 2e13cbad-8110-4cbc-8890-ecbefe1302dd
-md"To solve this factoring problem, one can use the following statement"
+md"To solve this factoring problem, one can use the following statement:"
 
 # ╔═╡ e5da7214-0e69-4b5a-a65e-ed92d0616c71
 multiplier_output = UnitDiskMapping.solve_factoring(mres, 6) do g, ws
@@ -393,8 +393,8 @@ end
 md"This function consists of the following steps:"
 
 # ╔═╡ 41d9b8fd-dd18-4270-803f-bd6206845788
-md"1. We first modify the graph by inspecting the fixed values, i.e. the output `m` and `0`s:
-    * If a vertex is fixed to 1, remove a and its neighbors,
+md"1. We first modify the graph by inspecting the fixed values, i.e., the output `m` and `0`s:
+    * If a vertex is fixed to 1, remove it and its neighbors,
     * If a vertex is fixed to 0, remove this vertex.
 
 The resulting grid graph is
@@ -411,7 +411,7 @@ end;
 show_graph(mapped_grid_graph)
 
 # ╔═╡ 0a8cec9c-7b9d-445b-abe3-237f16fdd9ad
-md"2. Then we solve this new grid graph."
+md"2. Then, we solve this new grid graph."
 
 # ╔═╡ 57f7e085-9589-4a6c-ac14-488ea9924692
 config_factoring6 = let
@@ -423,7 +423,7 @@ end;
 show_config(mapped_grid_graph, config_factoring6)
 
 # ╔═╡ 77bf7e4a-1237-4b24-bb31-dc8a30756834
-md"3. It is straight forward to readout the results from the above configuration. The solution should be either (2, 3) or (3, 2)."
+md"3. It is straightforward to read out the results from the above configuration. The solution should be either (2, 3) or (3, 2)."
 
 # ╔═╡ 5a79eba5-3031-4e21-836e-961a9d939862
 let
@@ -437,7 +437,7 @@ end
 md"## Logic Gates"
 
 # ╔═╡ d577e515-f3cf-4f27-b0b5-a94cb38abf1a
-md"Let us defined a helper function for visualization."
+md"Let us define a helper function for visualization."
 
 # ╔═╡ c17bca17-a00a-4118-a212-d21da09af9b5
 parallel_show(gate) = leftright(show_pins(Gate(gate); format=:png, unit=80), show_grayscale(gate_gadget(Gate(gate))[1]; format=:png, unit=80, wmax=2));
@@ -449,7 +449,7 @@ md"1. NOT gate: ``y_1 =\neg x_1``"
 parallel_show(:NOT)
 
 # ╔═╡ 0b28fab8-eb04-46d9-aa19-82e4bab45eb9
-md"2. NXOR gate: ``y_1 =\neg (x_1 \veebar x_2)``, notice this negated XOR gate is used in the square lattice QUBO mapping."
+md"2. NXOR gate: ``y_1 =\neg (x_1 \veebar x_2)``. Notice this negated XOR gate is used in the square lattice QUBO mapping."
 
 # ╔═╡ 791b9fde-1df2-4239-8372-2e3dd36d6f34
 parallel_show(:NXOR)

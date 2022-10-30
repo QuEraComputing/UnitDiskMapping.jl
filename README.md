@@ -54,4 +54,4 @@ in the `notebooks` directory of this project. At this point, your browser should
 
 
 ## Supporting and Citing
-Much of the software in this ecosystem was developed as a part of an academic research project. If you would like to help support it, please star the repository. If you use our software as part of your research, teaching, or other activities, we would like to ask you to cite our work. The [CITATION.bib](CITATION.bib) file in the root of this repository lists the relevant papers.
+Much of the software in this ecosystem was developed as a part of an academic research project. If you would like to help support it, please star the repository. If you use our software as part of your research, teaching, or other activities, we would like to ask you to cite our [work](https://arxiv.org/abs/2209.03965). The [CITATION.bib](CITATION.bib) file in the root of this repository lists the relevant papers.

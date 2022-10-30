@@ -37,13 +37,6 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - name: "Setup Private Registry"
-        shell: julia --color=yes {0}
-        run: |
-          import Pkg
-          import Pkg.Registry: RegistrySpec
-          ENV["JULIA_PKG_SERVER"] = ""
-          Pkg.Registry.add("General")
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
@@ -77,13 +70,3 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             BRANCH: gh-pages
             FOLDER: .
-
-  finish:
-      name: Coveralls Finished
-      needs: test
-      runs-on: ubuntu-latest
-      steps:
-        - uses: coverallsapp/github-action@master
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            parallel-finished: true

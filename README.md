@@ -29,14 +29,13 @@ pkg> add UnitDiskMapping
 
 ## Examples
 
-Please check this [notebook](https://github.com/QuEraComputing/UnitDiskMapping.jl/blob/main/notebooks/tutorial.jl), which contains the following examples:
+Please check this [notebook](https://queracomputing.github.io/UnitDiskMapping.jl/notebooks/tutorial.html), which contains the following examples:
 
-* Generic Unweighted Mapping
-* Generic Weighted Mapping
-* QUBO problem
-    * Generic QUBO mapping
-    * QUBO problem on a square lattice
-* Factoring
+* Reduction from a generic weighted or unweighted maximum independent set (MIS) problem to that on a diagonal coupled unit-disk grid graph (DUGG).
+* Reduction from a generic or square-lattice QUBO problem to an MIS problem on a unit-disk grid graph.
+* Reduction from an integer factorization problem to an MIS problem on a unit-disk grid graph.
+
+![](https://user-images.githubusercontent.com/6257240/198861111-4499c17d-9938-406b-8253-943b01f4633c.png)
 
 To run the notebook locally, you will need the [Pluto](https://github.com/fonsp/Pluto.jl) and [GenericTensorNetworks](https://github.com/QuEraComputing/GenericTensorNetworks.jl) Julia packages installed. You can run the following after entering the Package mode:
 

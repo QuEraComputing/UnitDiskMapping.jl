@@ -1,8 +1,8 @@
 # UnitDiskMapping
 
 [![CI](https://github.com/QuEraComputing/UnitDiskMapping.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/QuEraComputing/UnitDiskMapping.jl/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/QuEraComputing/UnitDiskMapping.jl/badge.svg?branch=main&t=H2ReMe)](https://coveralls.io/github/QuEraComputing/UnitDiskMapping.jl?branch=main)
-https://github.com/QuEraComputing/UnitDiskMapping.jl
+[![codecov](https://codecov.io/github/QuEraComputing/UnitDiskMapping.jl/branch/main/graph/badge.svg?token=fwlEQnQICw)](https://codecov.io/github/QuEraComputing/UnitDiskMapping.jl)
+
 ## Installation
 <p>
 <code>UnitDiskMapping</code> is a &nbsp;

@@ -215,9 +215,9 @@ uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 version = "0.1.8"
 
 [[deps.ExproniconLite]]
-git-tree-sha1 = "09dcb4512e103b2b8ad45aa35199633797654f47"
+git-tree-sha1 = "c0daf18334f9f2a0d330c68fc67750b4031b4312"
 uuid = "55351af7-c7e9-48d6-89ff-24e801d99491"
-version = "0.7.1"
+version = "0.7.3"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]

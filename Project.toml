@@ -1,7 +1,7 @@
 name = "UnitDiskMapping"
 uuid = "1b61a8d9-79ed-4491-8266-ef37f39e1727"
 authors = ["QuEra Computing Inc."]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"

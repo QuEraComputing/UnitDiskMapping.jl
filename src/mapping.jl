@@ -230,7 +230,7 @@ function remove_order(g::AbstractGraph, vertex_order::AbstractVector{Int})
     return addremove
 end
 
-function center_location(tc::CopyLine; padding::Int) where NT
+function center_location(tc::CopyLine; padding::Int)
     s = 4
     I = s*(tc.hslot-1)+padding+2
     J = s*(tc.vslot-1)+padding+1

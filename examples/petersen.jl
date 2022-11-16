@@ -10,13 +10,10 @@ function petersen_graph()
 end
 
 g = petersen_graph()
-ug = embed_graph(g)
-G, tape = apply_gadgets!(copy(ug))
-locs = coordinates(G)
+res = map_graph(g)
+G = SimpleGraph(res.grid_graph)
 
 using GenericTensorNetworks
 s1 = solve(IndependentSet(g), SizeMax())
 s2 = solve(IndependentSet(SimpleGraph(G)), SizeMax())
-mis_overhead0 = 2 * nv(g) * (nv(g)-1) + nv(g)
-mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
-s1[].n == s2[].n - mis_overhead0 - mis_overhead1
+s1[].n == s2[].n - res.mis_overhead

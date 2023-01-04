@@ -30,17 +30,18 @@ function LuxorGraphPlot.show_graph(gg::GridGraph;
 
     # plot!
     LuxorGraphPlot._draw(Dx, Dy; format, filename) do
-        LuxorGraphPlot.background(config.background_color)
-        LuxorGraphPlot._show_graph(transform.(locs), edges,
-        vertex_colors, vertex_stroke_colors, vertex_text_colors, vertex_sizes, vertex_shapes, edge_colors, texts, config)
+        LuxorGraphPlot._show_graph(locs, edges;
+            vertex_colors, vertex_stroke_colors,
+            vertex_text_colors, vertex_sizes,
+            vertex_shapes, edge_colors, texts,
+            vertex_size, fontsize, kwargs...)
 
-        config2 = LuxorGraphPlot.GraphDisplayConfig(; vertex_size=config.vertex_size/10,
-                                     vertex_fill_color="#333333",
-                                     vertex_stroke_color="transparent",
-                                     kwargs...,
-                                     )
-        LuxorGraphPlot._show_graph(transform.(empty_locations), Tuple{Int,Int}[],
-                nothing, nothing, nothing, nothing, nothing, nothing, fill("", length(empty_locations)), config2)
+        # visualize dots
+        LuxorGraphPlot._show_graph(empty_locations, [];
+                texts=fill("", length(empty_locations)), 
+                vertex_size=config.vertex_size/10,
+                vertex_fill_color="#333333",
+                vertex_stroke_color="transparent", background_color="transparent", kwargs...)
     end
 end
 

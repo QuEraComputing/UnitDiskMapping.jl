@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.12
+# v0.19.19
 
 using Markdown
 using InteractiveUtils
@@ -64,7 +64,7 @@ md"Let the source graph be the Petersen graph."
 graph = smallgraph(:petersen)
 
 # ╔═╡ 0302be92-076a-4ebe-8d6d-4b352a77cfce
-show_graph(graph; unit=50)
+LuxorGraphPlot.show_graph(graph; unit=50)
 
 # ╔═╡ 417b18f6-6a8f-45fb-b979-6ec9d12c6246
 md"We can use the `map_graph` function to map the unweighted MIS problem on the Petersen graph to one on a defected King's graph."
@@ -87,7 +87,7 @@ md"The field `grid_graph` is the mapped grid graph."
 
 # ╔═╡ 520fbc23-927c-4328-8dc6-5b98853fb90d
 # `unit` is the number of pixels per unit distance
-show_graph(unweighted_res.grid_graph)
+LuxorGraphPlot.show_graph(unweighted_res.grid_graph)
 
 # ╔═╡ 96ca41c0-ac77-404c-ada3-0cdc4a426e44
 md"The field `lines` is a vector of copy gadgets arranged in a `⊢` shape. These copy gadgets form a *crossing lattice*,  in which two copy lines cross each other whenever their corresponding vertices in the source graph are connected by an edge.

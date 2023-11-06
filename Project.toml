@@ -9,7 +9,7 @@ LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
 
 [compat]
 Graphs = "1.6"
-LuxorGraphPlot = "0.2"
+LuxorGraphPlot = "0.3"
 julia = "1"
 
 [extras]

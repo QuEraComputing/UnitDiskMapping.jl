@@ -1,47 +1,36 @@
 # normalized to minimum weight and maximum weight
 function LuxorGraphPlot.show_graph(gg::GridGraph;
-        vertex_colors=nothing,
-        vertex_sizes=nothing,
-        vertex_shapes=nothing,
-        vertex_stroke_colors=nothing,
-        vertex_text_colors=nothing,
-        edge_colors=nothing,
-        texts = nothing,
         format=:svg, filename=nothing,
         vertex_size=0.35,
         fontsize=20,
         kwargs...)
     # transpose (i, j) to make them consistent with terminal output
+    unit = GraphDisplayConfig.unit[]
 	locs = [(j,i) for (i,j) in coordinates(gg)]
     length(locs) == 0 && return _draw(()->nothing, 100, 100; format, filename)
     edges = [(e.src, e.dst) for e in Graphs.edges(graph_and_weights(gg)[1])]
 
     # configure canvas and plot
-    xmin, ymin, xmax, ymax = LuxorGraphPlot.get_bounding_box(locs)
-    config = LuxorGraphPlot.GraphDisplayConfig(; vertex_size, fontsize, kwargs...)
-    Dx, Dy = ((xmax-xmin)+2*config.xpad)*config.unit, ((ymax-ymin)+2*config.ypad)*config.unit
-    transform(loc) = loc[1]-xmin+config.xpad, loc[2]-ymin+config.ypad
-
+    config = LuxorGraphPlot.graphsizeconfig(locs)
+    transform(loc) = loc[1]-config.xmin+config.xpad, loc[2]-config.ymin+config.ypad
+    Dx, Dy = ((config.xmax-config.xmin)+2*config.xpad)*unit, ((config.ymax-config.ymin)+2*config.ypad)*unit
     # compute empty locations
     empty_locations = Tuple{Int,Int}[]
-    for i=xmin:xmax, j=ymin:ymax
+    for i=config.xmin:config.xmax, j=config.ymin:config.ymax
         (i, j) ∉ locs && push!(empty_locations, (i, j))
     end
 
     # plot!
     LuxorGraphPlot._draw(Dx, Dy; format, filename) do
-        LuxorGraphPlot._show_graph(locs, edges;
-            vertex_colors, vertex_stroke_colors,
-            vertex_text_colors, vertex_sizes,
-            vertex_shapes, edge_colors, texts,
-            vertex_size, fontsize, kwargs...)
+        LuxorGraphPlot.@temp GraphDisplayConfig.vertex_size[] = vertex_size GraphDisplayConfig.fontsize[] = fontsize begin
+            LuxorGraphPlot._show_graph(locs, edges;
+                vertex_size, fontsize, kwargs...)
+        end
 
         # visualize dots
-        LuxorGraphPlot._show_graph(empty_locations, [];
-                texts=fill("", length(empty_locations)), 
-                vertex_size=config.vertex_size/10,
-                vertex_fill_color="#333333",
-                vertex_stroke_color="transparent", background_color="transparent", kwargs...)
+        LuxorGraphPlot.@temp GraphDisplayConfig.vertex_size[] = vertex_size/10 GraphDisplayConfig.fontsize[] = fontsize GraphDisplayConfig.vertex_color[]="#333333" GraphDisplayConfig.vertex_stroke_color[]="transparent" GraphDisplayConfig.background_color[]="transparent" begin
+            LuxorGraphPlot._show_graph(empty_locations, []; texts=fill("", length(empty_locations)))
+        end
     end
 end
 

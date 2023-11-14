@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.27
+# v0.19.32
 
 using Markdown
 using InteractiveUtils
@@ -46,7 +46,7 @@ using UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra
 # ╔═╡ 98459516-4833-4e4a-916f-d5ea3e657ceb
 # Visualization setup.
 # To make the plots dark-mode friendly, we use white-background color.
-using UnitDiskMapping.LuxorGraphPlot.Luxor, LuxorGraphPlot; LuxorGraphPlot.DEFAULT_UNIT[] = 25; LuxorGraphPlot.DEFAULT_BACKGROUND_COLOR[]="white";
+using UnitDiskMapping.LuxorGraphPlot.Luxor, LuxorGraphPlot; GraphDisplayConfig.unit[] = 25; GraphDisplayConfig.background_color[]="white";
 
 # ╔═╡ eac6ceda-f5d4-11ec-23db-b7b4d00eaddf
 md"# Unit Disk Mapping"

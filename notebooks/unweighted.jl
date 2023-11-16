@@ -41,7 +41,7 @@ table.nohover tr:hover td {
 end
 
 # ╔═╡ be011e30-74e6-49cd-b45a-288972dc5f18
-using UnitDiskMapping, Graphs # for mapping graphs to a King's subgraph (KSG) graphs
+using UnitDiskMapping, Graphs # for mapping graphs to a King's subgraph (KSG)
 
 # ╔═╡ 31250cb9-6f3a-429a-975d-752cb7c07883
 using GenericTensorNetworks # for solving the maximum independent sets

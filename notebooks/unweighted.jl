@@ -211,7 +211,7 @@ UnitDiskMapping.is_independent_set(petersen, mis_petersen)
 count(isone, mis_petersen)
 
 # ╔═╡ 8c1d46e8-dc36-41bd-9d9b-5a72c380ef26
-md"The number printed should be consistent with the MIS size of petersen graph."
+md"The number printed should be consistent with the MIS size of the petersen graph."
 
 # ╔═╡ Cell order:
 # ╟─f55dbf80-8425-11ee-2e7d-4d1ad4f693af

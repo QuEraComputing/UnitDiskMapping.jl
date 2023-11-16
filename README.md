@@ -29,27 +29,27 @@ pkg> add UnitDiskMapping
 
 ## Examples
 
-Please check this [notebook](https://queracomputing.github.io/UnitDiskMapping.jl/notebooks/tutorial.html), which contains the following examples:
+Please check the following notebooks:
+1. [Unit Disk Mapping](https://queracomputing.github.io/UnitDiskMapping.jl/notebooks/tutorial.html), which contains the examples in ["Quantum Optimization with Arbitrary Connectivity Using Rydberg Atom Arrays"](https://journals.aps.org/prxquantum/abstract/10.1103/PRXQuantum.4.010316):
+    * Reduction from a generic weighted or unweighted maximum independent set (MIS) problem to that on a King's subgraph (KSG).
+    * Reduction from a generic or square-lattice QUBO problem to an MIS problem on a unit-disk grid graph.
+    * Reduction from an integer factorization problem to an MIS problem on a unit-disk grid graph.
 
-* Reduction from a generic weighted or unweighted maximum independent set (MIS) problem to that on a diagonal coupled unit-disk grid graph (DUGG).
-* Reduction from a generic or square-lattice QUBO problem to an MIS problem on a unit-disk grid graph.
-* Reduction from an integer factorization problem to an MIS problem on a unit-disk grid graph.
+2. [Unweighted KSG reduction of the independent set problem](https://queracomputing.github.io/UnitDiskMapping.jl/notebooks/unweighted.html), which contains the unweighted reduction from a general graph to a King's subgraph. It covers all example graphs in paper: "Computer-Assisted Gadget Design and Problem Reduction of Unweighted Maximum Independent Set" (To be published).
 
 ![](https://user-images.githubusercontent.com/6257240/198861111-4499c17d-9938-406b-8253-943b01f4633c.png)
 
-To run the notebook locally, you will need the [Pluto](https://github.com/fonsp/Pluto.jl) and [GenericTensorNetworks](https://github.com/QuEraComputing/GenericTensorNetworks.jl) Julia packages installed. You can run the following after entering the Package mode:
+To run the notebook locally, you will need to activate and instantiate the local environment that specified in the [`notebooks`](notebooks) directory:
+```bash
+$ cd notebooks
+$ julia --project -e 'using Pkg; Pkg.instantiate()'
+```
 
+To run the notebook, just type in the same terminal:
+```bash
+julia --project -e "import Pluto; Pluto.run()"
 ```
-pkg> add Pluto
-pkg> add GenericTensorNetworks
-```
-
-and returning to the Julia REPL (you can do this by hitting Backspace in the Package mode) to run:
-
-```
-julia> import Pluto; Pluto.run()
-```
-in the `notebooks` directory of this project. At this point, your browser should automatically launch and display a list of available notebooks you can run. You should just see `tutorial.jl` listed.
+At this point, your browser should automatically launch and display a list of available notebooks you can run. You should just see the notebooks listed.
 
 
 ## Supporting and Citing

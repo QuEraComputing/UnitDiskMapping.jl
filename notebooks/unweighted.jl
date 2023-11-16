@@ -41,7 +41,7 @@ table.nohover tr:hover td {
 end
 
 # ╔═╡ be011e30-74e6-49cd-b45a-288972dc5f18
-using UnitDiskMapping, Graphs # for mapping graphs to a King's subgraph (KSG) graphs
+using UnitDiskMapping, Graphs # for mapping graphs to a King's subgraph (KSG)
 
 # ╔═╡ 31250cb9-6f3a-429a-975d-752cb7c07883
 using GenericTensorNetworks # for solving the maximum independent sets
@@ -52,7 +52,7 @@ md"""
 """
 
 # ╔═╡ f0e7c030-4e43-4356-a5bb-717a7f382a17
-md"This notebook is for paper: Computer-Assisted Gadget Design and Problem Reduction of Unweighted Maximum Independent Set"
+md"This notebook contains examples from the paper, "Computer-Assisted Gadget Design and Problem Reduction of Unweighted Maximum Independent Set"."
 
 # ╔═╡ cb4a9655-6df2-46b3-8969-8b6f2db7c59a
 md"""
@@ -117,7 +117,7 @@ missize_g5_ksg.n - g5res.mis_overhead
 
 # ╔═╡ e6fa2404-cbe9-4f9b-92a0-0d6fdb649c44
 md"""
-One of the best solution can be obtained by solving the `SingleConfigMax()` property.
+One of the best solutions can be obtained by solving the `SingleConfigMax()` property.
 """
 
 # ╔═╡ 0142f661-0855-45b4-852a-78f560e98c67
@@ -181,7 +181,7 @@ md"The MIS size of the petersen graph is 4."
 missize_petersen = solve(IndependentSet(petersen), SizeMax())[]
 
 # ╔═╡ 2589f112-5de5-4c98-bcd1-138b6143cd30
-md" The MIS size of the mapped KDG graph is much larger"
+md" The MIS size of the mapped KSG graph is much larger"
 
 # ╔═╡ 1b946455-b152-4d6f-9968-7dc6e22d171a
 missize_petersen_ksg = solve(IndependentSet(SimpleGraph(petersen_res.grid_graph)), SizeMax())[]
@@ -193,7 +193,7 @@ md"The difference in the MIS size is:"
 petersen_res.mis_overhead
 
 # ╔═╡ 03d8adb3-0bf4-44e6-9b0a-fffc90410cfc
-md"Find an MIS of the mapped KSG and map it back the an MIS on the source graph."
+md"Find an MIS of the mapped KSG and map it back an MIS on the source graph."
 
 # ╔═╡ 0d08cb1a-f7f3-4d63-bd70-78103db086b3
 mis_petersen_ksg = solve(IndependentSet(SimpleGraph(petersen_res.grid_graph)), SingleConfigMax())[].c.data
@@ -211,7 +211,7 @@ UnitDiskMapping.is_independent_set(petersen, mis_petersen)
 count(isone, mis_petersen)
 
 # ╔═╡ 8c1d46e8-dc36-41bd-9d9b-5a72c380ef26
-md"The number printed should be consistent with the MIS size of petersen graph."
+md"The number printed should be consistent with the MIS size of the petersen graph."
 
 # ╔═╡ Cell order:
 # ╟─f55dbf80-8425-11ee-2e7d-4d1ad4f693af

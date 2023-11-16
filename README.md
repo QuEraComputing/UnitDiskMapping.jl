@@ -29,7 +29,8 @@ pkg> add UnitDiskMapping
 
 ## Examples
 
-Please check this [notebook](https://queracomputing.github.io/UnitDiskMapping.jl/notebooks/tutorial.html), which contains the following examples:
+We have the following notebooks
+1. [A tutorial about problem reduction](https://queracomputing.github.io/UnitDiskMapping.jl/notebooks/tutorial.html), which contains the following examples:
 
 * Reduction from a generic weighted or unweighted maximum independent set (MIS) problem to that on a diagonal coupled unit-disk grid graph (DUGG).
 * Reduction from a generic or square-lattice QUBO problem to an MIS problem on a unit-disk grid graph.

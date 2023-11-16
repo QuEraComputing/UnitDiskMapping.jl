@@ -117,7 +117,7 @@ missize_g5_ksg.n - g5res.mis_overhead
 
 # ╔═╡ e6fa2404-cbe9-4f9b-92a0-0d6fdb649c44
 md"""
-One of the best solution can be obtained by solving the `SingleConfigMax()` property.
+One of the best solutions can be obtained by solving the `SingleConfigMax()` property.
 """
 
 # ╔═╡ 0142f661-0855-45b4-852a-78f560e98c67

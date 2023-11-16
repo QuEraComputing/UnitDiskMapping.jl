@@ -193,7 +193,7 @@ md"The difference in the MIS size is:"
 petersen_res.mis_overhead
 
 # ╔═╡ 03d8adb3-0bf4-44e6-9b0a-fffc90410cfc
-md"Find an MIS of the mapped KSG and map it back the an MIS on the source graph."
+md"Find an MIS of the mapped KSG and map it back an MIS on the source graph."
 
 # ╔═╡ 0d08cb1a-f7f3-4d63-bd70-78103db086b3
 mis_petersen_ksg = solve(IndependentSet(SimpleGraph(petersen_res.grid_graph)), SingleConfigMax())[].c.data

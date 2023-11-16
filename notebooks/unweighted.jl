@@ -5,6 +5,7 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ f55dbf80-8425-11ee-2e7d-4d1ad4f693af
+# ╠═╡ show_logs = false
 begin
 	using Pkg; Pkg.activate(".")
 	using Revise
@@ -74,6 +75,9 @@ end
 
 # ╔═╡ a3a86c62-ee6e-4a3b-99b3-c484de3b5220
 g5 = demograph()
+
+# ╔═╡ e6170e72-0804-401e-b9e5-65b8ee7d7edb
+show_graph(g5)
 
 # ╔═╡ 625bdcf4-e37e-4bb8-bd1a-907cdcc5fe24
 md"""
@@ -161,6 +165,9 @@ We just quickly go through a second example, the Petersen graph.
 # ╔═╡ ea379863-95dd-46dd-a0a3-0a564904476a
 petersen = smallgraph(:petersen)
 
+# ╔═╡ d405e7ec-50e3-446c-8d19-18f1a66c1e3b
+show_graph(petersen)
+
 # ╔═╡ 409b03d1-384b-48d3-9010-8079cbf66dbf
 md"We first map it to a grid graph (unweighted)."
 
@@ -216,6 +223,7 @@ md"The number printed should be consistent with the MIS size of petersen graph."
 # ╟─956a5c3a-b8c6-4040-9553-3b4e2337b163
 # ╠═d858f57e-1706-4b73-bc23-53f7af073b0c
 # ╠═a3a86c62-ee6e-4a3b-99b3-c484de3b5220
+# ╠═e6170e72-0804-401e-b9e5-65b8ee7d7edb
 # ╟─625bdcf4-e37e-4bb8-bd1a-907cdcc5fe24
 # ╠═f9e57a6b-1186-407e-a8b1-cb8f31a17bd2
 # ╟─e64e7ca4-b297-4c74-8699-bec4b4fbb843
@@ -241,6 +249,7 @@ md"The number printed should be consistent with the MIS size of petersen graph."
 # ╠═5621bb2a-b1c6-4f0d-921e-980b2ce849d5
 # ╟─1fe6c679-2962-4c1b-8b12-4ceb77ed9e0f
 # ╠═ea379863-95dd-46dd-a0a3-0a564904476a
+# ╠═d405e7ec-50e3-446c-8d19-18f1a66c1e3b
 # ╟─409b03d1-384b-48d3-9010-8079cbf66dbf
 # ╠═a0e7da6b-3b71-43d4-a1da-f1bd953e4b50
 # ╟─4f1f0ca0-dd2a-4768-9b4e-80813c9bb544

@@ -39,19 +39,17 @@ Please check the following notebooks:
 
 ![](https://user-images.githubusercontent.com/6257240/198861111-4499c17d-9938-406b-8253-943b01f4633c.png)
 
-To run the notebook locally, you will need the [Pluto](https://github.com/fonsp/Pluto.jl) and [GenericTensorNetworks](https://github.com/QuEraComputing/GenericTensorNetworks.jl) Julia packages installed. You can run the following after entering the Package mode:
+To run the notebook locally, you will need to activate and instantiate the local environment that specified in the [`notebooks`](notebooks) directory:
+```bash
+$ cd notebooks
+$ julia --project -e 'using Pkg; Pkg.instantiate()'
+```
 
+To run the notebook, just type in the same terminal:
+```bash
+julia --project -e "import Pluto; Pluto.run()"
 ```
-pkg> add Pluto
-pkg> add GenericTensorNetworks
-```
-
-and returning to the Julia REPL (you can do this by hitting Backspace in the Package mode) to run:
-
-```
-julia> import Pluto; Pluto.run()
-```
-in the `notebooks` directory of this project. At this point, your browser should automatically launch and display a list of available notebooks you can run. You should just see `tutorial.jl` listed.
+At this point, your browser should automatically launch and display a list of available notebooks you can run. You should just see the notebooks listed.
 
 
 ## Supporting and Citing

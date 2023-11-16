@@ -52,7 +52,7 @@ md"""
 """
 
 # ╔═╡ f0e7c030-4e43-4356-a5bb-717a7f382a17
-md"This notebook is for paper: Computer-Assisted Gadget Design and Problem Reduction of Unweighted Maximum Independent Set"
+md"This notebook contains examples from the paper, "Computer-Assisted Gadget Design and Problem Reduction of Unweighted Maximum Independent Set"."
 
 # ╔═╡ cb4a9655-6df2-46b3-8969-8b6f2db7c59a
 md"""

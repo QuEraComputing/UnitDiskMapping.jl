@@ -181,7 +181,7 @@ md"The MIS size of the petersen graph is 4."
 missize_petersen = solve(IndependentSet(petersen), SizeMax())[]
 
 # ╔═╡ 2589f112-5de5-4c98-bcd1-138b6143cd30
-md" The MIS size of the mapped KDG graph is much larger"
+md" The MIS size of the mapped KSG graph is much larger"
 
 # ╔═╡ 1b946455-b152-4d6f-9968-7dc6e22d171a
 missize_petersen_ksg = solve(IndependentSet(SimpleGraph(petersen_res.grid_graph)), SizeMax())[]

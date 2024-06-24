@@ -82,11 +82,11 @@ show_graph(g5)
 # ╔═╡ 625bdcf4-e37e-4bb8-bd1a-907cdcc5fe24
 md"""
 #### Step 2: Map the source graph to an unweighted King's subgraph (KSG)
-The vertex order is optimized with the Branching path decomposition algorithm
+The vertex order is optimized with the Branching path decomposition algorithm (MinhThi's Trick)
 """
 
 # ╔═╡ f9e57a6b-1186-407e-a8b1-cb8f31a17bd2
-g5res = UnitDiskMapping.map_graph(g5; vertex_order=Branching())
+g5res = UnitDiskMapping.map_graph(g5; vertex_order=MinhThiTrick())
 
 # ╔═╡ e64e7ca4-b297-4c74-8699-bec4b4fbb843
 md"Visualize the mapped KSG graph in terminal"

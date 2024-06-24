@@ -37,7 +37,9 @@ export @gg
 export is_independent_set, unitdisk_graph
 
 # path decomposition
-export pathwidth, PathDecompositionMethod, Branching, Greedy
+export pathwidth, PathDecompositionMethod, MinhThiTrick, Greedy
+
+@deprecate Branching MinhThiTrick
 
 include("utils.jl")
 include("Core.jl")

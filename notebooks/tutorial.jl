@@ -70,10 +70,10 @@ LuxorGraphPlot.show_graph(graph)
 md"We can use the `map_graph` function to map the unweighted MIS problem on the Petersen graph to one on a defected King's graph."
 
 # ╔═╡ c7315578-8bb0-40a0-a2a3-685a80674c9c
-unweighted_res = map_graph(graph; vertex_order=Branching());
+unweighted_res = map_graph(graph; vertex_order=MinhThiTrick());
 
 # ╔═╡ 3f605eac-f587-40b2-8fac-8223777d3fad
-md"Here, the keyword argument `vertex_order` can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The `Branching()` method is an exact path decomposition solver, which is suited for small graphs (where number of vertices <= 50). The `Greedy()` method finds the vertex order much faster and works in all cases, but may not be optimal.
+md"Here, the keyword argument `vertex_order` can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The `MinhThiTrick()` method is an exact path decomposition solver, which is suited for small graphs (where number of vertices <= 50). The `Greedy()` method finds the vertex order much faster and works in all cases, but may not be optimal.
 A good vertex order can reduce the depth of the mapped graph."
 
 # ╔═╡ e5382b61-6387-49b5-bae8-0389fbc92153
@@ -150,7 +150,7 @@ md"## Generic Weighted Mapping"
 md"A Maximum Weight Independent Set (MWIS) problem on a general graph can be mapped to one on the defected King's graph. The first step is to do the same mapping as above but adding a new positional argument `Weighted()` as the first argument of `map_graph`. Let us still use the Petersen graph as an example."
 
 # ╔═╡ 2fa704ee-d5c1-4205-9a6a-34ba0195fecf
-weighted_res = map_graph(Weighted(), graph; vertex_order=Branching());
+weighted_res = map_graph(Weighted(), graph; vertex_order=MinhThiTrick());
 
 # ╔═╡ 27acc8be-2db8-4322-85b4-230fdddac043
 md"The return value is similar to that for the unweighted mapping generated above, except each node in the mapped graph can have a weight 1, 2 or 3. Note here, we haven't added the weights in the original graph."

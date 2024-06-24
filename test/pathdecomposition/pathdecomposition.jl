@@ -16,7 +16,7 @@ using Graphs
         @test sum(length, arem) == nv(g)
     end
     g = smallgraph(:tutte)
-    res = pathwidth(g, Branching())
+    res = pathwidth(g, MinhThiTrick())
     @test vsep(res) == 6
     g = smallgraph(:tutte)
     res = pathwidth(g, Greedy(nrepeat=50))

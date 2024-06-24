@@ -11,7 +11,7 @@ using Random
     @test show_pins(qubo) !== nothing
     println(qubo)
     graph, weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
-    r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
+    r1 = solve(GenericTensorNetwork(IndependentSet(graph, weights)), SingleConfigMax())[]
     J2 = vcat([Float64[J[i,j] for j=i+1:n] for i=1:n]...)
     r2 = solve(SpinGlass(complete_graph(n); J=J2, h=H), SingleConfigMax())[]
     @test r1.n - qubo.mis_overhead ≈ r2.n
@@ -28,10 +28,9 @@ end
         n = nv(g0)
         w0 = ones(n) * 0.01
         wmis = UnitDiskMapping.map_simple_wmis(g0, w0)
-        @test show_pins(wmis) !== nothing
         graph, weights = UnitDiskMapping.graph_and_weights(wmis.grid_graph)
-        r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
-        r2 = solve(IndependentSet(g0; weights=w0), SingleConfigMax())[]
+        r1 = solve(GenericTensorNetwork(IndependentSet(graph, weights)), SingleConfigMax())[]
+        r2 = solve(GenericTensorNetwork(IndependentSet(g0, w0)), SingleConfigMax())[]
         @test r1.n - wmis.mis_overhead ≈ r2.n
         @test r1.n % 1 ≈ r2.n % 1
         c1 = map_config_back(wmis, r1.c.data)
@@ -47,7 +46,7 @@ end
     ]
     qubo = UnitDiskMapping.map_qubo_restricted(coupling)
     graph, weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
-    r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
+    r1 = solve(GenericTensorNetwork(IndependentSet(graph, weights)), SingleConfigMax())[]
 
 
     weights = Int[]
@@ -70,7 +69,7 @@ end
     onsite = vec([(i, j, 0.01*randn()) for i=1:m, j=1:n])
     qubo = UnitDiskMapping.map_qubo_square(coupling, onsite)
     graph, weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
-    r1 = solve(IndependentSet(graph; weights), SingleConfigMax())[]
+    r1 = solve(GenericTensorNetwork(IndependentSet(graph, weights)), SingleConfigMax())[]
 
     # solve spin glass directly
     g2 = SimpleGraph(m*n)

@@ -7,9 +7,9 @@ using GenericTensorNetworks
         locs, g, pins = mapped_graph(s)
         d1 = UnitDiskMapping.mapped_entry_to_compact(s)
         d2 = UnitDiskMapping.source_entry_to_configs(s)
-        m = solve(IndependentSet(g, openvertices=pins), ConfigsMax())
-        t = solve(IndependentSet(g0, openvertices=pins0), SizeMax())
-        for i=1:length(m)
+        m = solve(GenericTensorNetwork(IndependentSet(g), openvertices=pins), ConfigsMax())
+        t = solve(GenericTensorNetwork(IndependentSet(g0), openvertices=pins0), SizeMax())
+        for i in eachindex(m)
             for v in m[i].c.data
                 bc = UnitDiskMapping.mapped_boundary_config(s, v)
                 compact_bc = d1[bc]

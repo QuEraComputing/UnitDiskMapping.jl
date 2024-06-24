@@ -368,7 +368,7 @@ struct MappingResult{NT}
 end
 
 """
-    map_graph([mode=Weighted(),] g::SimpleGraph; vertex_order=Branching(), ruleset=[...])
+    map_graph([mode=UnWeighted(),] g::SimpleGraph; vertex_order=Branching(), ruleset=[...])
 
 Map a graph to a unit disk grid graph that being "equivalent" to the original graph, and return a `MappingResult` instance.
 Here "equivalent" means a maximum independent set in the grid graph can be mapped back to

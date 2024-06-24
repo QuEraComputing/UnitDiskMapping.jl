@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.32
+# v0.19.42
 
 using Markdown
 using InteractiveUtils
@@ -82,11 +82,11 @@ show_graph(g5)
 # ╔═╡ 625bdcf4-e37e-4bb8-bd1a-907cdcc5fe24
 md"""
 #### Step 2: Map the source graph to an unweighted King's subgraph (KSG)
-The vertex order is optimized with the Branching path decomposition algorithm
+The vertex order is optimized with the Branching path decomposition algorithm (MinhThi's Trick)
 """
 
 # ╔═╡ f9e57a6b-1186-407e-a8b1-cb8f31a17bd2
-g5res = UnitDiskMapping.map_graph(g5; vertex_order=Branching())
+g5res = UnitDiskMapping.map_graph(g5; vertex_order=MinhThiTrick())
 
 # ╔═╡ e64e7ca4-b297-4c74-8699-bec4b4fbb843
 md"Visualize the mapped KSG graph in terminal"
@@ -107,7 +107,7 @@ md"#### Step 3: Solve the MIS size of the mapped graph"
 md"The independent set size can be obtained by solving the `SizeMax()` property using the [generic tensor network](https://github.com/QuEraComputing/GenericTensorNetworks.jl) method."
 
 # ╔═╡ 67fd2dd2-5add-4402-9618-c9b7c7bfe95b
-missize_g5_ksg = solve(IndependentSet(SimpleGraph(g5res.grid_graph)), SizeMax())[]
+missize_g5_ksg = solve(GenericTensorNetwork(IndependentSet(SimpleGraph(g5res.grid_graph))), SizeMax())[]
 
 # ╔═╡ aaee9dbc-5b9c-41b1-b0d4-35d2cac7c773
 md"The predicted MIS size for the source graph is:"
@@ -121,7 +121,7 @@ One of the best solutions can be obtained by solving the `SingleConfigMax()` pro
 """
 
 # ╔═╡ 0142f661-0855-45b4-852a-78f560e98c67
-mis_g5_ksg = solve(IndependentSet(SimpleGraph(g5res.grid_graph)), SingleConfigMax())[].c.data
+mis_g5_ksg = solve(GenericTensorNetwork(IndependentSet(SimpleGraph(g5res.grid_graph))), SingleConfigMax())[].c.data
 
 # ╔═╡ fa046f3c-fd7d-4e91-b3f5-fc4591d3cae2
 md"Plot the solution"
@@ -153,7 +153,7 @@ UnitDiskMapping.is_independent_set(g5, mis_g5)
 count(isone, mis_g5)
 
 # ╔═╡ 5621bb2a-b1c6-4f0d-921e-980b2ce849d5
-solve(IndependentSet(g5), SizeMax())[].n
+solve(GenericTensorNetwork(IndependentSet(g5)), SizeMax())[].n
 
 # ╔═╡ 1fe6c679-2962-4c1b-8b12-4ceb77ed9e0f
 md"""
@@ -178,13 +178,13 @@ petersen_res = UnitDiskMapping.map_graph(petersen)
 md"The MIS size of the petersen graph is 4."
 
 # ╔═╡ bf97a268-cd96-4dbc-83c6-10eb1b03ddcc
-missize_petersen = solve(IndependentSet(petersen), SizeMax())[]
+missize_petersen = solve(GenericTensorNetwork(IndependentSet(petersen)), SizeMax())[]
 
 # ╔═╡ 2589f112-5de5-4c98-bcd1-138b6143cd30
 md" The MIS size of the mapped KSG graph is much larger"
 
 # ╔═╡ 1b946455-b152-4d6f-9968-7dc6e22d171a
-missize_petersen_ksg = solve(IndependentSet(SimpleGraph(petersen_res.grid_graph)), SizeMax())[]
+missize_petersen_ksg = solve(GenericTensorNetwork(IndependentSet(SimpleGraph(petersen_res.grid_graph))), SizeMax())[]
 
 # ╔═╡ 4e7f7d9e-fae4-46d2-b95d-110d36b691d9
 md"The difference in the MIS size is:"
@@ -196,7 +196,7 @@ petersen_res.mis_overhead
 md"Find an MIS of the mapped KSG and map it back an MIS on the source graph."
 
 # ╔═╡ 0d08cb1a-f7f3-4d63-bd70-78103db086b3
-mis_petersen_ksg = solve(IndependentSet(SimpleGraph(petersen_res.grid_graph)), SingleConfigMax())[].c.data
+mis_petersen_ksg = solve(GenericTensorNetwork(IndependentSet(SimpleGraph(petersen_res.grid_graph))), SingleConfigMax())[].c.data
 
 # ╔═╡ c27d8aed-c81f-4eb7-85bf-a4ed88c2537f
 mis_petersen = UnitDiskMapping.map_config_back(petersen_res, collect(mis_petersen_ksg))

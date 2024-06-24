@@ -44,3 +44,7 @@ end
 @testset "drag and drop" begin
     include("dragondrop.jl")
 end
+
+@testset "visualize" begin
+    include("visualize.jl")
+end

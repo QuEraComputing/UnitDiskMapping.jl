@@ -1,41 +1,46 @@
 # normalized to minimum weight and maximum weight
 function LuxorGraphPlot.show_graph(gg::GridGraph;
-        format=:svg, filename=nothing,
-        vertex_size=0.35,
-        fontsize=20,
-        kwargs...)
-    # transpose (i, j) to make them consistent with terminal output
-    unit = GraphDisplayConfig.unit[]
-	locs = [(j,i) for (i,j) in coordinates(gg)]
-    length(locs) == 0 && return _draw(()->nothing, 100, 100; format, filename)
-    edges = [(e.src, e.dst) for e in Graphs.edges(graph_and_weights(gg)[1])]
-
-    # configure canvas and plot
-    config = LuxorGraphPlot.graphsizeconfig(locs)
-    transform(loc) = loc[1]-config.xmin+config.xpad, loc[2]-config.ymin+config.ypad
-    Dx, Dy = ((config.xmax-config.xmin)+2*config.xpad)*unit, ((config.ymax-config.ymin)+2*config.ypad)*unit
-    # compute empty locations
-    empty_locations = Tuple{Int,Int}[]
-    for i=config.xmin:config.xmax, j=config.ymin:config.ymax
-        (i, j) ∉ locs && push!(empty_locations, (i, j))
-    end
-
+        format = :svg,
+        filename = nothing,
+        padding_left = 10,
+        padding_right = 10,
+        padding_top = 10,
+        padding_bottom = 10,
+        show_number = false,
+        config = GraphDisplayConfig(),
+        texts = nothing,
+        vertex_colors=nothing,
+    )
+    texts !== nothing && show_number && @warn "not showing number due to the manually specified node texts."
     # plot!
-    LuxorGraphPlot._draw(Dx, Dy; format, filename) do
-        LuxorGraphPlot.@temp GraphDisplayConfig.vertex_size[] = vertex_size GraphDisplayConfig.fontsize[] = fontsize begin
-            LuxorGraphPlot._show_graph(locs, edges;
-                vertex_size, fontsize, kwargs...)
+    unit = 33.0
+    coos = coordinates(gg)
+    xmin, xmax = extrema(first.(coos))
+    ymin, ymax = extrema(last.(coos))
+    nodestore() do ns
+        filledlocs = map(coo->circle!((unit * (coo[2] - 1), -unit * (coo[1] - 1)), config.vertex_size), coos)
+        emptylocs, edges = [], []
+        for i=xmin:xmax, j=ymin:ymax
+            (i, j) ∉ coos && push!(emptylocs, circle!(((j-1) * unit, -(i-1) * unit), config.vertex_size/10))
         end
-
-        # visualize dots
-        LuxorGraphPlot.@temp GraphDisplayConfig.vertex_size[] = vertex_size/10 GraphDisplayConfig.fontsize[] = fontsize GraphDisplayConfig.vertex_color[]="#333333" GraphDisplayConfig.vertex_stroke_color[]="transparent" GraphDisplayConfig.background_color[]="transparent" begin
-            LuxorGraphPlot._show_graph(empty_locations, []; texts=fill("", length(empty_locations)))
+        for e in Graphs.edges(graph_and_weights(gg)[1])
+            i, j = e.src, e.dst
+            push!(edges, Connection(filledlocs[i], filledlocs[j]))
+        end
+        with_nodes(ns; format, filename, padding_bottom, padding_left, padding_right, padding_top, background=config.background) do
+            config2 = copy(config)
+            config2 = GraphDisplayConfig(; vertex_color="#333333", vertex_stroke_color="transparent")
+            texts = texts===nothing && show_number ? string.(1:length(filledlocs)) : texts
+            LuxorGraphPlot.render_nodes(filledlocs, config; texts, vertex_colors)
+            LuxorGraphPlot.render_edges(edges, config)
+            LuxorGraphPlot.render_nodes(emptylocs, config2; texts=nothing)
         end
     end
 end
 
 function show_grayscale(gg::GridGraph; wmax=nothing, kwargs...)
-    _, ws = graph_and_weights(gg)
+    _, ws0 = graph_and_weights(gg)
+    ws = tame_weights.(ws0)
     if wmax === nothing
         wmax = maximum(abs, ws)
     end
@@ -46,6 +51,8 @@ function show_grayscale(gg::GridGraph; wmax=nothing, kwargs...)
     vertex_colors= [cmap[max(1, round(Int, 100+w/wmax*100))] for w in ws]
     show_graph(gg; vertex_colors, kwargs...)
 end
+tame_weights(w::ONE) = 1.0
+tame_weights(w::Real) = w
 
 function show_pins(gg::GridGraph, color_pins::AbstractDict; kwargs...)
     vertex_colors=String[]
@@ -90,7 +97,7 @@ function show_config(gg::GridGraph, config; kwargs...)
     show_graph(gg; vertex_colors, kwargs...)
 end
 
-function show_pins(mres::MappingResult; kwargs...)
+function show_pins(mres::MappingResult{<:WeightedNode}; kwargs...)
     locs = getfield.(mres.grid_graph.nodes, :loc)
     center_indices = map(loc->findfirst(==(loc), locs), trace_centers(mres))
     color_pins = Dict{Int,Tuple{String,String}}()

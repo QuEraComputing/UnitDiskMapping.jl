@@ -318,16 +318,16 @@ function crossat(ug::MappingGrid, v, w)
 end
 
 """
-    embed_graph([mode,] g::SimpleGraph; vertex_order=Branching())
+    embed_graph([mode,] g::SimpleGraph; vertex_order=MinhThiTrick())
 
 Embed graph `g` into a unit disk grid, where the optional argument `mode` can be `Weighted()` or `UnWeighted`.
 The `vertex_order` can be a vector or one of the following inputs
 
     * `Greedy()` fast but non-optimal.
-    * `Branching()` slow but optimal.
+    * `MinhThiTrick()` slow but optimal.
 """
-embed_graph(g::SimpleGraph; vertex_order=Branching()) = embed_graph(UnWeighted(), g; vertex_order)
-function embed_graph(mode, g::SimpleGraph; vertex_order=Branching())
+embed_graph(g::SimpleGraph; vertex_order=MinhThiTrick()) = embed_graph(UnWeighted(), g; vertex_order)
+function embed_graph(mode, g::SimpleGraph; vertex_order=MinhThiTrick())
     if vertex_order isa AbstractVector
         L = PathDecomposition.Layout(g, collect(vertex_order[end:-1:1]))
     else
@@ -368,7 +368,7 @@ struct MappingResult{NT}
 end
 
 """
-    map_graph([mode=Weighted(),] g::SimpleGraph; vertex_order=Branching(), ruleset=[...])
+    map_graph([mode=UnWeighted(),] g::SimpleGraph; vertex_order=MinhThiTrick(), ruleset=[...])
 
 Map a graph to a unit disk grid graph that being "equivalent" to the original graph, and return a `MappingResult` instance.
 Here "equivalent" means a maximum independent set in the grid graph can be mapped back to
@@ -385,13 +385,13 @@ Keyword Arguments
 Different vertex orders have different path width, i.e. different depth of mapped grid graph.
 It can be a vector or one of the following inputs
     * `Greedy()` fast but not optimal.
-    * `Branching()` slow but optimal.
+    * `MinhThiTrick()` slow but optimal.
 * `ruleset` specifies and extra set of optimization patterns (not the crossing patterns).
 """
-function map_graph(g::SimpleGraph; vertex_order=Branching(), ruleset=default_simplifier_ruleset(UnWeighted()))
+function map_graph(g::SimpleGraph; vertex_order=MinhThiTrick(), ruleset=default_simplifier_ruleset(UnWeighted()))
     map_graph(UnWeighted(), g; ruleset=ruleset, vertex_order=vertex_order)
 end
-function map_graph(mode, g::SimpleGraph; vertex_order=Branching(), ruleset=default_simplifier_ruleset(mode))
+function map_graph(mode, g::SimpleGraph; vertex_order=MinhThiTrick(), ruleset=default_simplifier_ruleset(mode))
     ug = embed_graph(mode, g; vertex_order=vertex_order)
     mis_overhead0 = mis_overhead_copylines(ug)
     ug, tape = apply_crossing_gadgets!(mode, ug)

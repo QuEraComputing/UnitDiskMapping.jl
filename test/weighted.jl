@@ -13,8 +13,8 @@ using UnitDiskMapping: is_independent_set
         w2 = getfield.(locs2, :weight)
         w1[pins1] .-= 1
         w2[pins2] .-= 1
-        gp1 = IndependentSet(g1, openvertices=pins1, weights=w1)
-        gp2 = IndependentSet(g2, openvertices=pins2, weights=w2)
+        gp1 = GenericTensorNetwork(IndependentSet(g1, w1), openvertices=pins1)
+        gp2 = GenericTensorNetwork(IndependentSet(g2, w2), openvertices=pins2)
         m1 = solve(gp1, SizeMax())
         m2 = solve(gp2, SizeMax())
         mm1 = maximum(m1)
@@ -44,7 +44,7 @@ end
                 add_edge!(g, i, i-1)
             end
         end
-        gp = IndependentSet(g; weights=weights)
+        gp = GenericTensorNetwork(IndependentSet(g, weights))
         @test solve(gp, SizeMax())[].n == UnitDiskMapping.mis_overhead_copyline(Weighted(), tc)
     end
 end
@@ -66,9 +66,9 @@ end
         weights = fill(0.5, nv(g))
         r = UnitDiskMapping.MappingResult(GridGraph(ug3), ug3.lines, ug3.padding, [tape..., tape2...], mis_overhead0+mis_overhead1+mis_overhead2)
         mapped_weights = UnitDiskMapping.map_weights(r, weights)
-        gp = IndependentSet(mgraph; optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy(), weights=mapped_weights)
+        gp = GenericTensorNetwork(IndependentSet(mgraph, mapped_weights); optimizer=GreedyMethod(nrepeat=10))
         missize_map = solve(gp, CountingMax())[]
-        missize = solve(IndependentSet(g; weights=weights), CountingMax())[]
+        missize = solve(GenericTensorNetwork(IndependentSet(g, weights)), CountingMax())[]
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize.n == missize_map.n
         @test missize.c == missize_map.c
 
@@ -98,15 +98,15 @@ end
     ws = rand(nv(g))
     weights = UnitDiskMapping.map_weights(res, ws)
 
-    gp = IndependentSet(mgraph; optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy(), weights=weights)
+    gp = GenericTensorNetwork(IndependentSet(mgraph, weights); optimizer=TreeSA(ntrials=1, niters=10))
     missize_map = solve(gp, SizeMax())[].n
-    missize = solve(IndependentSet(g; weights=ws), SizeMax())[].n
+    missize = solve(GenericTensorNetwork(IndependentSet(g, ws)), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back
     T = GenericTensorNetworks.sampler_type(nv(mgraph), 2)
     misconfig = solve(gp, SingleConfigMax())[].c
     original_configs = map_config_back(res, collect(misconfig.data))
-    @test count(isone, original_configs) == solve(IndependentSet(g), SizeMax())[].n
+    @test count(isone, original_configs) == solve(GenericTensorNetwork(IndependentSet(g)), SizeMax())[].n
     @test is_independent_set(g, original_configs)
 end

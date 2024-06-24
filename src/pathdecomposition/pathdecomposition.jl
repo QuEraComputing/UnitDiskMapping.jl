@@ -1,7 +1,7 @@
 module PathDecomposition
 using Graphs
 
-export pathwidth, PathDecompositionMethod, Branching, Greedy
+export pathwidth, PathDecompositionMethod, MinhThiTrick, Greedy
 
 struct Layout{T}
     vertices::Vector{T}
@@ -78,7 +78,22 @@ Graphs.vertices(layout::Layout) = layout.vertices
 ##### Interfaces #####
 abstract type PathDecompositionMethod end
 
-struct Branching <: PathDecompositionMethod end
+"""
+    MinhThiTrick <: PathDecompositionMethod
+
+A path decomposition method based on the Branching method.
+
+In memory of Minh-Thi Nguyen, one of the main developers of this method.
+She left us in a truck accident at her 24 years old.
+- https://www.cbsnews.com/boston/news/cyclist-killed-minh-thi-nguyen-cambridge-bike-safety/
+"""
+struct MinhThiTrick <: PathDecompositionMethod end
+
+"""
+    Greedy <: PathDecompositionMethod
+
+A path decomposition method based on the Greedy method.
+"""
 Base.@kwdef struct Greedy <: PathDecompositionMethod
     nrepeat::Int = 10
 end
@@ -90,9 +105,9 @@ Compute the optimal path decomposition of graph `g`, returns a `Layout` instance
 `method` can be
 
     * Greedy(; nrepeat=10)
-    * Branching
+    * MinhThiTrick
 """
-function pathwidth(g::AbstractGraph, ::Branching)
+function pathwidth(g::AbstractGraph, ::MinhThiTrick)
     return branch_and_bound(g)
 end
 

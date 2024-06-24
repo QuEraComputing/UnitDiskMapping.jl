@@ -13,11 +13,12 @@ using Random
     graph, weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
     r1 = solve(GenericTensorNetwork(IndependentSet(graph, weights)), SingleConfigMax())[]
     J2 = vcat([Float64[J[i,j] for j=i+1:n] for i=1:n]...)
-    r2 = solve(SpinGlass(complete_graph(n); J=J2, h=H), SingleConfigMax())[]
+    # note the different sign convention of J
+    r2 = solve(GenericTensorNetwork(SpinGlass(complete_graph(n), -J2, H)), SingleConfigMax())[]
     @test r1.n - qubo.mis_overhead ≈ r2.n
     @test r1.n % 1 ≈ r2.n % 1
     c1 = map_config_back(qubo, r1.c.data)
-    @test spinglass_energy(complete_graph(n), c1; J=J2, h=H) ≈ spinglass_energy(complete_graph(n), r2.c.data; J=J2, h=H)
+    @test spinglass_energy(complete_graph(n), c1; J=-J2, h=H) ≈ spinglass_energy(complete_graph(n), r2.c.data; J=-J2, h=H)
     #display(MappingGrid(UnitDiskMapping.CopyLine[], 0, qubo))
 end
 
@@ -55,7 +56,7 @@ end
         add_edge!(g2, (i-1)*n+j, (i2-1)*n+j2)
         push!(weights, J)
     end
-    r2 = solve(SpinGlass(g2; J=weights), SingleConfigMax())[]
+    r2 = solve(GenericTensorNetwork(SpinGlass(g2, -weights)), SingleConfigMax())[]
     @show r1, r2
 end
 
@@ -87,9 +88,9 @@ end
     for (i,j,h) in onsite
         hs[i+(j-1)*m] = h
     end
-    r2 = solve(SpinGlass(g2; J=Js, h=hs), SingleConfigMax())[]
+    r2 = solve(GenericTensorNetwork(SpinGlass(g2, -Js, hs)), SingleConfigMax())[]
     @test r1.n - qubo.mis_overhead ≈ r2.n
     c1 = map_config_back(qubo, collect(Int,r1.c.data))
     c2 = collect(r2.c.data)
-    @test spinglass_energy(g2, c1; J=Js, h=hs) ≈ spinglass_energy(g2, c2; J=Js, h=hs)
+    @test spinglass_energy(g2, c1; J=-Js, h=hs) ≈ spinglass_energy(g2, c2; J=-Js, h=hs)
 end

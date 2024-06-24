@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.32
+# v0.19.42
 
 using Markdown
 using InteractiveUtils
@@ -46,7 +46,7 @@ using UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra
 # ╔═╡ 98459516-4833-4e4a-916f-d5ea3e657ceb
 # Visualization setup.
 # To make the plots dark-mode friendly, we use white-background color.
-using UnitDiskMapping.LuxorGraphPlot.Luxor, LuxorGraphPlot; GraphDisplayConfig.unit[] = 25; GraphDisplayConfig.background_color[]="white";
+using UnitDiskMapping.LuxorGraphPlot.Luxor, LuxorGraphPlot
 
 # ╔═╡ eac6ceda-f5d4-11ec-23db-b7b4d00eaddf
 md"# Unit Disk Mapping"
@@ -64,16 +64,16 @@ md"Let the source graph be the Petersen graph."
 graph = smallgraph(:petersen)
 
 # ╔═╡ 0302be92-076a-4ebe-8d6d-4b352a77cfce
-LuxorGraphPlot.show_graph(graph; unit=50)
+LuxorGraphPlot.show_graph(graph)
 
 # ╔═╡ 417b18f6-6a8f-45fb-b979-6ec9d12c6246
 md"We can use the `map_graph` function to map the unweighted MIS problem on the Petersen graph to one on a defected King's graph."
 
 # ╔═╡ c7315578-8bb0-40a0-a2a3-685a80674c9c
-unweighted_res = map_graph(graph; vertex_order=Branching());
+unweighted_res = map_graph(graph; vertex_order=MinhThiTrick());
 
 # ╔═╡ 3f605eac-f587-40b2-8fac-8223777d3fad
-md"Here, the keyword argument `vertex_order` can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The `Branching()` method is an exact path decomposition solver, which is suited for small graphs (where number of vertices <= 50). The `Greedy()` method finds the vertex order much faster and works in all cases, but may not be optimal.
+md"Here, the keyword argument `vertex_order` can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The `MinhThiTrick()` method is an exact path decomposition solver, which is suited for small graphs (where number of vertices <= 50). The `Greedy()` method finds the vertex order much faster and works in all cases, but may not be optimal.
 A good vertex order can reduce the depth of the mapped graph."
 
 # ╔═╡ e5382b61-6387-49b5-bae8-0389fbc92153
@@ -86,8 +86,10 @@ fieldnames(unweighted_res |> typeof)
 md"The field `grid_graph` is the mapped grid graph."
 
 # ╔═╡ 520fbc23-927c-4328-8dc6-5b98853fb90d
-# `unit` is the number of pixels per unit distance
 LuxorGraphPlot.show_graph(unweighted_res.grid_graph)
+
+# ╔═╡ af162d39-2da9-4a06-9cde-8306e811ba7a
+unweighted_res.grid_graph.size
 
 # ╔═╡ 96ca41c0-ac77-404c-ada3-0cdc4a426e44
 md"The field `lines` is a vector of copy gadgets arranged in a `⊢` shape. These copy gadgets form a *crossing lattice*,  in which two copy lines cross each other whenever their corresponding vertices in the source graph are connected by an edge.
@@ -121,7 +123,7 @@ unweighted_res.mis_overhead
 md"We can solve the mapped graph with [`GenericTensorNetworks`](https://queracomputing.github.io/GenericTensorNetworks.jl/dev/)."
 
 # ╔═╡ f084b98b-097d-4b33-a0d3-0d0a981f735e
-res = solve(IndependentSet(SimpleGraph(unweighted_res.grid_graph)), SingleConfigMax())[]
+res = solve(GenericTensorNetwork(IndependentSet(SimpleGraph(unweighted_res.grid_graph))), SingleConfigMax())[]
 
 # ╔═╡ 86457b4e-b83e-4bf5-9d82-b5e14c055b4b
 md"You might want to read [the documentation page of `GenericTensorNetworks`](https://queracomputing.github.io/GenericTensorNetworks.jl/dev/) for a detailed explanation on this function. Here, we just visually check the solution configuration."
@@ -148,7 +150,7 @@ md"## Generic Weighted Mapping"
 md"A Maximum Weight Independent Set (MWIS) problem on a general graph can be mapped to one on the defected King's graph. The first step is to do the same mapping as above but adding a new positional argument `Weighted()` as the first argument of `map_graph`. Let us still use the Petersen graph as an example."
 
 # ╔═╡ 2fa704ee-d5c1-4205-9a6a-34ba0195fecf
-weighted_res = map_graph(Weighted(), graph; vertex_order=Branching());
+weighted_res = map_graph(Weighted(), graph; vertex_order=MinhThiTrick());
 
 # ╔═╡ 27acc8be-2db8-4322-85b4-230fdddac043
 md"The return value is similar to that for the unweighted mapping generated above, except each node in the mapped graph can have a weight 1, 2 or 3. Note here, we haven't added the weights in the original graph."
@@ -180,7 +182,7 @@ md"Now that we have both the graph and the weights, let us solve the mapped prob
 wmap_config = let
 	graph, _ = graph_and_weights(weighted_res.grid_graph)
 	collect(Int,
-		solve(IndependentSet(graph; weights=mapped_weights), SingleConfigMax())[].c.data
+		solve(GenericTensorNetwork(IndependentSet(graph, mapped_weights)), SingleConfigMax())[].c.data
 	)
 end
 
@@ -197,7 +199,7 @@ map_config_back(weighted_res, wmap_config)
 # ╔═╡ beb7c0e5-6221-4f20-9166-2bd56902be1b
 # Directly solving the source graph
 collect(Int,
-	solve(IndependentSet(graph; weights=source_weights), SingleConfigMax())[].c.data
+	solve(GenericTensorNetwork(IndependentSet(graph, source_weights)), SingleConfigMax())[].c.data
 )
 
 # ╔═╡ cf7e88cb-432e-4e3a-ae8b-8fa12689e485
@@ -248,7 +250,7 @@ show_grayscale(qubo.grid_graph)
 md"By solving this maximum independent set problem, we will get the following configuration."
 
 # ╔═╡ ef149d9a-6aa9-4f34-b936-201b9d77543c
-qubo_mapped_solution = collect(Int, solve(IndependentSet(qubo_graph; weights=qubo_weights), SingleConfigMax())[].c.data)
+qubo_mapped_solution = collect(Int, solve(GenericTensorNetwork(IndependentSet(qubo_graph, qubo_weights)), SingleConfigMax())[].c.data)
 
 # ╔═╡ 4ea4f26e-746d-488e-9968-9fc584c04bcf
 show_config(qubo.grid_graph, qubo_mapped_solution)
@@ -264,8 +266,8 @@ map_config_back(qubo, collect(Int, qubo_mapped_solution))
 md"This solution is consistent with the exact solution:"
 
 # ╔═╡ 7dd900fc-9531-4bd6-8b6d-3aac3d5a2386
-# Directly solving the source graph
-collect(Int, solve(SpinGlass(J, h), SingleConfigMax())[].c.data)
+# Directly solving the source graph, due to the convention issue, we flip the signs of `J` and `h`
+collect(Int, solve(GenericTensorNetwork(spin_glass_from_matrix(-J, -h)), SingleConfigMax())[].c.data)
 
 # ╔═╡ 13f952ce-642a-4396-b574-00ea6584008c
 md"### QUBO problem on a square lattice"
@@ -308,7 +310,7 @@ md"Let us solve the independent set problem on the mapped graph."
 square_graph, square_weights = UnitDiskMapping.graph_and_weights(qubo_square.grid_graph);
 
 # ╔═╡ 5c25abb7-e3ee-4104-9a82-eb4aa4e773d2
-config_square = collect(Int, solve(IndependentSet(square_graph; weights=square_weights), SingleConfigMax())[].c.data);
+config_square = collect(Int, solve(GenericTensorNetwork(IndependentSet(square_graph, square_weights)), SingleConfigMax())[].c.data);
 
 # ╔═╡ 4cec7232-8fbc-4ac1-96bb-6c7fea5fe117
 md"We will get the following configuration."
@@ -343,7 +345,7 @@ let
 	for (i,j,h) in square_onsite
 		hs[i+(j-1)*n] = h
 	end
-	collect(Int, solve(SpinGlass(g2; J=Js, h=hs), SingleConfigMax())[].c.data)
+	collect(Int, solve(GenericTensorNetwork(SpinGlass(g2, -Js, -hs)), SingleConfigMax())[].c.data)
 end
 
 # ╔═╡ 9db831d6-7f10-47be-93d3-ebc892c4b3f2
@@ -386,7 +388,7 @@ md"To solve this factoring problem, one can use the following statement:"
 
 # ╔═╡ e5da7214-0e69-4b5a-a65e-ed92d0616c71
 multiplier_output = UnitDiskMapping.solve_factoring(mres, 6) do g, ws
-	collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+	collect(Int, solve(GenericTensorNetwork(IndependentSet(g, ws)), SingleConfigMax())[].c.data)
 end
 
 # ╔═╡ 9dc01591-5c37-4d83-b640-83280513941e
@@ -416,7 +418,7 @@ md"2. Then, we solve this new grid graph."
 # ╔═╡ 57f7e085-9589-4a6c-ac14-488ea9924692
 config_factoring6 = let
 	mg, mw = graph_and_weights(mapped_grid_graph)
-	solve(IndependentSet(mg; weights=mw), SingleConfigMax())[].c.data
+	solve(GenericTensorNetwork(IndependentSet(mg, mw)), SingleConfigMax())[].c.data
 end;
 
 # ╔═╡ 4c7d72f1-688a-4a70-8ce6-a4801127bb9a
@@ -440,7 +442,7 @@ md"## Logic Gates"
 md"Let us define a helper function for visualization."
 
 # ╔═╡ c17bca17-a00a-4118-a212-d21da09af9b5
-parallel_show(gate) = leftright(show_pins(Gate(gate); format=:png, unit=80), show_grayscale(gate_gadget(Gate(gate))[1]; format=:png, unit=80, wmax=2));
+parallel_show(gate) = leftright(show_pins(Gate(gate)), show_grayscale(gate_gadget(Gate(gate))[1], wmax=2));
 
 # ╔═╡ 6aee2288-1934-4fc5-9a9c-f45b7ce4e767
 md"1. NOT gate: ``y_1 =\neg x_1``"
@@ -485,6 +487,7 @@ md"Since most logic gates have 3 pins, it is natural to embed a circuit to a 3D 
 # ╠═ae5c8359-6bdb-4a2a-8b54-cd2c7d2af4bd
 # ╟─56bdcaa6-c8b9-47de-95d4-6e95204af0f2
 # ╠═520fbc23-927c-4328-8dc6-5b98853fb90d
+# ╠═af162d39-2da9-4a06-9cde-8306e811ba7a
 # ╟─96ca41c0-ac77-404c-ada3-0cdc4a426e44
 # ╠═5dfa8a74-26a5-45c4-a80c-47ba4a6a4ae9
 # ╟─a64c2094-9a51-4c45-b9d1-41693c89a212

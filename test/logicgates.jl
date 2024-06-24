@@ -7,7 +7,7 @@ using GenericTensorNetworks
         @info gate
         g, inputs, outputs = gate_gadget(Gate(gate))
         @test UnitDiskMapping.truth_table(Gate(gate)) do graph, weights
-            collect.(Int, solve(IndependentSet(graph; weights), ConfigsMax())[].c.data)
+            collect.(Int, solve(GenericTensorNetwork(IndependentSet(graph, weights)), ConfigsMax())[].c.data)
         end == [f([x>>(i-1) & 1 == 1 for i=1:length(inputs)]...) for x in 0:1<<length(inputs)-1]
     end
 end

@@ -9,13 +9,14 @@ LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
 
 [compat]
 Graphs = "1.6"
-LuxorGraphPlot = "0.3"
+LuxorGraphPlot = "0.5"
 julia = "1"
 
 [extras]
 GenericTensorNetworks = "3521c873-ad32-4bb4-b63d-f4f178f42b49"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Random", "GenericTensorNetworks"]
+test = ["Test", "Random", "GenericTensorNetworks", "LinearAlgebra"]

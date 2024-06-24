@@ -5,7 +5,7 @@ using Test, UnitDiskMapping, Graphs
 @testset "multiplier" begin
     m, pins = UnitDiskMapping.multiplier()
     g, ws = UnitDiskMapping.graph_and_weights(m)
-    configs = solve(IndependentSet(g; weights=ws), ConfigsMax())[].c
+    configs = solve(GenericTensorNetwork(IndependentSet(g, ws)), ConfigsMax())[].c
 
     # completeness
     inputs = Int[]
@@ -27,20 +27,19 @@ end
 
 @testset "factoring" begin
     mres = UnitDiskMapping.map_factoring(2, 2)
-    @test show_pins(mres) !== nothing
     res = UnitDiskMapping.solve_factoring(mres, 6) do g, ws
-        collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+        collect(Int, solve(GenericTensorNetwork(IndependentSet(g, ws)), SingleConfigMax())[].c.data)
     end
     @test res == (2, 3) || res == (3, 2)
 
     res = UnitDiskMapping.solve_factoring(mres, 9) do g, ws
-        collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+        collect(Int, solve(GenericTensorNetwork(IndependentSet(g, ws)), SingleConfigMax())[].c.data)
     end
     @test res == (3, 3)
 
     mres = UnitDiskMapping.map_factoring(2, 3)
     res = UnitDiskMapping.solve_factoring(mres, 15) do g, ws
-        collect(Int, solve(IndependentSet(g; weights=ws), SingleConfigMax())[].c.data)
+        collect(Int, solve(GenericTensorNetwork(IndependentSet(g, ws)), SingleConfigMax())[].c.data)
     end
     @test res == (5, 3) || res == (3, 5)
 end

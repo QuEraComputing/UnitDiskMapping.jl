@@ -41,9 +41,9 @@ end
         mis_overhead1 = sum(x->mis_overhead(x[1]), tape)
         mis_overhead2 = sum(x->mis_overhead(x[1]), tape2)
         @show mis_overhead2
-        gp = IndependentSet(SimpleGraph(ug3); optimizer=GreedyMethod(nrepeat=10), simplifier=MergeGreedy())
+        gp = GenericTensorNetwork(IndependentSet(SimpleGraph(ug3)); optimizer=GreedyMethod(nrepeat=10))
         missize_map = solve(gp, SizeMax())[].n
-        missize = solve(IndependentSet(g), SizeMax())[].n
+        missize = solve(GenericTensorNetwork(IndependentSet(g)), SizeMax())[].n
         @test mis_overhead0 + mis_overhead1 + mis_overhead2 + missize == missize_map
         misconfig = solve(gp, SingleConfigMax())[].c
         c = zeros(Int, size(ug3.content))
@@ -75,9 +75,9 @@ end
         res = map_graph(g)
 
         # checking size
-        gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+        gp = GenericTensorNetwork(IndependentSet(SimpleGraph(res.grid_graph)); optimizer=TreeSA(ntrials=1, niters=10))
         missize_map = solve(gp, SizeMax())[].n
-        missize = solve(IndependentSet(g), SizeMax())[].n
+        missize = solve(GenericTensorNetwork(IndependentSet(g)), SizeMax())[].n
         @test res.mis_overhead + missize == missize_map
 
         # checking mapping back
@@ -94,9 +94,9 @@ end
     res = map_graph(g)
 
     # checking size
-    gp = IndependentSet(SimpleGraph(res.grid_graph); optimizer=TreeSA(ntrials=1, niters=10), simplifier=MergeGreedy())
+    gp = GenericTensorNetwork(IndependentSet(SimpleGraph(res.grid_graph)); optimizer=TreeSA(ntrials=1, niters=10))
     missize_map = solve(gp, SizeMax())[].n
-    missize = solve(IndependentSet(g), SizeMax())[].n
+    missize = solve(GenericTensorNetwork(IndependentSet(g)), SizeMax())[].n
     @test res.mis_overhead + missize == missize_map
 
     # checking mapping back

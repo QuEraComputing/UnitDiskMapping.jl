@@ -2,7 +2,7 @@
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "d92c597dca5e529b25ede0567c1be66bf7e1621d"
+project_hash = "56dd683210fce76d207cdcc03de0a8318c45ed9a"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1043,9 +1043,9 @@ deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.TranscodingStreams]]
-git-tree-sha1 = "a947ea21087caba0a798c5e494d0bb78e3a1a3a0"
+git-tree-sha1 = "d73336d81cafdc277ff45558bb7eaa2b04a8e472"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.10.9"
+version = "0.10.10"
 weakdeps = ["Random", "Test"]
 
     [deps.TranscodingStreams.extensions]
@@ -1082,7 +1082,7 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 deps = ["Graphs", "LuxorGraphPlot"]
 path = ".."
 uuid = "1b61a8d9-79ed-4491-8266-ef37f39e1727"
-version = "0.3.2"
+version = "0.4.0"
 
 [[deps.XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Zlib_jll"]

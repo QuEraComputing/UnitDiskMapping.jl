@@ -97,7 +97,7 @@ function map_factoring(M::Int, N::Int)
         [pinloc(1, j, 1) for j=1:N]...,
         [pinloc(i, N, 4) for i=1:M]...,
     ]
-    return FactoringResult(gg, pp, pq, pm, p0)
+    return FactoringResult(gg, pq, pp, pm, p0)
 end
 
 struct FactoringResult{NT}
@@ -131,7 +131,7 @@ function solve_factoring(missolver, mres::FactoringResult, target::Int)
     return map_config_back(mres, cfg)
 end
 
-function set_target(g::SimpleGraph, pins::AbstractVector, target::Int)
+function set_target(g, pins::AbstractVector, target::Int)
     vs = collect(vertices(g))
     for (i, p) in enumerate(pins)
         bitval = (target >> (i-1)) & 1

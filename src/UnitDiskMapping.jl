@@ -5,6 +5,8 @@ module UnitDiskMapping
 using Graphs
 using LuxorGraphPlot
 using LuxorGraphPlot.Luxor.Colors
+import ProblemReductions: reduceto, target_problem, extract_multiple_solutions
+import ProblemReductions
 
 # Basic types
 export UnWeighted, Weighted
@@ -53,6 +55,7 @@ include("mapping.jl")
 include("weighted.jl")
 include("simplifiers.jl")
 include("extracting_results.jl")
+include("reduceto.jl")
 include("visualize.jl")
 
 end

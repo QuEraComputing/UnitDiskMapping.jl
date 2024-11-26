@@ -48,3 +48,7 @@ end
 @testset "visualize" begin
     include("visualize.jl")
 end
+
+@testset "reduceto" begin
+    include("reduceto.jl")
+end

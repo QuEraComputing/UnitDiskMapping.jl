@@ -6,11 +6,19 @@ import ProblemReductions
     fact = ProblemReductions.Factoring(2, 1, 2)
     is = ProblemReductions.IndependentSet(graph)
     wis = ProblemReductions.IndependentSet(graph, rand(nv(graph)) .* 0.2)
+    sg = ProblemReductions.SpinGlass(graph, [0.2, 0.4, -0.6], [0.1, 0.1, 0.1])
+    sg2 = ProblemReductions.SpinGlass(graph, [0.1, 0.1, -0.1], [0.1, 0.1, 0.1])
+    grid = ProblemReductions.GridGraph(ones(Bool, 2, 2), 1.2)
+    sg_square = ProblemReductions.SpinGlass(grid, [0.1, 0.3, -0.1, 0.4], [0.1, 0.1, 0.1, 0.2])
+    sg_square2 = ProblemReductions.SpinGlass(grid, [0.1, -0.3, 0.1, 0.4], [0.1, 0.1, 0.1, 0.2])
     for (source, target_type) in [
-            # please add more tests here
-            is => ProblemReductions.IndependentSet{ProblemReductions.GridGraph, Int, ProblemReductions.UnitWeight},
-            wis => ProblemReductions.IndependentSet{ProblemReductions.GridGraph, Float64, Vector{Float64}},
-            fact => ProblemReductions.IndependentSet{ProblemReductions.GridGraph, Int, Vector{Int}},
+            sg_square => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}},
+            sg_square2 => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}},
+            sg => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}},
+            sg2 => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}},
+            is => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Int, ProblemReductions.UnitWeight},
+            wis => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}},
+            fact => ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Int, Vector{Int}},
         ]
         @info "Testing reduction from $(typeof(source)) to $(target_type)"
         # directly solve

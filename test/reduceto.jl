@@ -1,6 +1,10 @@
 using Test, UnitDiskMapping, Graphs, GenericTensorNetworks
 import ProblemReductions
 
+@testset "reduction graph" begin
+    @test ProblemReductions.reduction_graph() isa ProblemReductions.ReductionGraph
+end
+
 @testset "rules" begin
     graph = complete_graph(3)  # triangle
     fact = ProblemReductions.Factoring(2, 1, 2)

@@ -335,7 +335,7 @@ function post_process_grid(grid::Matrix{SimpleCell{T}}, h0, h1) where T
     return gg, pins
 end
 
-struct QUBOResult{NT} <: ProblemReductions.AbstractReductionResult
+struct QUBOResult{NT}
     grid_graph::GridGraph{NT}
     pins::Vector{Int}
     mis_overhead::Int
@@ -353,13 +353,13 @@ function map_config_back(res::WMISResult, cfg)
     return cfg[res.pins]
 end
 
-struct RestrictedQUBOResult{NT} <: ProblemReductions.AbstractReductionResult
+struct RestrictedQUBOResult{NT}
     grid_graph::GridGraph{NT}
 end
 function map_config_back(res::RestrictedQUBOResult, cfg)
 end
 
-struct SquareQUBOResult{NT} <: ProblemReductions.AbstractReductionResult
+struct SquareQUBOResult{NT}
     grid_graph::GridGraph{NT}
     pins::Vector{Int}
     mis_overhead::Float64

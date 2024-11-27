@@ -29,7 +29,7 @@ end
 
 ###### Weighted reduction
 # TODO: rescale the weights to avoid errors
-function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, T, Vector{T}}} where T, problem::ProblemReductions.IndependentSet{GT} where GT<:SimpleGraph)
+function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}}}, problem::ProblemReductions.IndependentSet{GT} where GT<:SimpleGraph)
     return IndependentSetToKSG(map_graph(Weighted(), problem.graph), problem.weights)
 end
 function ProblemReductions.target_problem(res::IndependentSetToKSG{<:WeightedNode})
@@ -46,7 +46,7 @@ struct FactoringToIndependentSet{NT} <: ProblemReductions.AbstractReductionResul
     vmap::Vector{Int}
     problem::ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Int, Vector{Int}}
 end
-function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, T, Vector{T}}} where T, problem::ProblemReductions.Factoring)
+function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Int, Vector{Int}}}, problem::ProblemReductions.Factoring)
     mres = map_factoring(problem.m, problem.n)
     g = _to_gridgraph(mres.grid_graph)
     ws = getfield.(mres.grid_graph.nodes, :weight)
@@ -70,7 +70,7 @@ end
 struct SpinGlassToIndependentSet{NT} <: ProblemReductions.AbstractReductionResult
     mapres::QUBOResult{NT}
 end
-function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, T, Vector{T}}} where T, problem::ProblemReductions.SpinGlass{<:SimpleGraph})
+function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}}}, problem::ProblemReductions.SpinGlass{<:SimpleGraph})
     n = length(problem.h)
     M = similar(problem.h, n, n)
     for (e, j) in zip(edges(problem.graph), problem.J)
@@ -95,7 +95,7 @@ end
 struct SquareSpinGlassToIndependentSet{NT} <: ProblemReductions.AbstractReductionResult
     mapres::SquareQUBOResult{NT}
 end
-function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, T, Vector{T}}} where T, problem::ProblemReductions.SpinGlass{ProblemReductions.GridGraph{2}})
+function ProblemReductions.reduceto(::Type{ProblemReductions.IndependentSet{ProblemReductions.GridGraph{2}, Float64, Vector{Float64}}}, problem::ProblemReductions.SpinGlass{ProblemReductions.GridGraph{2}})
     g = problem.graph
     @assert 1 <= g.radius < sqrt(2) "Only support nearest neighbor interaction"
     coupling = [(g.locations[e.src]..., g.locations[e.dst]..., J) for (e, J) in zip(edges(g), problem.J)]

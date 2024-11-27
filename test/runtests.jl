@@ -1,6 +1,10 @@
 using UnitDiskMapping
 using Test
 
+@testset "Core" begin
+    include("Core.jl")
+end
+
 @testset "utils" begin
     include("utils.jl")
 end
@@ -47,4 +51,8 @@ end
 
 @testset "visualize" begin
     include("visualize.jl")
+end
+
+@testset "reduceto" begin
+    include("reduceto.jl")
 end

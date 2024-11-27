@@ -7,9 +7,16 @@ version = "0.4.0"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 LuxorGraphPlot = "1f49bdf2-22a7-4bc4-978b-948dc219fbbc"
 
+[weakdeps]
+ProblemReductions = "899c297d-f7d2-4ebf-8815-a35996def416"
+
+[extensions]
+ProblemReductionsExt = "ProblemReductions"
+
 [compat]
 Graphs = "1.6"
 LuxorGraphPlot = "0.5"
+ProblemReductions = "0.1.1"
 julia = "1"
 
 [extras]
@@ -19,4 +26,4 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Random", "GenericTensorNetworks", "LinearAlgebra"]
+test = ["Test", "Random", "GenericTensorNetworks", "LinearAlgebra", "ProblemReductions"]

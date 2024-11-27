@@ -76,6 +76,12 @@ function Graphs.SimpleGraph(grid::GridGraph{Node{ONE}})
     return unit_disk_graph(getfield.(grid.nodes, :loc), grid.radius)
 end
 coordinates(grid::GridGraph) = getfield.(grid.nodes, :loc)
+function Graphs.neighbors(g::GridGraph, i::Int)
+    [j for j in 1:nv(g) if i != j && distance(g.nodes[i], g.nodes[j]) <= g.radius]
+end
+distance(n1::Node, n2::Node) = sqrt(sum(abs2, n1.loc .- n2.loc))
+Graphs.nv(g::GridGraph) = length(g.nodes)
+Graphs.vertices(g::GridGraph) = 1:nv(g)
 
 # printing function for Grid graphs
 function print_grid(io::IO, grid::GridGraph{Node{WT}}; show_weight=false) where WT

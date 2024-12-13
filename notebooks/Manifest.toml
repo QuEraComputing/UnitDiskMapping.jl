@@ -147,9 +147,9 @@ version = "1.1.1+0"
 
 [[deps.ConcurrentUtilities]]
 deps = ["Serialization", "Sockets"]
-git-tree-sha1 = "ea32b83ca4fefa1768dc84e504cc0a94fb1ab8d1"
+git-tree-sha1 = "f36e5e8fdffcb5646ea5da81495a5a7566005127"
 uuid = "f0e56b4a-5159-44fe-b623-3e5288b988bb"
-version = "2.4.2"
+version = "2.4.3"
 
 [[deps.Configurations]]
 deps = ["ExproniconLite", "OrderedCollections", "TOML"]
@@ -329,9 +329,9 @@ version = "0.5.5"
 
 [[deps.GenericTensorNetworks]]
 deps = ["AbstractTrees", "DelimitedFiles", "Distributed", "DocStringExtensions", "FFTW", "Graphs", "LinearAlgebra", "LuxorGraphPlot", "OMEinsum", "Polynomials", "Primes", "ProblemReductions", "Random", "SIMDTypes", "Serialization", "StatsBase", "TropicalNumbers"]
-git-tree-sha1 = "45b82ea9c88ef7f882bf838032368348c59a372a"
+git-tree-sha1 = "4f4c564d2a2a5724245c70709a831da6387429da"
 uuid = "3521c873-ad32-4bb4-b63d-f4f178f42b49"
-version = "3.0.0"
+version = "3.1.0"
 
     [deps.GenericTensorNetworks.extensions]
     GenericTensorNetworksCUDAExt = "CUDA"
@@ -911,9 +911,9 @@ version = "1.11.0"
 
 [[deps.ProblemReductions]]
 deps = ["BitBasis", "DocStringExtensions", "Graphs", "InteractiveUtils", "MLStyle", "PrettyTables"]
-git-tree-sha1 = "7679e48c2f432b9e86307a32d66940eef3512cd4"
+git-tree-sha1 = "d476078d1d2ce471516b5150382974fc8a0265e4"
 uuid = "899c297d-f7d2-4ebf-8815-a35996def416"
-version = "0.2.0"
+version = "0.2.1"
 
 [[deps.ProgressLogging]]
 deps = ["Logging", "SHA", "UUIDs"]
@@ -1219,9 +1219,9 @@ version = "1.3.6+1"
 
 [[deps.Xorg_libXrender_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Xorg_libX11_jll"]
-git-tree-sha1 = "47e45cd78224c53109495b3e324df0c37bb61fbe"
+git-tree-sha1 = "a490c6212a0e90d2d55111ac956f7c4fa9c277a6"
 uuid = "ea2f1a96-1ddc-540d-b46f-429655e07cfa"
-version = "0.9.11+0"
+version = "0.9.11+1"
 
 [[deps.Xorg_libpthread_stubs_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]

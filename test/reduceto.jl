@@ -26,14 +26,14 @@ end
         ]
         @info "Testing reduction from $(typeof(source)) to $(target_type)"
         # directly solve
-        best_source = ProblemReductions.findbest(source, ProblemReductions.BruteForce())
+        solver = GTNSolver(optimizer=TreeSA(ntrials=1))
+        best_source = ProblemReductions.findbest(source, source isa ConstraintSatisfactionProblem ? solver : ProblemReductions.BruteForce())
 
         # reduce and solve
         result = ProblemReductions.reduceto(target_type, source)
         target = ProblemReductions.target_problem(result)
         @test target isa target_type
-        #best_target = findbest(target, BruteForce())
-        best_target = GenericTensorNetworks.solve(GenericTensorNetwork(GenericTensorNetworks.IndependentSet(SimpleGraph(target.graph), collect(target.weights))), ConfigsMax())[].c.data
+        best_target = ProblemReductions.findbest(IndependentSet(SimpleGraph(target.graph), collect(target.weights)), solver)
 
         # extract the solution
         best_source_extracted_single = unique( ProblemReductions.extract_solution.(Ref(result), best_target) )

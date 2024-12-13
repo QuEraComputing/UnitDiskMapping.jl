@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.42
+# v0.20.3
 
 using Markdown
 using InteractiveUtils
@@ -45,6 +45,9 @@ using UnitDiskMapping, Graphs # for mapping graphs to a King's subgraph (KSG)
 
 # ╔═╡ 31250cb9-6f3a-429a-975d-752cb7c07883
 using GenericTensorNetworks # for solving the maximum independent sets
+
+# ╔═╡ e9a94e5a-274f-4740-ac05-bd3bb613df4d
+using GenericTensorNetworks.ProblemReductions
 
 # ╔═╡ 9017a42c-9791-4933-84a4-9ff509967323
 md"""
@@ -213,6 +216,48 @@ count(isone, mis_petersen)
 # ╔═╡ 8c1d46e8-dc36-41bd-9d9b-5a72c380ef26
 md"The number printed should be consistent with the MIS size of the petersen graph."
 
+# ╔═╡ fba5edd7-e5b7-4631-94cc-0c49240917ff
+md"""
+## Extension: ProblemReductions
+Unit-disk mapping implements the unified interface for reduction in package [ProblemReductions.jl](https://github.com/GiggleLiu/ProblemReductions.jl) as an extension.
+"""
+
+# ╔═╡ 0f12b761-fb74-455b-9123-6d1b720aaf52
+md"""
+Step 1: perform the problem reduction.
+"""
+
+# ╔═╡ 1113d5b9-8ebe-46fd-b24e-03e5fbc79435
+source_problem = IndependentSet(smallgraph(:petersen))
+
+# ╔═╡ 333a8123-1683-491e-8891-83987bad16eb
+# the Independent set problem with 2D GridGraph topology, unweighted.
+target_problem_type = IndependentSet{ProblemReductions.GridGraph{2}, Int, UnitWeight}
+
+# ╔═╡ 339fd327-a594-4460-9e00-8b3304aa0a78
+# the result not only contains the target problem, but also the intermediate information
+reduction_result = reduceto(target_problem_type, source_problem)
+
+# ╔═╡ 0e2f9caa-d84e-411f-ad5d-64c10cdaa028
+target_problem(reduction_result)
+
+# ╔═╡ 077045b9-3b88-4c41-a88c-354b8b30c31f
+md"Step 2: solve the target problem."
+
+# ╔═╡ d7562423-06cd-4949-a1fd-92d8e5c31280
+# get single maximum independent set of the mapped problem
+config = solve(GenericTensorNetwork(target_problem(reduction_result)), SingleConfigMax())[].c.data
+
+# ╔═╡ 51a9d53b-b92f-41c4-a60e-d8ceedd3fead
+md"Step 3. Extract the solution back"
+
+# ╔═╡ 6ad557b1-04d3-4c7e-a350-20408c09b960
+extracted_config = extract_solution(reduction_result, config)
+
+# ╔═╡ f685ed77-151f-4778-8342-112903255932
+# finally, we check the validity of the solution.
+UnitDiskMapping.is_independent_set(source_problem.graph, extracted_config)
+
 # ╔═╡ Cell order:
 # ╟─f55dbf80-8425-11ee-2e7d-4d1ad4f693af
 # ╟─9017a42c-9791-4933-84a4-9ff509967323
@@ -265,3 +310,15 @@ md"The number printed should be consistent with the MIS size of the petersen gra
 # ╠═0297893c-c978-4818-aae8-26e60d8c9e9e
 # ╠═5ffe0e4f-bd2c-4d3e-98ca-61673a7e5230
 # ╟─8c1d46e8-dc36-41bd-9d9b-5a72c380ef26
+# ╟─fba5edd7-e5b7-4631-94cc-0c49240917ff
+# ╠═e9a94e5a-274f-4740-ac05-bd3bb613df4d
+# ╟─0f12b761-fb74-455b-9123-6d1b720aaf52
+# ╠═1113d5b9-8ebe-46fd-b24e-03e5fbc79435
+# ╠═333a8123-1683-491e-8891-83987bad16eb
+# ╠═339fd327-a594-4460-9e00-8b3304aa0a78
+# ╠═0e2f9caa-d84e-411f-ad5d-64c10cdaa028
+# ╟─077045b9-3b88-4c41-a88c-354b8b30c31f
+# ╠═d7562423-06cd-4949-a1fd-92d8e5c31280
+# ╟─51a9d53b-b92f-41c4-a60e-d8ceedd3fead
+# ╠═6ad557b1-04d3-4c7e-a350-20408c09b960
+# ╠═f685ed77-151f-4778-8342-112903255932

@@ -12,16 +12,8 @@
     </a>
     &nbsp; package for reducing a <a href="https://en.wikipedia.org/wiki/Independent_set_(graph_theory)">generic maximum (weighted) independent set problem</a>, <a href="https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization"> quadratic unconstrained binary optimization (QUBO) problem</a> or <a href="https://en.wikipedia.org/wiki/Integer_factorization">integer factorization problem</a> to a maximum independent set problem on a unit disk grid graph (or hardcore lattice gas in physics), which can then be naturally encoded in neutral-atom quantum computers. To install <code>UnitDiskMapping</code>,
     please <a href="https://docs.julialang.org/en/v1/manual/getting-started/">open
-    Julia's interactive session (known as REPL)</a> and press the <kbd>]</kbd> key in the REPL to use the package mode, and then type the commands below.
+    Julia's interactive session (known as REPL)</a> and press the <kbd>]</kbd> key in the REPL to use the package mode, and then type the command below:
 </p>
-
-For installing the current master branch, please type:
-
-```julia
-pkg> add https://github.com/QuEraComputing/UnitDiskMapping.jl.git
-```
-
-For stable release (not yet ready):
 
 ```julia
 pkg> add UnitDiskMapping

@@ -7,3 +7,5 @@ _local/
 *.log
 *.fdb_latexmk
 .vscode
+/docs/build/
+/docs/src/generated/

@@ -19,7 +19,7 @@ using Random
     @test r1.n - qubo.mis_overhead ≈ r2.n
     @test r1.n % 1 ≈ r2.n % 1
     c1 = map_config_back(qubo, r1.c.data)
-    @test GenericTensorNetworks.energy(sg, 1 .- 2 .* Int.(c1)) ≈ GenericTensorNetworks.energy(sg, 1 .- 2 .* Int.(r2.c.data))
+    @test GenericTensorNetworks.energy(sg, Int.(c1)) ≈ GenericTensorNetworks.energy(sg, Int.(r2.c.data))
     #display(MappingGrid(UnitDiskMapping.CopyLine[], 0, qubo))
 end
 
@@ -94,5 +94,5 @@ end
     @test r1.n - qubo.mis_overhead ≈ r2.n
     c1 = map_config_back(qubo, collect(Int,r1.c.data))
     c2 = collect(r2.c.data)
-    @test GenericTensorNetworks.energy(sg, 1 .- 2 .* Int.(c1)) ≈ GenericTensorNetworks.energy(sg, 1 .- 2 .* Int.(c2))
+    @test GenericTensorNetworks.energy(sg, Int.(c1)) ≈ GenericTensorNetworks.energy(sg, Int.(c2))
 end

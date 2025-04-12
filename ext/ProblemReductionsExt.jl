@@ -87,7 +87,7 @@ end
 
 function ProblemReductions.extract_solution(res::SpinGlassToIndependentSet, sol)
     res = map_config_back(res.mapres, sol)
-    return 1 .- 2 .* Int.(res)
+    return Int.(res)
 end
  
 ###### Spinglass problem on grid to MIS on KSG ######
@@ -113,6 +113,6 @@ end
 
 function ProblemReductions.extract_solution(res::SquareSpinGlassToIndependentSet, sol)
     res = map_config_back(res.mapres, sol)
-    return 1 .- 2 .* Int.(res)
+    return Int.(res)
 end
 end 

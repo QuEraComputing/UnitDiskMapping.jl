@@ -16,7 +16,7 @@ ProblemReductionsExt = "ProblemReductions"
 [compat]
 Graphs = "1.6"
 LuxorGraphPlot = "0.5"
-ProblemReductions = "0.2, 0.3"
+ProblemReductions = "0.3"
 julia = "1"
 
 [extras]

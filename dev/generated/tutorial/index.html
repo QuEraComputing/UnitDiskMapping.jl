@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Unit Disk Mapping · UnitDiskMapping.jl</title><meta name="title" content="Unit Disk Mapping · UnitDiskMapping.jl"/><meta property="og:title" content="Unit Disk Mapping · UnitDiskMapping.jl"/><meta property="twitter:title" content="Unit Disk Mapping · UnitDiskMapping.jl"/><meta name="description" content="Documentation for UnitDiskMapping.jl."/><meta property="og:description" content="Documentation for UnitDiskMapping.jl."/><meta property="twitter:description" content="Documentation for UnitDiskMapping.jl."/><meta property="og:url" content="https://QuEraComputing.github.io/UnitDiskMapping.jl/generated/tutorial/"/><meta property="twitter:url" content="https://QuEraComputing.github.io/UnitDiskMapping.jl/generated/tutorial/"/><link rel="canonical" href="https://QuEraComputing.github.io/UnitDiskMapping.jl/generated/tutorial/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/indigo.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">UnitDiskMapping.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Unit Disk Mapping</a><ul class="internal"><li><a class="tocitem" href="#Generic-Unweighted-Mapping"><span>Generic Unweighted Mapping</span></a></li><li><a class="tocitem" href="#Generic-Weighted-Mapping"><span>Generic Weighted Mapping</span></a></li><li><a class="tocitem" href="#QUBO-problem"><span>QUBO problem</span></a></li><li><a class="tocitem" href="#Factorization-problem"><span>Factorization problem</span></a></li><li><a class="tocitem" href="#Logic-Gates"><span>Logic Gates</span></a></li></ul></li><li><a class="tocitem" href="../unweighted/">Unweighted KSG reduction of the independent set problem</a></li></ul></li><li><a class="tocitem" href="../../ref/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Unit Disk Mapping</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Unit Disk Mapping</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/QuEraComputing/UnitDiskMapping.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/QuEraComputing/UnitDiskMapping.jl/blob/main/examples/tutorial.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Unit-Disk-Mapping"><a class="docs-heading-anchor" href="#Unit-Disk-Mapping">Unit Disk Mapping</a><a id="Unit-Disk-Mapping-1"></a><a class="docs-heading-anchor-permalink" href="#Unit-Disk-Mapping" title="Permalink"></a></h1><h2 id="Generic-Unweighted-Mapping"><a class="docs-heading-anchor" href="#Generic-Unweighted-Mapping">Generic Unweighted Mapping</a><a id="Generic-Unweighted-Mapping-1"></a><a class="docs-heading-anchor-permalink" href="#Generic-Unweighted-Mapping" title="Permalink"></a></h2><p>The generic unweighted mapping aims to reduce a generic unweighted Maximum Independent Set (MIS) problem to one on a defected King&#39;s graph. Check <a href>our paper (link to be added)</a> for the mapping scheme.</p><p>Let the source graph be the Petersen graph.</p><pre><code class="language-julia hljs">using UnitDiskMapping, Graphs, GenericTensorNetworks, LinearAlgebra</code></pre><p>Visualization setup. To make the plots dark-mode friendly, we use white-background color.</p><pre><code class="language-julia hljs">using LuxorGraphPlot.Luxor, LuxorGraphPlot
+
+graph = smallgraph(:petersen)
+
+LuxorGraphPlot.show_graph(graph)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="177" viewBox="0 0 160 177">
+<rect x="-16" y="-17.7" width="192" height="212.4" fill="rgb(100%25, 100%25, 100%25)" fill-opacity="1"/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 84.175781 147.238281 L 90.386719 128.292969 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 87.960938 149.503906 L 117.828125 118.1875 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 71.324219 154.449219 L 29.734375 144.648438 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 86.078125 112.09375 L 53.742188 82.929688 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 101.671875 113.023438 L 113.636719 104.570312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 55.464844 80.265625 L 84.375 93.011719 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 52.25 68.183594 L 81.824219 28.050781 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 102.660156 101.117188 L 115.597656 106.878906 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 84.171875 100.582031 L 69.980469 105.945312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 127.546875 101.351562 L 136.703125 70.125 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 24.84375 133.605469 L 82.914062 28.75 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 27.773438 136.0625 L 52.851562 115.769531 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 111.957031 100.523438 L 70.476562 107.761719 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 126.003906 89.726562 L 135.316406 69.601562 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 95.632812 26.164062 L 131.640625 54.363281 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 91.058594 156.742188 C 91.058594 162.265625 86.582031 166.742188 81.058594 166.742188 C 75.535156 166.742188 71.058594 162.265625 71.058594 156.742188 C 71.058594 151.21875 75.535156 146.742188 81.058594 146.742188 C 86.582031 146.742188 91.058594 151.21875 91.058594 156.742188 Z M 91.058594 156.742188 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 103.503906 118.789062 C 103.503906 124.3125 99.027344 128.789062 93.503906 128.789062 C 87.980469 128.789062 83.503906 124.3125 83.503906 118.789062 C 83.503906 113.269531 87.980469 108.789062 93.503906 108.789062 C 99.027344 108.789062 103.503906 113.269531 103.503906 118.789062 Z M 103.503906 118.789062 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 56.316406 76.234375 C 56.316406 81.757812 51.839844 86.234375 46.316406 86.234375 C 40.792969 86.234375 36.316406 81.757812 36.316406 76.234375 C 36.316406 70.710938 40.792969 66.234375 46.316406 66.234375 C 51.839844 66.234375 56.316406 70.710938 56.316406 76.234375 Z M 56.316406 76.234375 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 103.527344 97.046875 C 103.527344 102.570312 99.050781 107.046875 93.527344 107.046875 C 88.003906 107.046875 83.527344 102.570312 83.527344 97.046875 C 83.527344 91.523438 88.003906 87.046875 93.527344 87.046875 C 99.050781 87.046875 103.527344 91.523438 103.527344 97.046875 Z M 103.527344 97.046875 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 134.730469 110.949219 C 134.730469 116.472656 130.253906 120.949219 124.730469 120.949219 C 119.207031 120.949219 114.730469 116.472656 114.730469 110.949219 C 114.730469 105.425781 119.207031 100.949219 124.730469 100.949219 C 130.253906 100.949219 134.730469 105.425781 134.730469 110.949219 Z M 134.730469 110.949219 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 142.355469 C 30 147.878906 25.523438 152.355469 20 152.355469 C 14.476562 152.355469 10 147.878906 10 142.355469 C 10 136.832031 14.476562 132.355469 20 132.355469 C 25.523438 132.355469 30 136.832031 30 142.355469 Z M 30 142.355469 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 131.804688 98.804688 C 131.804688 104.328125 127.328125 108.804688 121.804688 108.804688 C 116.285156 108.804688 111.804688 104.328125 111.804688 98.804688 C 111.804688 93.28125 116.285156 88.804688 121.804688 88.804688 C 127.328125 88.804688 131.804688 93.28125 131.804688 98.804688 Z M 131.804688 98.804688 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 97.757812 20 C 97.757812 25.523438 93.28125 30 87.757812 30 C 82.234375 30 77.757812 25.523438 77.757812 20 C 77.757812 14.476562 82.234375 10 87.757812 10 C 93.28125 10 97.757812 14.476562 97.757812 20 Z M 97.757812 20 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 70.625 109.480469 C 70.625 115 66.148438 119.480469 60.625 119.480469 C 55.101562 119.480469 50.625 115 50.625 109.480469 C 50.625 103.957031 55.101562 99.480469 60.625 99.480469 C 66.148438 99.480469 70.625 103.957031 70.625 109.480469 Z M 70.625 109.480469 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 149.515625 60.527344 C 149.515625 66.050781 145.039062 70.527344 139.515625 70.527344 C 133.992188 70.527344 129.515625 66.050781 129.515625 60.527344 C 129.515625 55.003906 133.992188 50.527344 139.515625 50.527344 C 145.039062 50.527344 149.515625 55.003906 149.515625 60.527344 Z M 149.515625 60.527344 "/>
+</svg>
+'/><p>We can use the <code>map_graph</code> function to map the unweighted MIS problem on the Petersen graph to one on a defected King&#39;s graph.</p><pre><code class="language-julia hljs">unweighted_res = map_graph(graph; vertex_order=MinhThiTrick());</code></pre><p>Here, the keyword argument <code>vertex_order</code> can be a vector of vertices in a specified order, or the method to compute the path decomposition that generates an order. The <code>MinhThiTrick()</code> method is an exact path decomposition solver, which is suited for small graphs (where number of vertices &lt;= 50). The <code>Greedy()</code> method finds the vertex order much faster and works in all cases, but may not be optimal. A good vertex order can reduce the depth of the mapped graph.</p><p>The return value contains the following fields:</p><pre><code class="language-julia hljs">fieldnames(unweighted_res |&gt; typeof)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(:grid_graph, :lines, :padding, :mapping_history, :mis_overhead)</code></pre><p>The field <code>grid_graph</code> is the mapped grid graph.</p><pre><code class="language-julia hljs">LuxorGraphPlot.show_graph(unweighted_res.grid_graph)
+
+unweighted_res.grid_graph.size</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(29, 41)</code></pre><p>The field <code>lines</code> is a vector of copy gadgets arranged in a <code>⊢</code> shape. These copy gadgets form a <em>crossing lattice</em>,  in which two copy lines cross each other whenever their corresponding vertices in the source graph are connected by an edge.</p><pre><code class="nohighlight hljs">    vslot
+      ↓
+      |          ← vstart
+      |
+      |-------   ← hslot
+      |      ↑   ← vstop
+            hstop</code></pre><pre><code class="language-julia hljs">unweighted_res.lines</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element Vector{UnitDiskMapping.CopyLine}:
+ UnitDiskMapping.CopyLine 10: vslot → [1:1,1], hslot → [1,1:6]
+ UnitDiskMapping.CopyLine 9: vslot → [2:2,2], hslot → [2,2:7]
+ UnitDiskMapping.CopyLine 8: vslot → [1:3,3], hslot → [3,3:8]
+ UnitDiskMapping.CopyLine 7: vslot → [1:4,4], hslot → [4,4:9]
+ UnitDiskMapping.CopyLine 6: vslot → [2:5,5], hslot → [5,5:10]
+ UnitDiskMapping.CopyLine 5: vslot → [1:6,6], hslot → [6,6:10]
+ UnitDiskMapping.CopyLine 4: vslot → [1:6,7], hslot → [1,7:8]
+ UnitDiskMapping.CopyLine 3: vslot → [1:3,8], hslot → [2,8:9]
+ UnitDiskMapping.CopyLine 2: vslot → [1:4,9], hslot → [1,9:10]
+ UnitDiskMapping.CopyLine 1: vslot → [1:6,10], hslot → [2,10:10]</code></pre><p>The field <code>mapping_history</code> contains the rewrite rules applied to the crossing lattice. They contain important information for mapping a solution back.</p><pre><code class="language-julia hljs">unweighted_res.mapping_history</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">36-element Vector{Tuple{Pattern, Int64, Int64}}:
+ (⋅ ● ⋅ ⋅ 
+⋅ ● ● ⋅ 
+⋅ ● ● ⋅ 
+⋅ ● ⋅ ⋅ 
+   ↓
+⋅ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ , 7, 38)
+ (◆ ⋅ 
+⋅ ◆ 
+ ↓
+● ⋅ 
+⋅ ● , 4, 38)
+ (⋅ ◆ 
+◆ ⋅ 
+ ↓
+⋅ ● 
+● ⋅ , 23, 38)
+ (⋅ ◆ ⋅ ⋅ 
+◆ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ 
+   ↓
+⋅ ● ⋅ ⋅ 
+● ⋅ ● ⋅ 
+⋅ ● ⋅ ⋅ , 19, 38)
+ (⋅ ⋅ ⋅ ⋅ 
+⋅ ⋅ ● ● 
+⋅ ● ● ⋅ 
+⋅ ● ⋅ ⋅ 
+   ↓
+⋅ ⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ ● 
+⋅ ⋅ ● ⋅ 
+⋅ ● ⋅ ⋅ , 3, 34)
+ (⋅ ◆ ⋅ ⋅ 
+◆ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ 
+   ↓
+⋅ ● ⋅ ⋅ 
+● ⋅ ● ⋅ 
+⋅ ● ⋅ ⋅ , 7, 34)
+ (⋅ ◆ 
+◆ ⋅ 
+ ↓
+⋅ ● 
+● ⋅ , 15, 34)
+ (⋅ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ 
+⋅ ● ● ● 
+⋅ ● ● ⋅ 
+⋅ ● ⋅ ⋅ 
+   ↓
+⋅ ● ⋅ ⋅ 
+⋅ ⋅ ● ⋅ 
+⋅ ● ⋅ ● 
+⋅ ⋅ ● ⋅ 
+⋅ ● ⋅ ⋅ , 6, 30)
+ (◆ ⋅ 
+⋅ ◆ 
+ ↓
+● ⋅ 
+⋅ ● , 4, 30)
+ (⋅ ◆ 
+◆ ⋅ 
+ ↓
+⋅ ● 
+● ⋅ , 11, 30)
+ ⋮
+ (⋅ ⋅ ● ⋅ ⋅ 
+● ● ◉ ● ● 
+⋅ ⋅ ● ⋅ ⋅ 
+⋅ ⋅ ● ⋅ ⋅ 
+    ↓
+⋅ ⋅ ● ⋅ ⋅ 
+● ● ● ● ● 
+⋅ ● ● ● ⋅ 
+⋅ ⋅ ● ⋅ ⋅ , 11, 13)
+ (⋅ ◆ ⋅ 
+◆ ◉ ● 
+⋅ ● ⋅ 
+  ↓
+⋅ ● ⋅ 
+● ● ● 
+⋅ ● ⋅ , 7, 14)
+ (⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ 
+◆ ● ● 
+⋅ ◆ ⋅ 
+  ↓
+⋅ ⋅ ⋅ 
+⋅ ● ⋅ 
+● ⋅ ● 
+⋅ ● ⋅ , 2, 14)
+ (⋅ ● ⋅ ⋅ 
+⋅ ● ⋅ ⋅ 
+⋅ ● ● ● 
+⋅ ⋅ ⋅ ⋅ 
+   ↓
+⋅ ● ⋅ ⋅ 
+⋅ ⋅ ● ⋅ 
+⋅ ⋅ ⋅ ● 
+⋅ ⋅ ⋅ ⋅ , 10, 10)
+ (⋅ ⋅ ● ⋅ ⋅ 
+● ● ◉ ● ● 
+⋅ ⋅ ● ⋅ ⋅ 
+⋅ ⋅ ● ⋅ ⋅ 
+    ↓
+⋅ ⋅ ● ⋅ ⋅ 
+● ● ● ● ● 
+⋅ ● ● ● ⋅ 
+⋅ ⋅ ● ⋅ ⋅ , 7, 9)
+ (⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ 
+◆ ● ● 
+⋅ ◆ ⋅ 
+  ↓
+⋅ ⋅ ⋅ 
+⋅ ● ⋅ 
+● ⋅ ● 
+⋅ ● ⋅ , 2, 10)
+ (⋅ ⋅ ⋅ ⋅ 
+⋅ ● ● ● 
+⋅ ⋅ ⋅ ⋅ 
+   ↓
+⋅ ⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ ● 
+⋅ ⋅ ⋅ ⋅ , 3, 3)
+ (⋅ ⋅ ⋅ ⋅ 
+⋅ ● ● ● 
+⋅ ⋅ ⋅ ⋅ 
+   ↓
+⋅ ⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ ● 
+⋅ ⋅ ⋅ ⋅ , 3, 5)
+ (⋅ ⋅ ⋅ ⋅ 
+⋅ ● ● ● 
+⋅ ⋅ ⋅ ⋅ 
+   ↓
+⋅ ⋅ ⋅ ⋅ 
+⋅ ⋅ ⋅ ● 
+⋅ ⋅ ⋅ ⋅ , 3, 7)</code></pre><p>The field <code>mis_overhead</code> is the difference between <span>$\alpha(G_M) - \alpha(G_S)$</span>, where <span>$G_M$</span> and <span>$G_S$</span> are the mapped and source graph.</p><pre><code class="language-julia hljs">unweighted_res.mis_overhead</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">88</code></pre><p>We can solve the mapped graph with <a href="https://queracomputing.github.io/GenericTensorNetworks.jl/dev/"><code>GenericTensorNetworks</code></a>.</p><pre><code class="language-julia hljs">res = solve(GenericTensorNetwork(IndependentSet(SimpleGraph(unweighted_res.grid_graph))), SingleConfigMax())[]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(92.0, GenericTensorNetworks.ConfigSampler{218, 1, 4}(10000110100100001110000110101010100000111100000111101010100000001110100001000101101000101010001000010001011010001001010110010101000100010001001010111000001111000100011111000011111001010100001111000111010101010101000101))ₜ</code></pre><p>You might want to read <a href="https://queracomputing.github.io/GenericTensorNetworks.jl/dev/">the documentation page of <code>GenericTensorNetworks</code></a> for a detailed explanation on this function. Here, we just visually check the solution configuration.</p><pre><code class="language-julia hljs">show_config(unweighted_res.grid_graph, res.c.data)</code></pre><img src="4e400005.svg" alt="Example block output"/><p>By mapping the result back, we get a solution for the original Petersen graph. Its maximum independent set size is 4.</p><p>The solution obtained by solving the mapped graph</p><pre><code class="language-julia hljs">original_configs = map_config_back(unweighted_res, res.c.data)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element Vector{Int64}:
+ 0
+ 0
+ 1
+ 0
+ 1
+ 1
+ 1
+ 0
+ 0
+ 0</code></pre><p>Confirm that the solution from the mapped graph gives us a maximum independent set for the original graph</p><pre><code class="language-julia hljs">UnitDiskMapping.is_independent_set(graph, original_configs)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">true</code></pre><h2 id="Generic-Weighted-Mapping"><a class="docs-heading-anchor" href="#Generic-Weighted-Mapping">Generic Weighted Mapping</a><a id="Generic-Weighted-Mapping-1"></a><a class="docs-heading-anchor-permalink" href="#Generic-Weighted-Mapping" title="Permalink"></a></h2><p>A Maximum Weight Independent Set (MWIS) problem on a general graph can be mapped to one on the defected King&#39;s graph. The first step is to do the same mapping as above but adding a new positional argument <code>Weighted()</code> as the first argument of <code>map_graph</code>. Let us still use the Petersen graph as an example.</p><pre><code class="language-julia hljs">weighted_res = map_graph(Weighted(), graph; vertex_order=MinhThiTrick());</code></pre><p>The return value is similar to that for the unweighted mapping generated above, except each node in the mapped graph can have a weight 1, 2 or 3. Note here, we haven&#39;t added the weights in the original graph.</p><pre><code class="language-julia hljs">show_grayscale(weighted_res.grid_graph)</code></pre><img src="1e03e3c8.svg" alt="Example block output"/><p>The &quot;pins&quot; of the mapped graph have a one-to-one correspondence to the vertices in the source graph.</p><pre><code class="language-julia hljs">show_pins(weighted_res)</code></pre><img src="437ac2cc.svg" alt="Example block output"/><p>The weights in the original graph can be added to the pins of this grid graph using the <code>map_weights</code> function. The added weights must be smaller than 1.</p><pre><code class="language-julia hljs">source_weights = rand(10)
+
+mapped_weights = map_weights(weighted_res, source_weights)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">218-element Vector{Float64}:
+ 1.1481792316930466
+ 2.0
+ 1.7032054530719922
+ 2.0
+ 2.0
+ 2.0
+ 1.0
+ 2.0
+ 2.0
+ 2.0
+ ⋮
+ 2.0
+ 2.0
+ 2.0
+ 2.0
+ 2.0
+ 2.0
+ 2.0
+ 1.0
+ 2.0</code></pre><p>Now that we have both the graph and the weights, let us solve the mapped problem!</p><pre><code class="language-julia hljs">wmap_config = let
+	graph, _ = graph_and_weights(weighted_res.grid_graph)
+	collect(Int,
+		solve(GenericTensorNetwork(IndependentSet(graph, mapped_weights)), SingleConfigMax())[].c.data
+	)
+end
+
+show_config(weighted_res.grid_graph, wmap_config)</code></pre><img src="0b7653c5.svg" alt="Example block output"/><p>By reading the configurations of the pins, we obtain a solution for the source graph.</p><p>The solution obtained by solving the mapped graph</p><pre><code class="language-julia hljs">map_config_back(weighted_res, wmap_config)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element Vector{Int64}:
+ 0
+ 0
+ 1
+ 0
+ 1
+ 1
+ 1
+ 0
+ 0
+ 0</code></pre><p>Directly solving the source graph</p><pre><code class="language-julia hljs">collect(Int,
+	solve(GenericTensorNetwork(IndependentSet(graph, source_weights)), SingleConfigMax())[].c.data
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element Vector{Int64}:
+ 0
+ 0
+ 1
+ 0
+ 1
+ 1
+ 1
+ 0
+ 0
+ 0</code></pre><h2 id="QUBO-problem"><a class="docs-heading-anchor" href="#QUBO-problem">QUBO problem</a><a id="QUBO-problem-1"></a><a class="docs-heading-anchor-permalink" href="#QUBO-problem" title="Permalink"></a></h2><h3 id="Generic-QUBO-mapping"><a class="docs-heading-anchor" href="#Generic-QUBO-mapping">Generic QUBO mapping</a><a id="Generic-QUBO-mapping-1"></a><a class="docs-heading-anchor-permalink" href="#Generic-QUBO-mapping" title="Permalink"></a></h3><p>A QUBO problem can be specified as the following energy model:</p><p class="math-container">\[E(z) = -\sum_{i&lt;j} J_{ij} z_i z_j + \sum_i h_i z_i\]</p><pre><code class="language-julia hljs">n = 6
+
+J = triu(randn(n, n) * 0.001, 1); J += J&#39;
+
+h = randn(n) * 0.001</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6-element Vector{Float64}:
+ -0.0003109921088664837
+ -0.0003933104663212692
+ -0.00027448113950687543
+ -0.000640303630768254
+  0.0021323217219221973
+ -0.0011551227198616939</code></pre><p>Now, let us do the mapping on an <span>$n \times n$</span> crossing lattice.</p><pre><code class="language-julia hljs">qubo = UnitDiskMapping.map_qubo(J, h);</code></pre><p>The mapping result contains two fields, the <code>grid_graph</code> and the <code>pins</code>. After finding the ground state of the mapped independent set problem, the configuration of the spin glass can be read directly from the pins. The following graph plots the pins in red color.</p><pre><code class="language-julia hljs">qubo_graph, qubo_weights = UnitDiskMapping.graph_and_weights(qubo.grid_graph)
+
+show_pins(qubo)</code></pre><img src="6f2c7773.svg" alt="Example block output"/><p>One can also check the weights using the gray-scale plot.</p><pre><code class="language-julia hljs">show_grayscale(qubo.grid_graph)</code></pre><img src="45db49d9.svg" alt="Example block output"/><p>By solving this maximum independent set problem, we will get the following configuration.</p><pre><code class="language-julia hljs">qubo_mapped_solution = collect(Int, solve(GenericTensorNetwork(IndependentSet(qubo_graph, qubo_weights)), SingleConfigMax())[].c.data)
+
+show_config(qubo.grid_graph, qubo_mapped_solution)</code></pre><img src="241dfea9.svg" alt="Example block output"/><p>This solution can be mapped to a solution for the source graph by reading the configurations on the pins.</p><p>The solution obtained by solving the mapped graph</p><pre><code class="language-julia hljs">map_config_back(qubo, collect(Int, qubo_mapped_solution))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6-element Vector{Int64}:
+ 1
+ 0
+ 1
+ 1
+ 0
+ 1</code></pre><p>This solution is consistent with the exact solution:</p><p>Directly solving the source graph, due to the convention issue, we flip the signs of <code>J</code> and <code>h</code></p><pre><code class="language-julia hljs">collect(Int, solve(GenericTensorNetwork(spin_glass_from_matrix(-J, -h)), SingleConfigMax())[].c.data)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6-element Vector{Int64}:
+ 0
+ 1
+ 0
+ 0
+ 1
+ 0</code></pre><h3 id="QUBO-problem-on-a-square-lattice"><a class="docs-heading-anchor" href="#QUBO-problem-on-a-square-lattice">QUBO problem on a square lattice</a><a id="QUBO-problem-on-a-square-lattice-1"></a><a class="docs-heading-anchor-permalink" href="#QUBO-problem-on-a-square-lattice" title="Permalink"></a></h3><p>We define some coupling strengths and onsite energies on a <span>$n \times n$</span> square lattice.</p><pre><code class="language-julia hljs">square_coupling = [[(i,j,i,j+1,0.01*randn()) for i=1:n, j=1:n-1]...,
+	[(i,j,i+1,j,0.01*randn()) for i=1:n-1, j=1:n]...];
+
+square_onsite = vec([(i, j, 0.01*randn()) for i=1:n, j=1:n]);</code></pre><p>Then we use <code>map_qubo_square</code> to reduce the QUBO problem on a square lattice to the MIS problem on a grid graph.</p><pre><code class="language-julia hljs">qubo_square = UnitDiskMapping.map_qubo_square(square_coupling, square_onsite);
+
+show_grayscale(qubo_square.grid_graph)</code></pre><img src="e4d4afdf.svg" alt="Example block output"/><p>You can see each coupling is replaced by the following <code>XOR</code> gadget</p><pre><code class="language-julia hljs">show_grayscale(UnitDiskMapping.gadget_qubo_square(Int), texts=[&quot;x$(&#39;₀&#39;+i)&quot; for i=1:8])</code></pre><img src="7a535744.svg" alt="Example block output"/><p>Where dark nodes have weight 2 and light nodes have weight 1. It corresponds to the boolean equation <span>$x_8 = \neg (x_1 \veebar x_5)$</span>; hence we can add ferromagnetic couplings as negative weights and anti-ferromagnetic couplings as positive weights. On-site terms are added directly to the pins.</p><pre><code class="language-julia hljs">show_pins(qubo_square)</code></pre><img src="ffb8edd2.svg" alt="Example block output"/><p>Let us solve the independent set problem on the mapped graph.</p><pre><code class="language-julia hljs">square_graph, square_weights = UnitDiskMapping.graph_and_weights(qubo_square.grid_graph);
+
+config_square = collect(Int, solve(GenericTensorNetwork(IndependentSet(square_graph, square_weights)), SingleConfigMax())[].c.data);</code></pre><p>We will get the following configuration.</p><pre><code class="language-julia hljs">show_config(qubo_square.grid_graph, config_square)</code></pre><img src="a7b8c695.svg" alt="Example block output"/><p>By reading out the configurations at pins, we can get a solution of the source QUBO problem.</p><pre><code class="language-julia hljs">r1 = map_config_back(qubo_square, config_square)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">36-element Vector{Int64}:
+ 0
+ 1
+ 0
+ 0
+ 0
+ 1
+ 1
+ 1
+ 1
+ 0
+ ⋮
+ 0
+ 0
+ 0
+ 1
+ 1
+ 0
+ 0
+ 0
+ 1</code></pre><p>It can be easily checked by examining the exact result.</p><pre><code class="language-julia hljs">let
+	# solve QUBO directly
+	g2 = SimpleGraph(n*n)
+	Jd = Dict{Tuple{Int,Int}, Float64}()
+	for (i,j,i2,j2,J) in square_coupling
+		edg = (i+(j-1)*n, i2+(j2-1)*n)
+		Jd[edg] = J
+		add_edge!(g2, edg...)
+	end
+
+	Js, hs = Float64[], zeros(Float64, nv(g2))
+	for e in edges(g2)
+		push!(Js, Jd[(e.src, e.dst)])
+	end
+	for (i,j,h) in square_onsite
+		hs[i+(j-1)*n] = h
+	end
+	collect(Int, solve(GenericTensorNetwork(SpinGlass(g2, -Js, -hs)), SingleConfigMax())[].c.data)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">36-element Vector{Int64}:
+ 1
+ 0
+ 1
+ 1
+ 1
+ 0
+ 0
+ 0
+ 0
+ 1
+ ⋮
+ 1
+ 1
+ 1
+ 0
+ 0
+ 1
+ 1
+ 1
+ 0</code></pre><h2 id="Factorization-problem"><a class="docs-heading-anchor" href="#Factorization-problem">Factorization problem</a><a id="Factorization-problem-1"></a><a class="docs-heading-anchor-permalink" href="#Factorization-problem" title="Permalink"></a></h2><p>The building block of the array multiplier can be mapped to the following gadget:</p><pre><code class="language-julia hljs">let
+	graph, pins = UnitDiskMapping.multiplier()
+	texts = fill(&quot;&quot;, length(graph.nodes))
+	texts[pins] .= [&quot;x$i&quot; for i=1:length(pins)]
+	show_grayscale(graph)
+end</code></pre><img src="7dcf8d75.svg" alt="Example block output"/><p>Let us denote the input and output pins as <span>$x_{1-8} \in \{0, 1\}$</span>. The above gadget implements the following equations:</p><p class="math-container">\[\begin{align}
+x_1 + x_2 x_3 + x_4 = x_5 + 2 x_7,\\
+x_2 = x_6,\\
+x_3 = x_8.
+\end{align}\]</p><p>One can call <code>map_factoring(M, N)</code> to map a factoring problem to the array multiplier grid of size (M, N). In the following example of (2, 2) array multiplier, the input integers are <span>$p = 2p_2+p_1$</span> and <span>$q= 2q_2+q_1$</span>, and the output integer is <span>$m = 4m_3+2m_2+m_1$</span>. The maximum independent set corresponds to the solution of <span>$pq = m$</span></p><pre><code class="language-julia hljs">mres = UnitDiskMapping.map_factoring(2, 2);
+
+show_pins(mres)</code></pre><img src="554005bf.svg" alt="Example block output"/><p>To solve this factoring problem, one can use the following statement:</p><pre><code class="language-julia hljs">multiplier_output = UnitDiskMapping.solve_factoring(mres, 6) do g, ws
+	collect(Int, solve(GenericTensorNetwork(IndependentSet(g, ws)), SingleConfigMax())[].c.data)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(3, 2)</code></pre><p>This function consists of the following steps:</p><ol><li>We first modify the graph by inspecting the fixed values, i.e., the output <code>m</code> and <code>0</code>s:<ul><li>If a vertex is fixed to 1, remove it and its neighbors,</li><li>If a vertex is fixed to 0, remove this vertex.</li></ul></li></ol><p>The resulting grid graph is</p><pre><code class="language-julia hljs">mapped_grid_graph, remaining_vertices = let
+	g, ws = graph_and_weights(mres.grid_graph)
+	mg, vmap = UnitDiskMapping.set_target(g, [mres.pins_zeros..., mres.pins_output...], 6 &lt;&lt; length(mres.pins_zeros))
+	GridGraph(mres.grid_graph.size, mres.grid_graph.nodes[vmap], mres.grid_graph.radius), vmap
+end;
+
+show_graph(mapped_grid_graph)</code></pre><img src="4d4c8da7.svg" alt="Example block output"/><ol><li>Then, we solve this new grid graph.</li></ol><pre><code class="language-julia hljs">config_factoring6 = let
+	mg, mw = graph_and_weights(mapped_grid_graph)
+	solve(GenericTensorNetwork(IndependentSet(mg, mw)), SingleConfigMax())[].c.data
+end;
+
+show_config(mapped_grid_graph, config_factoring6)</code></pre><img src="01443a6e.svg" alt="Example block output"/><ol><li>It is straightforward to read out the results from the above configuration. The solution should be either (2, 3) or (3, 2).</li></ol><pre><code class="language-julia hljs">let
+	cfg = zeros(Int, length(mres.grid_graph.nodes))
+	cfg[remaining_vertices] .= config_factoring6
+	bitvectors = cfg[mres.pins_input1], cfg[mres.pins_input2]
+	UnitDiskMapping.asint.(bitvectors)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2, 3)</code></pre><h2 id="Logic-Gates"><a class="docs-heading-anchor" href="#Logic-Gates">Logic Gates</a><a id="Logic-Gates-1"></a><a class="docs-heading-anchor-permalink" href="#Logic-Gates" title="Permalink"></a></h2><ol><li>NOT gate: <span>$y_1 =\neg x_1$</span></li></ol><pre><code class="language-julia hljs">show_pins(Gate(:NOT))</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="106" viewBox="0 0 40 106">
+<defs>
+<g>
+<g id="glyph-521787-0-0">
+<path d="M 6.59375 -6.5625 L 4.21875 -3.375 L 6.703125 0 L 5.4375 0 L 3.53125 -2.578125 L 1.625 0 L 0.34375 0 L 2.890625 -3.4375 L 0.5625 -6.5625 L 1.828125 -6.5625 L 3.578125 -4.21875 L 5.3125 -6.5625 Z M 6.59375 -6.5625 "/>
+</g>
+<g id="glyph-521787-0-1">
+<path d="M 0.921875 -0.640625 L 2.109375 -0.640625 L 2.109375 -4.21875 L 0.796875 -3.984375 L 0.796875 -4.65625 L 2.15625 -4.890625 L 2.953125 -4.890625 L 2.953125 -0.640625 L 4.15625 -0.640625 L 4.15625 0 L 0.921875 0 Z M 0.921875 -0.640625 "/>
+</g>
+<g id="glyph-521787-0-2">
+<path d="M 3.859375 0.609375 C 3.554688 1.390625 3.257812 1.898438 2.96875 2.140625 C 2.675781 2.378906 2.289062 2.5 1.8125 2.5 L 0.953125 2.5 L 0.953125 1.59375 L 1.578125 1.59375 C 1.878906 1.59375 2.109375 1.519531 2.265625 1.375 C 2.429688 1.238281 2.613281 0.910156 2.8125 0.390625 L 3.015625 -0.109375 L 0.359375 -6.5625 L 1.5 -6.5625 L 3.546875 -1.4375 L 5.609375 -6.5625 L 6.75 -6.5625 Z M 3.859375 0.609375 "/>
+</g>
+</g>
+</defs>
+<rect x="-4" y="-10.6" width="48" height="127.2" fill="rgb(100%25, 100%25, 100%25)" fill-opacity="1"/>
+<path fill-rule="nonzero" fill="rgb(100%25, 0%25, 0%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 86 C 30 91.523438 25.523438 96 20 96 C 14.476562 96 10 91.523438 10 86 C 10 80.476562 14.476562 76 20 76 C 25.523438 76 30 80.476562 30 86 Z M 30 86 "/>
+<g fill="rgb(0%25, 0%25, 0%25)" fill-opacity="1">
+<use xlink:href="%23glyph-521787-0-0" x="14.043945" y="89.28125"/>
+<use xlink:href="%23glyph-521787-0-1" x="21.145508" y="89.28125"/>
+</g>
+<path fill-rule="nonzero" fill="rgb(0%25, 0%25, 100%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 20 C 30 25.523438 25.523438 30 20 30 C 14.476562 30 10 25.523438 10 20 C 10 14.476562 14.476562 10 20 10 C 25.523438 10 30 14.476562 30 20 Z M 30 20 "/>
+<g fill="rgb(0%25, 0%25, 0%25)" fill-opacity="1">
+<use xlink:href="%23glyph-521787-0-2" x="14.043945" y="23.28125"/>
+<use xlink:href="%23glyph-521787-0-1" x="21.145508" y="23.28125"/>
+</g>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 20 76 L 20 30 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 53 C 21 53.550781 20.550781 54 20 54 C 19.449219 54 19 53.550781 19 53 C 19 52.449219 19.449219 52 20 52 C 20.550781 52 21 52.449219 21 53 Z M 21 53 "/>
+</svg>
+'/><pre><code class="language-julia hljs">show_grayscale(gate_gadget(Gate(:NOT))[1], wmax=2)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="106" viewBox="0 0 40 106">
+<rect x="-4" y="-10.6" width="48" height="127.2" fill="rgb(100%25, 100%25, 100%25)" fill-opacity="1"/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 86 C 30 91.523438 25.523438 96 20 96 C 14.476562 96 10 91.523438 10 86 C 10 80.476562 14.476562 76 20 76 C 25.523438 76 30 80.476562 30 86 Z M 30 86 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 20 C 30 25.523438 25.523438 30 20 30 C 14.476562 30 10 25.523438 10 20 C 10 14.476562 14.476562 10 20 10 C 25.523438 10 30 14.476562 30 20 Z M 30 20 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 20 76 L 20 30 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 53 C 21 53.550781 20.550781 54 20 54 C 19.449219 54 19 53.550781 19 53 C 19 52.449219 19.449219 52 20 52 C 20.550781 52 21 52.449219 21 53 Z M 21 53 "/>
+</svg>
+'/><ol><li>NXOR gate: <span>$y_1 =\neg (x_1 \veebar x_2)$</span>. Notice this negated XOR gate is used in the square lattice QUBO mapping.</li></ol><pre><code class="language-julia hljs">show_pins(Gate(:NXOR))</code></pre><img src="cf6f1b51.svg" alt="Example block output"/><pre><code class="language-julia hljs">show_grayscale(gate_gadget(Gate(:NXOR))[1], wmax=2)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="172" height="139" viewBox="0 0 172 139">
+<rect x="-17.2" y="-13.9" width="206.4" height="166.8" fill="rgb(100%25, 100%25, 100%25)" fill-opacity="1"/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 86 C 30 91.523438 25.523438 96 20 96 C 14.476562 96 10 91.523438 10 86 C 10 80.476562 14.476562 76 20 76 C 25.523438 76 30 80.476562 30 86 Z M 30 86 "/>
+<path fill-rule="nonzero" fill="rgb(3.27959%25, 17.166961%25, 34.731179%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 96 119 C 96 124.523438 91.523438 129 86 129 C 80.476562 129 76 124.523438 76 119 C 76 113.476562 80.476562 109 86 109 C 91.523438 109 96 113.476562 96 119 Z M 96 119 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 162 86 C 162 91.523438 157.523438 96 152 96 C 146.476562 96 142 91.523438 142 86 C 142 80.476562 146.476562 76 152 76 C 157.523438 76 162 80.476562 162 86 Z M 162 86 "/>
+<path fill-rule="nonzero" fill="rgb(3.27959%25, 17.166961%25, 34.731179%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 63 53 C 63 58.523438 58.523438 63 53 63 C 47.476562 63 43 58.523438 43 53 C 43 47.476562 47.476562 43 53 43 C 58.523438 43 63 47.476562 63 53 Z M 63 53 "/>
+<path fill-rule="nonzero" fill="rgb(3.27959%25, 17.166961%25, 34.731179%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 129 53 C 129 58.523438 124.523438 63 119 63 C 113.476562 63 109 58.523438 109 53 C 109 47.476562 113.476562 43 119 43 C 124.523438 43 129 47.476562 129 53 Z M 129 53 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 96 20 C 96 25.523438 91.523438 30 86 30 C 80.476562 30 76 25.523438 76 20 C 76 14.476562 80.476562 10 86 10 C 91.523438 10 96 14.476562 96 20 Z M 96 20 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 28.945312 90.472656 L 77.054688 114.527344 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 27.070312 78.929688 L 45.929688 60.070312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 94.945312 114.527344 L 143.054688 90.472656 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 81.527344 110.054688 L 57.472656 61.945312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 90.472656 110.054688 L 114.527344 61.945312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 144.929688 78.929688 L 126.070312 60.070312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 63 53 L 109 53 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 60.070312 45.929688 L 78.929688 27.070312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 111.929688 45.929688 L 93.070312 27.070312 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 119 C 21 119.550781 20.550781 120 20 120 C 19.449219 120 19 119.550781 19 119 C 19 118.449219 19.449219 118 20 118 C 20.550781 118 21 118.449219 21 119 Z M 21 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 119 C 54 119.550781 53.550781 120 53 120 C 52.449219 120 52 119.550781 52 119 C 52 118.449219 52.449219 118 53 118 C 53.550781 118 54 118.449219 54 119 Z M 54 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 120 119 C 120 119.550781 119.550781 120 119 120 C 118.449219 120 118 119.550781 118 119 C 118 118.449219 118.449219 118 119 118 C 119.550781 118 120 118.449219 120 119 Z M 120 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 153 119 C 153 119.550781 152.550781 120 152 120 C 151.449219 120 151 119.550781 151 119 C 151 118.449219 151.449219 118 152 118 C 152.550781 118 153 118.449219 153 119 Z M 153 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 86 C 54 86.550781 53.550781 87 53 87 C 52.449219 87 52 86.550781 52 86 C 52 85.449219 52.449219 85 53 85 C 53.550781 85 54 85.449219 54 86 Z M 54 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 86 C 87 86.550781 86.550781 87 86 87 C 85.449219 87 85 86.550781 85 86 C 85 85.449219 85.449219 85 86 85 C 86.550781 85 87 85.449219 87 86 Z M 87 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 120 86 C 120 86.550781 119.550781 87 119 87 C 118.449219 87 118 86.550781 118 86 C 118 85.449219 118.449219 85 119 85 C 119.550781 85 120 85.449219 120 86 Z M 120 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 53 C 21 53.550781 20.550781 54 20 54 C 19.449219 54 19 53.550781 19 53 C 19 52.449219 19.449219 52 20 52 C 20.550781 52 21 52.449219 21 53 Z M 21 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 53 C 87 53.550781 86.550781 54 86 54 C 85.449219 54 85 53.550781 85 53 C 85 52.449219 85.449219 52 86 52 C 86.550781 52 87 52.449219 87 53 Z M 87 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 153 53 C 153 53.550781 152.550781 54 152 54 C 151.449219 54 151 53.550781 151 53 C 151 52.449219 151.449219 52 152 52 C 152.550781 52 153 52.449219 153 53 Z M 153 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 20 C 21 20.550781 20.550781 21 20 21 C 19.449219 21 19 20.550781 19 20 C 19 19.449219 19.449219 19 20 19 C 20.550781 19 21 19.449219 21 20 Z M 21 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 20 C 54 20.550781 53.550781 21 53 21 C 52.449219 21 52 20.550781 52 20 C 52 19.449219 52.449219 19 53 19 C 53.550781 19 54 19.449219 54 20 Z M 54 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 120 20 C 120 20.550781 119.550781 21 119 21 C 118.449219 21 118 20.550781 118 20 C 118 19.449219 118.449219 19 119 19 C 119.550781 19 120 19.449219 120 20 Z M 120 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 153 20 C 153 20.550781 152.550781 21 152 21 C 151.449219 21 151 20.550781 151 20 C 151 19.449219 151.449219 19 152 19 C 152.550781 19 153 19.449219 153 20 Z M 153 20 "/>
+</svg>
+'/><ol><li>NOR gate: <span>$y_1 =\neg (x_1 \vee x_2)$</span></li></ol><pre><code class="language-julia hljs">show_pins(Gate(:NOR))</code></pre><img src="0e7d5d01.svg" alt="Example block output"/><pre><code class="language-julia hljs">show_grayscale(gate_gadget(Gate(:NOR))[1], wmax=2)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="172" height="139" viewBox="0 0 172 139">
+<rect x="-17.2" y="-13.9" width="206.4" height="166.8" fill="rgb(100%25, 100%25, 100%25)" fill-opacity="1"/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 86 C 30 91.523438 25.523438 96 20 96 C 14.476562 96 10 91.523438 10 86 C 10 80.476562 14.476562 76 20 76 C 25.523438 76 30 80.476562 30 86 Z M 30 86 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 96 119 C 96 124.523438 91.523438 129 86 129 C 80.476562 129 76 124.523438 76 119 C 76 113.476562 80.476562 109 86 109 C 91.523438 109 96 113.476562 96 119 Z M 96 119 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 162 86 C 162 91.523438 157.523438 96 152 96 C 146.476562 96 142 91.523438 142 86 C 142 80.476562 146.476562 76 152 76 C 157.523438 76 162 80.476562 162 86 Z M 162 86 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 63 20 C 63 25.523438 58.523438 30 53 30 C 47.476562 30 43 25.523438 43 20 C 43 14.476562 47.476562 10 53 10 C 58.523438 10 63 14.476562 63 20 Z M 63 20 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 129 20 C 129 25.523438 124.523438 30 119 30 C 113.476562 30 109 25.523438 109 20 C 109 14.476562 113.476562 10 119 10 C 124.523438 10 129 14.476562 129 20 Z M 129 20 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 28.945312 90.472656 L 77.054688 114.527344 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 24.472656 77.054688 L 48.527344 28.945312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 94.945312 114.527344 L 143.054688 90.472656 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 147.527344 77.054688 L 123.472656 28.945312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 63 20 L 109 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 119 C 21 119.550781 20.550781 120 20 120 C 19.449219 120 19 119.550781 19 119 C 19 118.449219 19.449219 118 20 118 C 20.550781 118 21 118.449219 21 119 Z M 21 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 119 C 54 119.550781 53.550781 120 53 120 C 52.449219 120 52 119.550781 52 119 C 52 118.449219 52.449219 118 53 118 C 53.550781 118 54 118.449219 54 119 Z M 54 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 120 119 C 120 119.550781 119.550781 120 119 120 C 118.449219 120 118 119.550781 118 119 C 118 118.449219 118.449219 118 119 118 C 119.550781 118 120 118.449219 120 119 Z M 120 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 153 119 C 153 119.550781 152.550781 120 152 120 C 151.449219 120 151 119.550781 151 119 C 151 118.449219 151.449219 118 152 118 C 152.550781 118 153 118.449219 153 119 Z M 153 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 86 C 54 86.550781 53.550781 87 53 87 C 52.449219 87 52 86.550781 52 86 C 52 85.449219 52.449219 85 53 85 C 53.550781 85 54 85.449219 54 86 Z M 54 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 86 C 87 86.550781 86.550781 87 86 87 C 85.449219 87 85 86.550781 85 86 C 85 85.449219 85.449219 85 86 85 C 86.550781 85 87 85.449219 87 86 Z M 87 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 120 86 C 120 86.550781 119.550781 87 119 87 C 118.449219 87 118 86.550781 118 86 C 118 85.449219 118.449219 85 119 85 C 119.550781 85 120 85.449219 120 86 Z M 120 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 53 C 21 53.550781 20.550781 54 20 54 C 19.449219 54 19 53.550781 19 53 C 19 52.449219 19.449219 52 20 52 C 20.550781 52 21 52.449219 21 53 Z M 21 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 53 C 54 53.550781 53.550781 54 53 54 C 52.449219 54 52 53.550781 52 53 C 52 52.449219 52.449219 52 53 52 C 53.550781 52 54 52.449219 54 53 Z M 54 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 53 C 87 53.550781 86.550781 54 86 54 C 85.449219 54 85 53.550781 85 53 C 85 52.449219 85.449219 52 86 52 C 86.550781 52 87 52.449219 87 53 Z M 87 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 120 53 C 120 53.550781 119.550781 54 119 54 C 118.449219 54 118 53.550781 118 53 C 118 52.449219 118.449219 52 119 52 C 119.550781 52 120 52.449219 120 53 Z M 120 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 153 53 C 153 53.550781 152.550781 54 152 54 C 151.449219 54 151 53.550781 151 53 C 151 52.449219 151.449219 52 152 52 C 152.550781 52 153 52.449219 153 53 Z M 153 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 20 C 21 20.550781 20.550781 21 20 21 C 19.449219 21 19 20.550781 19 20 C 19 19.449219 19.449219 19 20 19 C 20.550781 19 21 19.449219 21 20 Z M 21 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 20 C 87 20.550781 86.550781 21 86 21 C 85.449219 21 85 20.550781 85 20 C 85 19.449219 85.449219 19 86 19 C 86.550781 19 87 19.449219 87 20 Z M 87 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 153 20 C 153 20.550781 152.550781 21 152 21 C 151.449219 21 151 20.550781 151 20 C 151 19.449219 151.449219 19 152 19 C 152.550781 19 153 19.449219 153 20 Z M 153 20 "/>
+</svg>
+'/><ol><li>AND gate: <span>$y_1 =x_1 \wedge x_2$</span></li></ol><pre><code class="language-julia hljs">show_pins(Gate(:AND))</code></pre><img src="e950e675.svg" alt="Example block output"/><pre><code class="language-julia hljs">show_grayscale(gate_gadget(Gate(:AND))[1], wmax=2)</code></pre><img src='data:image/svg+xml;utf-8,<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="106" height="205" viewBox="0 0 106 205">
+<rect x="-10.6" y="-20.5" width="127.2" height="246" fill="rgb(100%25, 100%25, 100%25)" fill-opacity="1"/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 63 185 C 63 190.523438 58.523438 195 53 195 C 47.476562 195 43 190.523438 43 185 C 43 179.476562 47.476562 175 53 175 C 58.523438 175 63 179.476562 63 185 Z M 63 185 "/>
+<path fill-rule="nonzero" fill="rgb(3.27959%25, 17.166961%25, 34.731179%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 63 119 C 63 124.523438 58.523438 129 53 129 C 47.476562 129 43 124.523438 43 119 C 43 113.476562 47.476562 109 53 109 C 58.523438 109 63 113.476562 63 119 Z M 63 119 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 86 C 30 91.523438 25.523438 96 20 96 C 14.476562 96 10 91.523438 10 86 C 10 80.476562 14.476562 76 20 76 C 25.523438 76 30 80.476562 30 86 Z M 30 86 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 96 86 C 96 91.523438 91.523438 96 86 96 C 80.476562 96 76 91.523438 76 86 C 76 80.476562 80.476562 76 86 76 C 91.523438 76 96 80.476562 96 86 Z M 96 86 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 20 C 30 25.523438 25.523438 30 20 30 C 14.476562 30 10 25.523438 10 20 C 10 14.476562 14.476562 10 20 10 C 25.523438 10 30 14.476562 30 20 Z M 30 20 "/>
+<path fill-rule="nonzero" fill="rgb(46.296761%25, 70.604611%25, 90.808461%25)" fill-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 96 20 C 96 25.523438 91.523438 30 86 30 C 80.476562 30 76 25.523438 76 20 C 76 14.476562 80.476562 10 86 10 C 91.523438 10 96 14.476562 96 20 Z M 96 20 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 53 175 L 53 129 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 45.929688 111.929688 L 27.070312 93.070312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 60.070312 111.929688 L 78.929688 93.070312 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 86 L 76 86 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 20 76 L 20 30 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 86 76 L 86 30 "/>
+<path fill="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%25, 0%25, 0%25)" stroke-opacity="1" stroke-miterlimit="10" d="M 30 20 L 76 20 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 185 C 21 185.550781 20.550781 186 20 186 C 19.449219 186 19 185.550781 19 185 C 19 184.449219 19.449219 184 20 184 C 20.550781 184 21 184.449219 21 185 Z M 21 185 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 185 C 87 185.550781 86.550781 186 86 186 C 85.449219 186 85 185.550781 85 185 C 85 184.449219 85.449219 184 86 184 C 86.550781 184 87 184.449219 87 185 Z M 87 185 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 152 C 21 152.550781 20.550781 153 20 153 C 19.449219 153 19 152.550781 19 152 C 19 151.449219 19.449219 151 20 151 C 20.550781 151 21 151.449219 21 152 Z M 21 152 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 152 C 54 152.550781 53.550781 153 53 153 C 52.449219 153 52 152.550781 52 152 C 52 151.449219 52.449219 151 53 151 C 53.550781 151 54 151.449219 54 152 Z M 54 152 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 152 C 87 152.550781 86.550781 153 86 153 C 85.449219 153 85 152.550781 85 152 C 85 151.449219 85.449219 151 86 151 C 86.550781 151 87 151.449219 87 152 Z M 87 152 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 119 C 21 119.550781 20.550781 120 20 120 C 19.449219 120 19 119.550781 19 119 C 19 118.449219 19.449219 118 20 118 C 20.550781 118 21 118.449219 21 119 Z M 21 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 119 C 87 119.550781 86.550781 120 86 120 C 85.449219 120 85 119.550781 85 119 C 85 118.449219 85.449219 118 86 118 C 86.550781 118 87 118.449219 87 119 Z M 87 119 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 86 C 54 86.550781 53.550781 87 53 87 C 52.449219 87 52 86.550781 52 86 C 52 85.449219 52.449219 85 53 85 C 53.550781 85 54 85.449219 54 86 Z M 54 86 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 21 53 C 21 53.550781 20.550781 54 20 54 C 19.449219 54 19 53.550781 19 53 C 19 52.449219 19.449219 52 20 52 C 20.550781 52 21 52.449219 21 53 Z M 21 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 53 C 54 53.550781 53.550781 54 53 54 C 52.449219 54 52 53.550781 52 53 C 52 52.449219 52.449219 52 53 52 C 53.550781 52 54 52.449219 54 53 Z M 54 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 87 53 C 87 53.550781 86.550781 54 86 54 C 85.449219 54 85 53.550781 85 53 C 85 52.449219 85.449219 52 86 52 C 86.550781 52 87 52.449219 87 53 Z M 87 53 "/>
+<path fill-rule="nonzero" fill="rgb(20%25, 20%25, 20%25)" fill-opacity="1" d="M 54 20 C 54 20.550781 53.550781 21 53 21 C 52.449219 21 52 20.550781 52 20 C 52 19.449219 52.449219 19 53 19 C 53.550781 19 54 19.449219 54 20 Z M 54 20 "/>
+</svg>
+'/><p>Since most logic gates have 3 pins, it is natural to embed a circuit to a 3D unit disk graph by taking the z direction as the time. In a 2D grid, one needs to do the general weighted mapping in order to create a unit disk boolean circuit.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../unweighted/">Unweighted KSG reduction of the independent set problem »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.1 on <span class="colophon-date" title="Saturday 12 April 2025 16:52">Saturday 12 April 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
